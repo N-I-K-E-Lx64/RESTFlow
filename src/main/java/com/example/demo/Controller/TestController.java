@@ -24,6 +24,12 @@ public class TestController {
             logger.error(e.getMessage());
         }
 
+        try {
+            CWorkflowParser.INSTANCE.parseWorkflow();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+      
         return "Test";
     }
 }

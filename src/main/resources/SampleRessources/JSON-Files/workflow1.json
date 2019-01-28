@@ -1,0 +1,52 @@
+{
+  "title": "workflow1",
+  "description": "test-workflow",
+  "variables": [
+    "order"
+  ],
+  "sequence": [
+    {
+      "title": "MarketWS",
+      "RAML-File": "C:/Users/nikel/Documents/Programmieren/RESTFlow/src/main/resources/SampleRessources/RAML-Files/MarketWS",
+      "method": "/getBestOffer",
+      "input": {
+        "user_parameter": [
+          {
+            "name": "partNumber",
+            "type": "string"
+          },
+          {
+            "name": "budget",
+            "type": "double"
+          }
+        ]
+      },
+      "output": [
+        {
+          "name": "order",
+          "type": "MarketWS.Type.Order"
+        }
+      ],
+      "assign": {
+        "from": "OUTPUT.order",
+        "to": "VARIABLES.order"
+      }
+    },
+    {
+      "title": "OrderWS",
+      "RAML-File": "C:/Users/nikel/Documents/Programmieren/RESTFlow/src/main/resources/SampleRessources/RAML-Files/OrderWS",
+      "method": "/placeOrder",
+      "input": {
+        "parameter": [
+          "VARIABLES.order"
+        ]
+      },
+      "output": [
+        {
+          "name": "confirmation",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}
