@@ -1,0 +1,19 @@
+#%RAML 1.0
+title: Order
+version: v1
+baseUri: http://api.samplehost.com
+
+uses:
+  OrderLibrary: OrderLibrary.raml
+
+/placeOrder:
+  post:
+    description:
+    body:
+      application/json:
+        type: OrderLibrary.Order
+    responses:
+      200:
+        body:
+          application/json:
+            type: string
