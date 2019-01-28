@@ -1,5 +1,7 @@
 package com.example.demo;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.raml.v2.api.model.v10.api.Api;
 import org.springframework.lang.NonNull;
 
@@ -13,6 +15,8 @@ public enum EApiStorage implements IApiStorage, Function<String, Api> {
 
     INSTANCE;
 
+    Logger logger = LogManager.getLogger(EApiStorage.class);
+
     private Map<String, Api> apis = new ConcurrentHashMap<>();
 
 
@@ -20,6 +24,15 @@ public enum EApiStorage implements IApiStorage, Function<String, Api> {
     public void add(@NonNull Api api) {
         if (apis.containsKey(api.title().value()))
             throw new RuntimeException(MessageFormat.format("Api [{0}] wurde schon abstrahiert", api.title().value()));
+
+        logger.info("Added API: " + api.title().value() + " to the map!");
+    }
+
+    @Override
+    public void clearStorage() {
+        apis.clear();
+
+        logger.info("Cleared Map!");
     }
 
     @NonNull

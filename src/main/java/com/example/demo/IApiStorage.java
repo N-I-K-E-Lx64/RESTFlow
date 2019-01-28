@@ -11,4 +11,9 @@ public interface IApiStorage {
      * @param api Api Object
      */
     void add(@NonNull final Api api);
+
+    /**
+     * Delete all Apis in the Map
+     */
+    void clearStorage();
 }

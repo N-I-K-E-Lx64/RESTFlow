@@ -54,6 +54,13 @@
             <version>1.0.28</version>
         </dependency>
 
+        <!-- Unirest - HTTP Client Library -->
+        <dependency>
+            <groupId>io.github.openunirest</groupId>
+            <artifactId>open-unirest-java</artifactId>
+            <version>3.3.03</version>
+        </dependency>
+
     </dependencies>
 
     <build>
