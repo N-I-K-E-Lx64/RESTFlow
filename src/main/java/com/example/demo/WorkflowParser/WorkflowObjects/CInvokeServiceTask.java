@@ -19,12 +19,4 @@ public class CInvokeServiceTask implements ITask {
         this.mInput = pInput;
         this.mUserInput = pUserInput;
     }
-
-    public CInvokeServiceTask(CInvokeServiceTaskBuilder invokeServiceTaskBuilder) {
-        this.mTitle = invokeServiceTaskBuilder.title();
-        this.mApi = invokeServiceTaskBuilder.api();
-        this.mMethodIndex = invokeServiceTaskBuilder.methodIndex();
-        this.mInput = invokeServiceTaskBuilder.input();
-        this.mUserInput = invokeServiceTaskBuilder.userInput();
-    }
 }

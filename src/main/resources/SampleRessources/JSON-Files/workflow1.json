@@ -24,12 +24,12 @@
       "output": [
         {
           "name": "order",
-          "type": "MarketWS.Order"
+          "type": "MarketWS.Type.Order"
         }
       ],
       "assign": {
-        "from": "output.order",
-        "to": "variables.order"
+        "from": "OUTPUT.order",
+        "to": "VARIABLES.order"
       }
     },
     {
@@ -38,7 +38,7 @@
       "method": "/placeOrder",
       "input": {
         "parameter": [
-          "variables.order"
+          "VARIABLES.order"
         ]
       },
       "output": [

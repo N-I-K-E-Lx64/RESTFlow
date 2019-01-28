@@ -5,49 +5,49 @@ import org.raml.v2.api.model.v10.api.Api;
 import java.util.Map;
 
 public class CInvokeServiceTaskBuilder {
-    private String pTitle;
-    private Api pApi;
-    private int pMethodIndex;
-    private Map<String, CParameter> pInput;
-    private Map<String, CParameter> pUserInput;
+    private String mTitle;
+    private Api mApi;
+    private int mMethodIndex;
+    private Map<String, CParameter> mInput;
+    private Map<String, CParameter> mUserInput;
 
     public CInvokeServiceTaskBuilder(String pTitle, Api pApi, int pMethodIndex) {
-        this.pTitle = pTitle;
-        this.pApi = pApi;
-        this.pMethodIndex = pMethodIndex;
+        this.mTitle = pTitle;
+        this.mApi = pApi;
+        this.mMethodIndex = pMethodIndex;
     }
 
     String title() {
-        return pTitle;
+        return mTitle;
     }
 
     Api api() {
-        return pApi;
+        return mApi;
     }
 
     int methodIndex() {
-        return pMethodIndex;
+        return mMethodIndex;
     }
 
     Map<String, CParameter> input() {
-        return pInput;
+        return mInput;
     }
 
     Map<String, CParameter> userInput() {
-        return pUserInput;
+        return mUserInput;
     }
 
     public CInvokeServiceTaskBuilder setInput(Map<String, CParameter> pInput) {
-        this.pInput = pInput;
+        this.mInput = pInput;
         return this;
     }
 
     public CInvokeServiceTaskBuilder setUserInput(Map<String, CParameter> pUserInput) {
-        this.pUserInput = pUserInput;
+        this.mUserInput = pUserInput;
         return this;
     }
 
-    public CInvokeServiceTaskBuilder build() {
-        return this;
+    public CInvokeServiceTask build() {
+        return new CInvokeServiceTask(mTitle, mApi, mMethodIndex, mInput, mUserInput);
     }
 }
