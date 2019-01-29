@@ -9,7 +9,6 @@ public class CParameter<T> {
     }
 
     public CParameter() {
-
     }
 
     public T getValue() {

@@ -7,7 +7,7 @@
   "sequence": [
     {
       "title": "MarketWS",
-      "RAML-File": "C:/Users/nikel/Documents/Programmieren/RESTFlow/src/main/resources/SampleRessources/RAML-Files/Market.raml",
+      "RAML-File": "G:/GIT Repositorys/RESTFlow/src/main/resources/SampleRessources/RAML-Files/Market.raml",
       "resource": "/getBestOffer",
       "input": {
         "user_parameter": [
@@ -34,7 +34,7 @@
     },
     {
       "title": "OrderWS",
-      "RAML-File": "C:/Users/nikel/Documents/Programmieren/RESTFlow/src/main/resources/SampleRessources/RAML-Files/Order.raml",
+      "RAML-File": "G:/GIT Repositorys/RESTFlow/src/main/resources/SampleRessources/RAML-Files/Order.raml",
       "resource": "/placeOrder",
       "input": {
         "parameter": [

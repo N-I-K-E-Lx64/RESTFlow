@@ -1,12 +1,12 @@
 package com.example.demo.Controller;
 
-import com.example.demo.RamlToApiParser;
+import com.example.demo.WorkflowParser.CWorkflowParser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.FileNotFoundException;
+import java.io.IOException;
 
 @RestController
 public class TestController {
@@ -16,13 +16,6 @@ public class TestController {
     @RequestMapping("/")
     public String start() {
         logger.info("Start Process");
-
-        try {
-            RamlToApiParser.getInstance().convertRamlToApi("G:/GIT Repositorys/REST-Orchestration-Engine/res/RAML-Files/Market.raml");
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            logger.error(e.getMessage());
-        }
 
         try {
             CWorkflowParser.INSTANCE.parseWorkflow();

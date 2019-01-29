@@ -1,11 +1,13 @@
 package com.example.demo.WorkflowParser;
 
+import com.example.demo.RamlToApiParser;
 import com.example.demo.WorkflowParser.WorkflowObjects.CInvokeServiceTaskBuilder;
 import com.example.demo.WorkflowParser.WorkflowObjects.CParameter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.raml.v2.api.model.v10.api.Api;
 import org.springframework.util.ResourceUtils;
 
 import java.io.File;
@@ -13,6 +15,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.stream.IntStream;
 
 public enum CWorkflowParser {
 
@@ -28,7 +31,9 @@ public enum CWorkflowParser {
      * @throws IOException if ResourceFile can not be opened or found.
      */
     public void parseWorkflow() throws IOException {
-        File workflowJsonFile = ResourceUtils.getFile("classpath:SampleRessources/JSON-Files/workflow1.json");
+
+        File workflowJsonFile = ResourceUtils.getFile("classpath:SampleRessources/JSON-Files/workflow.json");
+        //File workflowJsonFile = ResourceUtils.getFile("classpath:SampleRessources/JSON-Files/workflow1.json");
 
         logger.info("Successfully load WorkflowFile!");
 
@@ -47,17 +52,27 @@ public enum CWorkflowParser {
             }
         }
 
-
+        /**
+         * Parse the Sequence Part.
+         */
         JsonNode sequenceNode = workflowNode.get("sequence");
         if (sequenceNode.isArray()) {
             for (final JsonNode task : sequenceNode) {
                 String lTitle = task.get("title").asText();
-                //TODO : Change this to API and invoke the parseRamlToApi-method!
-                String lRAMLFile = task.get("RAML-File").asText();
-                //TODO : Change this to Int and invoke the method which returns the index of these method from the RAML-File.
-                String lmethod = task.get("method").asText();
+                // Converts Api and saves it into the Storage!
+                //TODO : Change this for the File Upload!
+                Api l_Api = RamlToApiParser.getInstance().convertRamlToApi(task.get("RAML-File").asText());
 
-                CInvokeServiceTaskBuilder lInvokeServiceTaskBuilder = new CInvokeServiceTaskBuilder(lTitle, null, 0);
+                // Returns the index of the resource in the RAML file.
+                String lMethod = task.get("resource").asText();
+                int lResourceIndex = IntStream.range(0, l_Api.resources().size())
+                        .filter(resourceIndex -> l_Api.resources().get(resourceIndex).relativeUri().value().equals(lMethod))
+                        .findFirst()
+                        .orElse(-1);
+
+                logger.info(lResourceIndex);
+
+                CInvokeServiceTaskBuilder lInvokeServiceTaskBuilder = new CInvokeServiceTaskBuilder(lTitle, lResourceIndex);
 
                 JsonNode input = task.get("input");
 
