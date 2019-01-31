@@ -1,6 +1,6 @@
 package com.example.demo.Controller;
 
-import com.example.demo.WorkflowParser.CWorkflowParser;
+import com.example.demo.WorkflowParser.EWorkflowParser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,7 +18,7 @@ public class TestController {
         logger.info("Start Process");
 
         try {
-            CWorkflowParser.INSTANCE.parseWorkflow();
+            EWorkflowParser.INSTANCE.parseWorkflow();
         } catch (IOException e) {
             e.printStackTrace();
         }

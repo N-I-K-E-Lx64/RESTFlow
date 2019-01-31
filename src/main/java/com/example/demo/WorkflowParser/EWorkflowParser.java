@@ -1,7 +1,7 @@
 package com.example.demo.WorkflowParser;
 
 import com.example.demo.RamlToApiParser;
-import com.example.demo.WorkflowParser.WorkflowObjects.CInvokeServiceTaskBuilder;
+import com.example.demo.WorkflowParser.WorkflowObjects.CInvokeServiceDefinitionBuilder;
 import com.example.demo.WorkflowParser.WorkflowObjects.CParameter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,11 +17,11 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.stream.IntStream;
 
-public enum CWorkflowParser {
+public enum EWorkflowParser {
 
     INSTANCE;
 
-    private Logger logger = LogManager.getLogger(CWorkflowParser.class);
+    private Logger logger = LogManager.getLogger(EWorkflowParser.class);
 
     //TODO : create a input parameter for json File!
 
@@ -72,7 +72,7 @@ public enum CWorkflowParser {
 
                 logger.info(lResourceIndex);
 
-                CInvokeServiceTaskBuilder lInvokeServiceTaskBuilder = new CInvokeServiceTaskBuilder(lTitle, lResourceIndex);
+                CInvokeServiceDefinitionBuilder lInvokeServiceTaskBuilder = new CInvokeServiceDefinitionBuilder(lTitle, lResourceIndex);
 
                 JsonNode input = task.get("input");
 
@@ -80,6 +80,8 @@ public enum CWorkflowParser {
                     Map<String, CParameter> lUserParameters = new HashMap<>();
                     for (Iterator<JsonNode> userParamsIterator = input.get("user_parameter").elements(); userParamsIterator.hasNext(); ) {
                         logger.info(userParamsIterator.next());
+                        //TODO : Create a method which generifies the CParameter!
+                        CParameter<?> parameter = new CParameter<>(1);
                     }
 
                 } else if (input.has("parameter")) {
