@@ -3,6 +3,8 @@ package com.example.demo.WorkflowParser;
 import com.example.demo.RamlToApiParser;
 import com.example.demo.WorkflowParser.WorkflowObjects.CInvokeServiceDefinitionBuilder;
 import com.example.demo.WorkflowParser.WorkflowObjects.CParameter;
+import com.example.demo.WorkflowParser.WorkflowObjects.CWorkflow;
+import com.example.demo.WorkflowParser.WorkflowObjects.IWorkflow;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
@@ -42,7 +44,8 @@ public enum EWorkflowParser {
 
         String lWorkflowTitle = workflowNode.get("title").asText();
         String lWorkflowDescription = workflowNode.get("description").asText();
-        Map<String, String> lVariables = new HashMap<>();
+
+        Map<String, JsonNode> lVariables = new HashMap<>();
 
         //TODO : Perhaps it makes more sense to initialize the variables only when they are needed?!
         if (workflowNode.has("variables")) {
@@ -52,7 +55,9 @@ public enum EWorkflowParser {
             }
         }
 
-        /**
+        IWorkflow lWorkflow = new CWorkflow(lWorkflowTitle, lWorkflowDescription);
+
+        /*
          * Parse the Sequence Part.
          */
         JsonNode sequenceNode = workflowNode.get("sequence");
