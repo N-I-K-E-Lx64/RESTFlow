@@ -3,7 +3,7 @@ package com.example.demo.WorkflowParser.WorkflowObjects;
 import java.util.Map;
 import java.util.Queue;
 
-public class CWorkflow {
+public class CWorkflow implements IWorkflow {
 
     private final String title;
     private final String description;

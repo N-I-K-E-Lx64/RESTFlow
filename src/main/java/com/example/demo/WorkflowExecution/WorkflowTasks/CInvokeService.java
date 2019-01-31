@@ -1,14 +1,16 @@
 package com.example.demo.WorkflowExecution.WorkflowTasks;
 
 import com.example.demo.WorkflowParser.WorkflowObjects.CInvokeServiceDefinition;
+import com.example.demo.WorkflowParser.WorkflowObjects.IWorkflow;
 
 import java.util.Queue;
 
-public class CInvokeService implements ITaskAction {
+public class CInvokeService extends IBaseTaskAction {
 
     private final CInvokeServiceDefinition mTask;
 
-    public CInvokeService(CInvokeServiceDefinition pTask) {
+    public CInvokeService(IWorkflow pWorkflow, CInvokeServiceDefinition pTask) {
+        super(pWorkflow);
         mTask = pTask;
     }
 
