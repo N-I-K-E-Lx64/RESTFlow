@@ -8,6 +8,8 @@ import java.util.stream.Stream;
 
 public interface StorageService {
 
+    void init();
+
     void deleteAll();
 
     String store(MultipartFile file);

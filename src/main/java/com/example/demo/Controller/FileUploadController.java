@@ -25,16 +25,16 @@ public class FileUploadController {
 
     private static final Logger logger = LogManager.getLogger(FileUploadController.class);
 
-    private final StorageService storageService;
+    private final StorageService mStorageService;
 
     @Autowired
     public FileUploadController(StorageService storageService) {
-        this.storageService = storageService;
+        mStorageService = storageService;
     }
 
-    @PostMapping("/uploadFile")
+    @RequestMapping(value = "/uploadFile", method = RequestMethod.POST)
     public UploadFileResponse uploadFile(@RequestParam("file") MultipartFile file) {
-        String fileName = storageService.store(file);
+        String fileName = mStorageService.store(file);
 
         String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
                 .path("/downloadFile/")
@@ -56,7 +56,7 @@ public class FileUploadController {
     public ResponseEntity<Resource> downloadFile(@PathVariable String fileName, HttpServletRequest request) {
 
         // Load file as Resource
-        Resource resource = storageService.loadAsResource(fileName);
+        Resource resource = mStorageService.loadAsResource(fileName);
 
         // Determine file's content type
         String contentType = null;

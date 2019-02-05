@@ -23,8 +23,11 @@ public class FileSystemStorageService implements StorageService {
 
     @Autowired
     public FileSystemStorageService(StorageProperties properties) {
-        this.fileStorageLocation = Paths.get(properties.location()).toAbsolutePath().normalize();
+        this.fileStorageLocation = Paths.get(properties.location());
+    }
 
+    @Override
+    public void init() {
         try {
             Files.createDirectories(this.fileStorageLocation);
         } catch (IOException e) {
@@ -32,12 +35,10 @@ public class FileSystemStorageService implements StorageService {
         }
     }
 
-    @Override
     public void deleteAll() {
         FileSystemUtils.deleteRecursively(fileStorageLocation.toFile());
     }
 
-    @Override
     public String store(MultipartFile file) {
         String filename = StringUtils.cleanPath(file.getOriginalFilename());
 
@@ -60,7 +61,6 @@ public class FileSystemStorageService implements StorageService {
         }
     }
 
-    @Override
     public Stream<Path> loadAll() {
         try {
             return Files.walk(this.fileStorageLocation, 1)
@@ -71,12 +71,10 @@ public class FileSystemStorageService implements StorageService {
         }
     }
 
-    @Override
     public Path load(String filename) {
         return fileStorageLocation.resolve(filename).normalize();
     }
 
-    @Override
     public Resource loadAsResource(String filename) {
         try {
             Path file = load(filename);

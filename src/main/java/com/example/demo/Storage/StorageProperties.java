@@ -5,7 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties("storage")
 public class StorageProperties {
 
-    private String mLocation;
+    private String mLocation = "upload-dir";
 
     public String location() {
         return mLocation;
