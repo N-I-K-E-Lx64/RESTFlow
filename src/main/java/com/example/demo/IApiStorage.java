@@ -6,7 +6,7 @@ import org.springframework.lang.NonNull;
 public interface IApiStorage {
 
     /**
-     * Add a new API Object in the Storage
+     * Add a new API Object to the Storage
      *
      * @param api Api Object
      */

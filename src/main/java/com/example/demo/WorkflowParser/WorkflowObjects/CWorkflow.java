@@ -27,6 +27,11 @@ public class CWorkflow implements IWorkflow {
     }
 
     @Override
+    public String title() {
+        return mTitle;
+    }
+
+    @Override
     public Queue<ITaskAction> getQueue() {
         return mExecution;
     }

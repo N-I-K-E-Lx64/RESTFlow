@@ -15,15 +15,15 @@ public enum EApiStorage implements IApiStorage, Function<String, Api> {
 
     INSTANCE;
 
-    Logger logger = LogManager.getLogger(EApiStorage.class);
+    private static final Logger logger = LogManager.getLogger(EApiStorage.class);
 
     private Map<String, Api> apis = new ConcurrentHashMap<>();
-
 
     @Override
     public void add(@NonNull Api api) {
         if (apis.containsKey(api.title().value()))
             throw new RuntimeException(MessageFormat.format("Api [{0}] wurde schon abstrahiert", api.title().value()));
+
 
         logger.info("Added API: " + api.title().value() + " to the map!");
     }

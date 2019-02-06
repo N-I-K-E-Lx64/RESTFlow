@@ -10,7 +10,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.raml.v2.api.model.v10.api.Api;
-import org.springframework.util.ResourceUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,22 +24,18 @@ public enum EWorkflowParser {
 
     private Logger logger = LogManager.getLogger(EWorkflowParser.class);
 
-    //TODO : create a input parameter for json File!
-
     /**
      * Parse the workflow.json File into the required Java Objects
      *
      * @throws IOException if ResourceFile can not be opened or found.
      */
-    public void parseWorkflow() throws IOException {
+    public IWorkflow parseWorkflow(File pWorkflowFile) throws IOException {
 
-        File workflowJsonFile = ResourceUtils.getFile("classpath:SampleRessources/JSON-Files/workflow.json");
+        //File workflowJsonFile = ResourceUtils.getFile("classpath:SampleRessources/JSON-Files/workflow.json");
         //File workflowJsonFile = ResourceUtils.getFile("classpath:SampleRessources/JSON-Files/workflow1.json");
 
-        logger.info("Successfully load WorkflowFile!");
-
         ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode workflowNode = objectMapper.readTree(workflowJsonFile);
+        JsonNode workflowNode = objectMapper.readTree(pWorkflowFile);
 
         String lWorkflowTitle = workflowNode.get("title").asText();
         String lWorkflowDescription = workflowNode.get("description").asText();
@@ -97,5 +92,7 @@ public enum EWorkflowParser {
                 }
             }
         }
+
+        return lWorkflow;
     }
 }
