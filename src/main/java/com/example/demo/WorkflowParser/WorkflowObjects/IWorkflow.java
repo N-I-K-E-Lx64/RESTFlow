@@ -12,5 +12,12 @@ public interface IWorkflow {
 
     Queue<ITaskAction> getQueue();
 
-    void setQueue(Queue<ITaskAction> pExecution);
+    void setQueue(@NonNull Queue<ITaskAction> pExecution);
+
+    @NonNull
+    IWorkflow start();
+
+    void executeStep();
+
+    void postAction();
 }

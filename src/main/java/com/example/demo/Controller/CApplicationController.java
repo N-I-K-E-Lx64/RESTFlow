@@ -41,6 +41,10 @@ public class CApplicationController {
     @GetMapping("/startWorkflow/{workflowName:.+}")
     public String startWorkflow(@PathVariable String workflowName) {
 
+        IWorkflow lWorkflow = EWorkflowStorage.INSTANCE.apply(workflowName);
+        lWorkflow.start();
+
+        //TODO : Return Nachricht überarbeiten
         return "Success";
     }
 
