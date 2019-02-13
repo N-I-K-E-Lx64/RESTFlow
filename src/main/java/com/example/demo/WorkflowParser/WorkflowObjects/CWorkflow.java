@@ -1,5 +1,6 @@
 package com.example.demo.WorkflowParser.WorkflowObjects;
 
+import com.example.demo.Network.IMessage;
 import com.example.demo.WorkflowExecution.WorkflowTasks.ITaskAction;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.lang.NonNull;
@@ -86,4 +87,11 @@ public class CWorkflow implements IWorkflow {
     }
 
 
+    @Override
+    public void accept(IMessage pMessage) {
+
+        // Kopf der Queue holen und Nachricht mit aktueller Ausführungsqueue weitergeben
+        mExecution.remove().accept(mExecution, pMessage);
+        this.postAction();
+    }
 }

@@ -1,6 +1,7 @@
 package com.example.demo.Controller;
 
 import com.example.demo.EWorkflowStorage;
+import com.example.demo.Network.IMessage;
 import com.example.demo.Storage.StorageService;
 import com.example.demo.WorkflowParser.EWorkflowParser;
 import com.example.demo.WorkflowParser.WorkflowObjects.IWorkflow;
@@ -48,5 +49,21 @@ public class CApplicationController {
         return "Success";
     }
 
+    /**
+     * Class for representing the messages!
+     */
+    public static final class CMessage implements IMessage {
+
+        @Override
+        public IWorkflow workflow() {
+            return null;
+        }
+
+        //TODO : Implement the get Method!
+        @Override
+        public String get() {
+            return null;
+        }
+    }
 
 }
