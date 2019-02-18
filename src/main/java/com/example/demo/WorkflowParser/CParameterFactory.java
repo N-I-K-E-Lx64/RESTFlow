@@ -13,7 +13,14 @@ public class CParameterFactory {
         return ourInstance;
     }
 
-    //TODO - Check if it Works!
+    /**
+     * Creates an object based on given parameters.
+     *
+     * @param pParameterType  The Type of the Parameter (String, Int, etc.) used for generify the IParameter Object
+     * @param pParameterName  Name of the Parameter
+     * @param isUserparameter Is true if the parameter value, must be entered by a user.
+     * @return an IParameter-Object
+     */
     public IParameter createParameter(String pParameterType, String pParameterName, Boolean isUserparameter) {
         switch (pParameterType.toUpperCase()) {
             case "STRING":

@@ -1,6 +1,7 @@
 package com.example.demo.WorkflowParser;
 
 import com.example.demo.RamlToApiParser;
+import com.example.demo.WorkflowExecution.WorkflowTasks.EWorkflowTaskType;
 import com.example.demo.WorkflowParser.WorkflowParserObjects.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -47,8 +48,6 @@ public enum EWorkflowParser {
         String lWorkflowTitle = workflowNode.path("title").asText();
         String lWorkflowDescription = workflowNode.path("description").asText();
 
-        CWorkflowBuilder lWorkflowBuilder = new CWorkflowBuilder(lWorkflowTitle, lWorkflowDescription);
-
         Map<String, IVariable> lVariables = new HashMap<>();
 
         if (workflowNode.has("variables")) {
@@ -58,11 +57,13 @@ public enum EWorkflowParser {
             }
         }
 
-        lWorkflowBuilder.setVariables(lVariables);
+        CWorkflow lWorkflow = new CWorkflow(lWorkflowTitle, lWorkflowDescription, lVariables);
         CVariableTempStorage.getInstance().setReference(lVariables);
 
         JsonNode processNode = workflowNode.path("process");
-        Queue<ITask> lQueue = parseProcessNode(processNode);
+        lWorkflow.generateExecutionOrder(parseProcessNode(processNode));
+
+        logger.info("Successfully parsed Workflow: " + lWorkflowTitle);
     }
 
     /**
@@ -104,7 +105,8 @@ public enum EWorkflowParser {
                     .findFirst()
                     .orElse(-1);
 
-            CInvokeServiceBuilder invokeServiceBuilder = new CInvokeServiceBuilder(lTitle, lResourceIndex);
+            CInvokeServiceBuilder invokeServiceBuilder = new CInvokeServiceBuilder(lTitle, lResourceIndex,
+                    EWorkflowTaskType.INVOKESERVICE);
 
             if (invokeNode.has("input")) {
                 invokeServiceBuilder = invokeServiceBuilder.setInput(parseInputNode(invokeNode.path("input")));

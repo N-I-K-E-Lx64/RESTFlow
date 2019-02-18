@@ -1,12 +1,12 @@
 package com.example.demo.WorkflowParser.WorkflowParserObjects;
 
+import com.example.demo.WorkflowExecution.WorkflowTasks.EWorkflowTaskFactory;
 import com.example.demo.WorkflowExecution.WorkflowTasks.ITaskAction;
-import com.fasterxml.jackson.databind.JsonNode;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class CWorkflow implements IWorkflow {
@@ -14,16 +14,16 @@ public class CWorkflow implements IWorkflow {
     private final String mTitle;
     private final String mDescription;
 
-    private Queue<ITaskAction> mExecution;
+    private final Queue<ITaskAction> mExecution = new ConcurrentLinkedQueue<>();
 
     private AtomicReference<ITaskAction> mCurrentTask = new AtomicReference<>();
 
-    private Map<String, JsonNode> variables = Collections.synchronizedMap(new HashMap<>());
+    private Map<String, IVariable> mVariables;
 
-    public CWorkflow(String pTitle, String pDescription, Queue<ITaskAction> pExecution) {
+    public CWorkflow(String pTitle, String pDescription, Map<String, IVariable> pVariables) {
         this.mTitle = pTitle;
         this.mDescription = pDescription;
-        this.mExecution = pExecution;
+        this.mVariables = Collections.synchronizedMap(pVariables);
     }
 
     @Override
@@ -32,7 +32,9 @@ public class CWorkflow implements IWorkflow {
     }
 
     @Override
-    public void setQueue(Queue<ITaskAction> pExecution) {
-        this.mExecution = pExecution;
+    public void generateExecutionOrder(Queue<ITask> pTasks) {
+        for (ITask lTask : pTasks) {
+            mExecution.add(EWorkflowTaskFactory.INSTANCE.factory(this, lTask));
+        }
     }
 }

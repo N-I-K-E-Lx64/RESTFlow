@@ -1,6 +1,6 @@
 package com.example.demo.WorkflowExecution.WorkflowTasks;
 
-public enum EWorkflowTaskDefinition {
+public enum EWorkflowTaskType {
 
     INVOKESERVICE,
     SWITCH

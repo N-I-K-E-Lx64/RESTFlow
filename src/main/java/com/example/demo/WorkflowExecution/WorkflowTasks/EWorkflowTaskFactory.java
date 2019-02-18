@@ -5,16 +5,16 @@ import com.example.demo.WorkflowParser.WorkflowParserObjects.CWorkflow;
 import com.example.demo.WorkflowParser.WorkflowParserObjects.ITask;
 import org.springframework.lang.NonNull;
 
-import java.util.stream.Stream;
-
 public enum EWorkflowTaskFactory {
 
     INSTANCE;
 
-    public Stream<ITaskAction> factory(@NonNull final EWorkflowTaskDefinition pDecision, @NonNull CWorkflow pWorkflow, @NonNull ITask pTask) {
-        switch (pDecision) {
+    public ITaskAction factory(@NonNull CWorkflow pWorkflow, @NonNull ITask pTask) {
+        switch (pTask.getWorkflowType()) {
             case INVOKESERVICE:
-                return Stream.of(new CInvokeService(pWorkflow, (CInvokeServiceDefinition) pTask.get()));
+                return new CInvokeService(pWorkflow, (CInvokeServiceDefinition) pTask.get());
+
+            case SWITCH:
 
             default:
                 throw new RuntimeException("Chosen task is unknown!");

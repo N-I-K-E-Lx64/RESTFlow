@@ -32,7 +32,9 @@
           "raml": "Order.raml",
           "resource": "/placeOrder",
           "input": {
-            "variable": "order"
+            "variables": {
+              "variable": "order"
+            }
           },
           "assignTo": "VARIABLES.RESULT"
         }
