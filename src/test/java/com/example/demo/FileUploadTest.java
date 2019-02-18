@@ -1,6 +1,5 @@
 package com.example.demo;
 
-import com.example.demo.Storage.StorageFileNotFoundException;
 import com.example.demo.Storage.StorageService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -12,8 +11,6 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -36,13 +33,13 @@ public class FileUploadTest {
 
     }
 
-    @SuppressWarnings("unchecked")
+    /*@SuppressWarnings("unchecked")
     @Test
     public void should404WhenMissingFile() throws Exception {
         given(this.storageService.loadAsResource("test.txt"))
                 .willThrow(StorageFileNotFoundException.class);
 
         this.mvc.perform(get("/downloadFile/test.txt")).andExpect(status().isNotFound());
-    }
+    }*/
 
 }

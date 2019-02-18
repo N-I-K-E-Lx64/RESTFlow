@@ -14,7 +14,6 @@ import org.springframework.context.annotation.Bean;
 })
 public class DemoApplication {
 
-    //TODO : Remname all Variables so that they match the Guidelines!
     public static void main(String[] args) {
         SpringApplication.run(DemoApplication.class, args);
     }
