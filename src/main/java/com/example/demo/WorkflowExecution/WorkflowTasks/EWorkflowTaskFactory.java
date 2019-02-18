@@ -1,13 +1,13 @@
 package com.example.demo.WorkflowExecution.WorkflowTasks;
 
-import com.example.demo.WorkflowParser.WorkflowObjects.CInvokeServiceDefinition;
-import com.example.demo.WorkflowParser.WorkflowObjects.CWorkflow;
-import com.example.demo.WorkflowParser.WorkflowObjects.ITask;
+import com.example.demo.WorkflowParser.WorkflowParserObjects.CInvokeServiceDefinition;
+import com.example.demo.WorkflowParser.WorkflowParserObjects.CWorkflow;
+import com.example.demo.WorkflowParser.WorkflowParserObjects.ITask;
 import org.springframework.lang.NonNull;
 
 import java.util.stream.Stream;
 
-public enum EWorkflowTask {
+public enum EWorkflowTaskFactory {
 
     INSTANCE;
 

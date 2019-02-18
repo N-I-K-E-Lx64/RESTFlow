@@ -25,12 +25,11 @@ public class RamlToApiParser {
         return INSTANCE;
     }
 
-    public Api convertRamlToApi(String RamlFileLocation) throws FileNotFoundException {
-        File ramlFile = new File(RamlFileLocation);
-        logger.info("RAML-File exists?: " + ramlFile.exists());
-        logger.info("RAML-File can be read?: " + ramlFile.canRead());
-        if (ramlFile.exists() && ramlFile.canRead()) {
-            RamlModelResult ramlModelResult = new RamlModelBuilder().buildApi(ramlFile);
+    public Api convertRamlToApi(File pRamlFile) throws FileNotFoundException {
+        logger.info("RAML-File exists?: " + pRamlFile.exists());
+        logger.info("RAML-File can be read?: " + pRamlFile.canRead());
+        if (pRamlFile.exists() && pRamlFile.canRead()) {
+            RamlModelResult ramlModelResult = new RamlModelBuilder().buildApi(pRamlFile);
 
             if (ramlModelResult.hasErrors()) {
                 for (ValidationResult validationResult : ramlModelResult.getValidationResults()) {

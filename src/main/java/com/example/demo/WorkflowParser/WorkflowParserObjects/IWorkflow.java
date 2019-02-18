@@ -1,4 +1,4 @@
-package com.example.demo.WorkflowParser.WorkflowObjects;
+package com.example.demo.WorkflowParser.WorkflowParserObjects;
 
 import com.example.demo.WorkflowExecution.WorkflowTasks.ITaskAction;
 

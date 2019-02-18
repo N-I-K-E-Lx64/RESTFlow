@@ -1,7 +1,7 @@
 package com.example.demo.WorkflowExecution.WorkflowTasks;
 
-import com.example.demo.WorkflowParser.WorkflowObjects.CInvokeServiceDefinition;
-import com.example.demo.WorkflowParser.WorkflowObjects.IWorkflow;
+import com.example.demo.WorkflowParser.WorkflowParserObjects.CInvokeServiceDefinition;
+import com.example.demo.WorkflowParser.WorkflowParserObjects.IWorkflow;
 
 import java.util.Queue;
 

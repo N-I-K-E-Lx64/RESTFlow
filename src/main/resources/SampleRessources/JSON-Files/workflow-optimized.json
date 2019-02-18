@@ -1,0 +1,79 @@
+{
+  "workflow": {
+    "title": "test",
+    "description": "test",
+    "variables": [
+      "order",
+      "RESULT"
+    ],
+    "process": {
+      "invoke": [
+        {
+          "title": "MarketWS",
+          "raml": "Market.raml",
+          "resource": "/getBestOffer",
+          "input": {
+            "user-parameter": [
+              {
+                "name": "partNumber",
+                "type": "String"
+              },
+              {
+                "name": "budget",
+                "type": "double"
+              }
+            ]
+          },
+          "validator": "MarketWS.TYPE.Order",
+          "assignTo": "VARIABLES.order"
+        },
+        {
+          "title": "OrderWS",
+          "raml": "Order.raml",
+          "resource": "/placeOrder",
+          "input": {
+            "variable": "order"
+          },
+          "assignTo": "VARIABLES.RESULT"
+        }
+      ],
+      "switch": {
+        "case": {
+          "invoke": [
+            {
+              "title": "MarketWS",
+              "raml": "Market.raml",
+              "resource": "/getBestOffer",
+              "input": {
+                "user-parameter": [
+                  {
+                    "name": "partNumber",
+                    "type": "String"
+                  },
+                  {
+                    "name": "budget",
+                    "type": "double"
+                  }
+                ]
+              },
+              "validator": "MarketWS.TYPE.Order",
+              "assignTo": "VARIABLES.order"
+            },
+            {
+              "title": "OrderWS",
+              "raml": "Order.raml",
+              "resource": "/placeOrder",
+              "input": {
+                "variable": "order"
+              },
+              "assignTo": "VARIABLES.result"
+            }
+          ]
+        },
+        "else": {
+          "switch": ""
+        }
+      }
+    }
+  }
+}
