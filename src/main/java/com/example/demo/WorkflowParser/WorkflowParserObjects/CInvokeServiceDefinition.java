@@ -29,4 +29,9 @@ public class CInvokeServiceDefinition implements ITask {
     public EWorkflowTaskType getWorkflowType() {
         return mTaskType;
     }
+
+    @Override
+    public Map<String, IParameter> parameters() {
+        return mInput;
+    }
 }
