@@ -2,6 +2,9 @@ package com.example.demo;
 
 import com.example.demo.WorkflowParser.WorkflowParserObjects.IWorkflow;
 import org.springframework.lang.NonNull;
+import com.example.demo.WorkflowParser.WorkflowObjects.IWorkflow;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.text.MessageFormat;
 import java.util.Map;
@@ -14,6 +17,8 @@ import java.util.function.Supplier;
 public enum EWorkflowStorage implements IWorkflowStorage, Supplier<Set<String>>, Function<String, IWorkflow> {
 
     INSTANCE;
+  
+    private static final Logger logger = LogManager.getLogger(EWorkflowStorage.class);
 
     private final Map<String, IWorkflow> mWorkflows = new ConcurrentHashMap<>();
 
@@ -25,6 +30,8 @@ public enum EWorkflowStorage implements IWorkflowStorage, Supplier<Set<String>>,
             throw new RuntimeException(MessageFormat.format("Workflow [{0}] existiert schon", pWorkflow));
 
         mWorkflows.put(pWorkflow.name(), pWorkflow);
+      
+        logger.info("Saved Workflow: " + pWorkflow.title());
 
         return this;
     }

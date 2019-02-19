@@ -15,10 +15,9 @@ public enum EApiStorage implements IApiStorage, Function<String, Api> {
 
     INSTANCE;
 
-    Logger logger = LogManager.getLogger(EApiStorage.class);
+    private static final Logger logger = LogManager.getLogger(EApiStorage.class);
 
     private Map<String, Api> apis = new ConcurrentHashMap<>();
-
 
     @Override
     public void add(@NonNull Api api) {
