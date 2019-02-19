@@ -1,10 +1,9 @@
 package com.example.demo;
 
 import com.example.demo.WorkflowParser.WorkflowParserObjects.IWorkflow;
-import org.springframework.lang.NonNull;
-import com.example.demo.WorkflowParser.WorkflowObjects.IWorkflow;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.lang.NonNull;
 
 import java.text.MessageFormat;
 import java.util.Map;
@@ -30,8 +29,8 @@ public enum EWorkflowStorage implements IWorkflowStorage, Supplier<Set<String>>,
             throw new RuntimeException(MessageFormat.format("Workflow [{0}] existiert schon", pWorkflow));
 
         mWorkflows.put(pWorkflow.name(), pWorkflow);
-      
-        logger.info("Saved Workflow: " + pWorkflow.title());
+
+        logger.info("Saved Workflow: " + pWorkflow.name());
 
         return this;
     }

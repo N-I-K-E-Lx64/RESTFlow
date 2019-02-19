@@ -1,4 +1,4 @@
-package com.example.demo.WorkflowParser.WorkflowObjects;
+package com.example.demo.WorkflowExecution.Objects;
 
 public class CWorkflowExecutionException extends RuntimeException {
 

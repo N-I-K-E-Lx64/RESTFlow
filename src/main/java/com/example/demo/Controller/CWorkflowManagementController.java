@@ -1,8 +1,10 @@
 package com.example.demo.Controller;
 
 import com.example.demo.EWorkflowStorage;
+import com.example.demo.Network.IMessage;
 import com.example.demo.Storage.StorageService;
 import com.example.demo.WorkflowParser.EWorkflowParser;
+import com.example.demo.WorkflowParser.WorkflowParserObjects.IWorkflow;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -40,9 +42,27 @@ public class CWorkflowManagementController {
     }
 
     @RequestMapping(value = "/start/{workflow:.+}")
-    public void start(@PathVariable String workflow) {
+    public void startWorkflow(@PathVariable String workflow) {
 
-        EWorkflowStorage.INSTANCE.apply(workflow);
+        EWorkflowStorage.INSTANCE.apply(workflow).start();
+    }
+
+
+    /**
+     * Class for representing the messages!
+     */
+    public static final class CMessage implements IMessage {
+
+        //TODO : Implement the get Method!
+        @Override
+        public String get() {
+            return null;
+        }
+
+        @Override
+        public IWorkflow workflow() {
+            return null;
+        }
     }
 
 }
