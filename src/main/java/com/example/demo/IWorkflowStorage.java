@@ -1,21 +1,28 @@
 package com.example.demo;
 
-import com.example.demo.WorkflowParser.WorkflowObjects.IWorkflow;
+import com.example.demo.WorkflowParser.WorkflowParserObjects.IWorkflow;
 import org.springframework.lang.NonNull;
 
+/**
+ * Interface um Workflows zu verwalten
+ */
 public interface IWorkflowStorage {
 
     /**
-     * Add a new Workflow Object to the Storage
+     * Fügt einen Workflow hinzu.
      *
-     * @param pWorkflow
+     * @param pWorkflow Workflow-Objekt, dass hinzugefügt werden soll!
+     * @return Objektreferenz auf alle Workflows
      */
-    void add(@NonNull final IWorkflow pWorkflow);
+    @NonNull
+    IWorkflowStorage add(@NonNull final IWorkflow pWorkflow);
 
     /**
-     * Removes a specific Workflow Object
+     * Entfernt einen Workflow
      *
-     * @param pWorkflowTitle
+     * @param pWorkflow Workflow-Objekt, dass entfernt werden soll!
+     * @return Objektreferenz auf alle Workflows
      */
-    void remove(@NonNull final String pWorkflowTitle);
+    @NonNull
+    IWorkflowStorage remove(@NonNull final IWorkflow pWorkflow);
 }

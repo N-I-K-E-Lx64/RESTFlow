@@ -24,7 +24,6 @@ public enum EApiStorage implements IApiStorage, Function<String, Api> {
         if (apis.containsKey(api.title().value()))
             throw new RuntimeException(MessageFormat.format("Api [{0}] wurde schon abstrahiert", api.title().value()));
 
-
         logger.info("Added API: " + api.title().value() + " to the map!");
     }
 
