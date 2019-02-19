@@ -106,8 +106,7 @@ public class FileSystemStorageService implements StorageService {
             Path workflowLocation = this.rootLocation.resolve(workflowName);
             Path fileLocation = workflowLocation.resolve(filename).normalize();
             Resource resource = new UrlResource(fileLocation.toUri());
-            logger.info("Resource: " + fileLocation.normalize() + " exists?: " + resource.exists());
-            logger.info("Resource: " + fileLocation.normalize() + " is Readable?: " + resource.isReadable());
+
             if (resource.exists() || resource.isReadable()) {
                 return resource;
             } else {

@@ -7,6 +7,9 @@ import java.util.Queue;
 
 public interface IWorkflow {
 
+    @NonNull
+    String name();
+
     Queue<ITaskAction> getQueue();
 
     void generateExecutionOrder(@NonNull Queue<ITask> pTasks);

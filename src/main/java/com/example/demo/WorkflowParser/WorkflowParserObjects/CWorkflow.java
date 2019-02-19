@@ -2,6 +2,7 @@ package com.example.demo.WorkflowParser.WorkflowParserObjects;
 
 import com.example.demo.WorkflowExecution.WorkflowTasks.EWorkflowTaskFactory;
 import com.example.demo.WorkflowExecution.WorkflowTasks.ITaskAction;
+import org.springframework.lang.NonNull;
 
 import java.util.Collections;
 import java.util.Map;
@@ -24,6 +25,12 @@ public class CWorkflow implements IWorkflow {
         this.mTitle = pTitle;
         this.mDescription = pDescription;
         this.mVariables = Collections.synchronizedMap(pVariables);
+    }
+
+    @NonNull
+    @Override
+    public String name() {
+        return mTitle;
     }
 
     @Override

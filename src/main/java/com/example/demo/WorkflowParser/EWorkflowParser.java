@@ -1,6 +1,6 @@
 package com.example.demo.WorkflowParser;
 
-import com.example.demo.RamlToApiParser;
+import com.example.demo.Storage.StorageService;
 import com.example.demo.WorkflowExecution.WorkflowTasks.EWorkflowTaskType;
 import com.example.demo.WorkflowParser.WorkflowParserObjects.*;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -8,10 +8,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.raml.v2.api.model.v10.api.Api;
-import org.springframework.util.ResourceUtils;
+import org.springframework.core.io.Resource;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -24,29 +23,37 @@ public enum EWorkflowParser {
 
     INSTANCE;
 
-    private Logger logger = LogManager.getLogger(EWorkflowParser.class);
+    private static final Logger logger = LogManager.getLogger(EWorkflowParser.class);
 
-    //TODO : create a input parameter for json File!
+    private StorageService storageService;
+    private String workflowTitle;
+
+    //TODO : Dirty Workaround
+    public void init(StorageService storageService) {
+        this.storageService = storageService;
+    }
 
     /**
      * Parse the workflow.json File into the required Java Objects
      *
+     * @return fertiges IWorkflow-Objekt
      * @throws IOException if ResourceFile can not be opened or found.
      */
-    public void parseWorkflow() throws IOException {
+    public IWorkflow parseWorkflow(Resource workflowResource) throws IOException {
 
-        File workflowJsonFile = ResourceUtils.getFile("classpath:SampleRessources/JSON-Files/workflow-optimized.json");
-        //File workflowJsonFile = ResourceUtils.getFile("classpath:SampleRessources/JSON-Files/workflow1.json");
-
-        logger.info("Successfully load WorkflowFile!");
+        File workflowJsonFile = workflowResource.getFile();
 
         ObjectMapper objectMapper = new ObjectMapper();
         //Workflow Node works as the rootNode
         JsonNode rootNode = objectMapper.readTree(workflowJsonFile);
 
+        logger.info("Successfully load WorkflowFile!");
+
         JsonNode workflowNode = rootNode.path("workflow");
         String lWorkflowTitle = workflowNode.path("title").asText();
         String lWorkflowDescription = workflowNode.path("description").asText();
+
+        this.workflowTitle = lWorkflowTitle;
 
         Map<String, IVariable> lVariables = new HashMap<>();
 
@@ -64,6 +71,10 @@ public enum EWorkflowParser {
         lWorkflow.generateExecutionOrder(parseProcessNode(processNode));
 
         logger.info("Successfully parsed Workflow: " + lWorkflowTitle);
+
+        this.workflowTitle = null;
+
+        return lWorkflow;
     }
 
     /**
@@ -95,33 +106,32 @@ public enum EWorkflowParser {
 
         String lTitle = invokeNode.path("title").asText("No Title");
         //TODO: Get RAML-File from StorageService
+
+        final Api lApi;
         try {
-            File ramlTestFile = ResourceUtils.getFile("classpath:SampleRessources/RAML-Files/Market.raml");
-            final Api lApi = RamlToApiParser.getInstance().convertRamlToApi(ramlTestFile);
-
-
-            int lResourceIndex = IntStream.range(0, lApi.resources().size())
-                    .filter(resourceIndex -> lApi.resources().get(resourceIndex).relativeUri().value().equals(invokeNode.path("resource").asText()))
-                    .findFirst()
-                    .orElse(-1);
-
-            CInvokeServiceBuilder invokeServiceBuilder = new CInvokeServiceBuilder(lTitle, lResourceIndex,
-                    EWorkflowTaskType.INVOKESERVICE);
-
-            if (invokeNode.has("input")) {
-                invokeServiceBuilder = invokeServiceBuilder.setInput(parseInputNode(invokeNode.path("input")));
-            }
-
-            if (invokeNode.has("assignTo")) {
-                buildAssignTask(invokeNode.path("assignTo").asText());
-            }
-
-            return invokeServiceBuilder.build();
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            lApi = ERamlParser.INSTANCE.parseRaml(
+                    this.storageService.loadAsResource(invokeNode.path("raml").asText(), this.workflowTitle));
+        } catch (IOException e) {
+            throw new WorkflowParseException("Cannot parse RAML-File", e);
         }
-        return null;
+
+        int lResourceIndex = IntStream.range(0, lApi.resources().size())
+                .filter(resourceIndex -> lApi.resources().get(resourceIndex).relativeUri().value().equals(invokeNode.path("resource").asText()))
+                .findFirst()
+                .orElse(-1);
+
+        CInvokeServiceBuilder invokeServiceBuilder = new CInvokeServiceBuilder(lTitle, lResourceIndex,
+                EWorkflowTaskType.INVOKESERVICE);
+
+        if (invokeNode.has("input")) {
+            invokeServiceBuilder = invokeServiceBuilder.setInput(parseInputNode(invokeNode.path("input")));
+        }
+
+        if (invokeNode.has("assignTo")) {
+            buildAssignTask(invokeNode.path("assignTo").asText());
+        }
+
+        return invokeServiceBuilder.build();
     }
 
     /**
