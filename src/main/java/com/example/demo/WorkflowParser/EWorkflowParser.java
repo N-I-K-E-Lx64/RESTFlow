@@ -34,7 +34,7 @@ public enum EWorkflowParser {
     }
 
     /**
-     * Parse the workflow.json File into the required Java Objects
+     * Erstellt ein Workflow-Objekt.
      *
      * @return fertiges IWorkflow-Objekt
      * @throws IOException if ResourceFile can not be opened or found.
@@ -78,7 +78,10 @@ public enum EWorkflowParser {
     }
 
     /**
-     * @param processNode
+     * Erstellt eine Queue von ITask-Objekten
+     *
+     * @param processNode JsonNode mit allen wichtigen Informationen
+     * @return Queue von ITask-Objekten
      */
     public Queue<ITask> parseProcessNode(JsonNode processNode) {
 
@@ -97,10 +100,10 @@ public enum EWorkflowParser {
     }
 
     /**
-     * Erstellt ein ausführbares Objekt, welches einen REST-API Aufruf durchführen kann!
+     * Erstellt ein Objekt, welches die Definition für ausführbare ITaskAction-Objekte enthält
      *
      * @param invokeNode JsonNode mit allen wichtigen Informationen
-     * @return Ausführbares ITaskAction-Objekt
+     * @return ITask´-Objekt mit der Definition zur Erstellung von ausführbaren ITaskAction-Objekten
      */
     public ITask parseInvokeNode(JsonNode invokeNode) {
 

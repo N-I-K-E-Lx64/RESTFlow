@@ -8,11 +8,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
@@ -31,7 +27,8 @@ public class CWorkflowManagementController {
     }
 
     @RequestMapping(value = "/parseWorkflow", method = RequestMethod.POST)
-    public ResponseEntity<String> parseWorkflow(@RequestParam("workflow") String workflow, @RequestParam("workflowFile") String workflowFile) {
+    public void parseWorkflow(@RequestParam("workflow") String workflow, @RequestParam("workflowFile") String workflowFile) {
+
         Resource lWorkflowResource = mStorageService.loadAsResource(workflowFile, workflow);
         if (FilenameUtils.getExtension(lWorkflowResource.getFilename()).equals("json")) {
             try {
@@ -40,10 +37,12 @@ public class CWorkflowManagementController {
                 logger.error(e.getMessage());
             }
         }
+    }
 
-        //TODO : Create a better Response
-        return ResponseEntity.ok()
-                .body("Successfully parsed workflow");
+    @RequestMapping(value = "/start/{workflow:.+}")
+    public void start(@PathVariable String workflow) {
+
+        EWorkflowStorage.INSTANCE.apply(workflow);
     }
 
 }
