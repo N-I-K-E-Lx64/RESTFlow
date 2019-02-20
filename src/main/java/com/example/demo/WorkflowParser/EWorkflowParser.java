@@ -1,7 +1,6 @@
 package com.example.demo.WorkflowParser;
 
 import com.example.demo.RamlToApiParser;
-import com.example.demo.WorkflowExecution.WorkflowTasks.EWorkflowTaskType;
 import com.example.demo.WorkflowParser.WorkflowParserObjects.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,6 +26,7 @@ public enum EWorkflowParser {
     private Logger logger = LogManager.getLogger(EWorkflowParser.class);
 
     //TODO : create a input parameter for json File!
+    //TODO : Change all important attributes in json File to CAPS
 
     /**
      * Parse the workflow.json File into the required Java Objects
@@ -82,6 +82,11 @@ public enum EWorkflowParser {
                 lExecutionOrder.add(parseInvokeNode(processNode.path("invoke")));
             }
         }
+
+        if (processNode.has("switch")) {
+            lExecutionOrder.add(parseSwitchNode(processNode.path("switch")));
+        }
+
         return lExecutionOrder;
     }
 
@@ -105,22 +110,32 @@ public enum EWorkflowParser {
                     .findFirst()
                     .orElse(-1);
 
-            CInvokeServiceBuilder invokeServiceBuilder = new CInvokeServiceBuilder(lTitle, lResourceIndex,
-                    EWorkflowTaskType.INVOKESERVICE);
+            CInvokeServiceTask invokeService = new CInvokeServiceTask(lTitle, lResourceIndex);
 
             if (invokeNode.has("input")) {
-                invokeServiceBuilder = invokeServiceBuilder.setInput(parseInputNode(invokeNode.path("input")));
+                invokeService.setInput(parseInputNode(invokeNode.path("input")));
             }
 
             if (invokeNode.has("assignTo")) {
-                buildAssignTask(invokeNode.path("assignTo").asText());
+                invokeService.setAssignTask(buildAssignTask(invokeNode.path("assignTo").asText()));
             }
 
-            return invokeServiceBuilder.build();
+            return invokeService;
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+        return null;
+    }
+
+    public ITask parseSwitchNode(JsonNode switchNode) {
+
+        if (switchNode.has("CONDITION")) {
+
+        } else {
+            throw new WorkflowParseException("Switch-Activity hat keine Bedingung hinterlegt!");
+        }
+
         return null;
     }
 
@@ -194,14 +209,31 @@ public enum EWorkflowParser {
         return CParameterFactory.getInstance().createParameter(lParameterType, lParameterName, isUserParameter);
     }
 
-    public void buildAssignTask(String assignTo) {
+    /**
+     * @param assignTo
+     * @return
+     */
+    public CAssignTask buildAssignTask(String assignTo) {
         String lPrefix = assignTo.split("\\.")[0];
         String lVariable = assignTo.split("\\.")[1];
 
+        Map<String, IVariable> variables = CVariableTempStorage.getInstance().reference();
+
         if (lPrefix.equals("VARIABLES")) {
+            String variableKey = variables.entrySet().stream()
+                    .filter(variable -> variable.getValue().name().equals(lVariable))
+                    .map(Map.Entry::getKey)
+                    .findFirst()
+                    .orElse("FALSE");
 
+            if (!variableKey.equals("FALSE")) {
+                return new CAssignTask(variables.get(variableKey));
+            } else {
+                throw new WorkflowParseException("Variable could not be found. It was probably not created.");
+            }
+        } else {
+            throw new WorkflowParseException("Results can only be assigned to variables.");
         }
-
     }
 
     public IParameter createVariableReference(String variableName, IVariable variable) {

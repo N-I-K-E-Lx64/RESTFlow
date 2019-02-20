@@ -1,15 +1,15 @@
 package com.example.demo.WorkflowExecution.WorkflowTasks;
 
-import com.example.demo.WorkflowParser.WorkflowParserObjects.CInvokeServiceDefinition;
+import com.example.demo.WorkflowParser.WorkflowParserObjects.CInvokeServiceTask;
 import com.example.demo.WorkflowParser.WorkflowParserObjects.IWorkflow;
 
 import java.util.Queue;
 
 public class CInvokeService extends IBaseTaskAction {
 
-    private final CInvokeServiceDefinition mTask;
+    private final CInvokeServiceTask mTask;
 
-    public CInvokeService(IWorkflow pWorkflow, CInvokeServiceDefinition pTask) {
+    public CInvokeService(IWorkflow pWorkflow, CInvokeServiceTask pTask) {
         super(pWorkflow);
         mTask = pTask;
     }
@@ -17,7 +17,6 @@ public class CInvokeService extends IBaseTaskAction {
     @Override
     public Boolean apply(Queue<ITaskAction> iTaskActions) {
 
-        //TODO : Wenn InvokeService Assign Aktion enthält einen neuen AssignTask erstellen.
 
 
         return false;
