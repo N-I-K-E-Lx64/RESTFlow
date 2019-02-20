@@ -36,7 +36,6 @@ public class RamlToApiParser {
                     logger.error(validationResult.getMessage());
                 }
             } else {
-                EApiStorage.INSTANCE.add(ramlModelResult.getApiV10());
                 return ramlModelResult.getApiV10();
             }
         } else {

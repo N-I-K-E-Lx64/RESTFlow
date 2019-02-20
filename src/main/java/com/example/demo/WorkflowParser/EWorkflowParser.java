@@ -110,7 +110,7 @@ public enum EWorkflowParser {
                     .findFirst()
                     .orElse(-1);
 
-            CInvokeServiceTask invokeService = new CInvokeServiceTask(lTitle, lResourceIndex);
+            CInvokeServiceTask invokeService = new CInvokeServiceTask(lTitle, lResourceIndex, lApi);
 
             if (invokeNode.has("input")) {
                 invokeService.setInput(parseInputNode(invokeNode.path("input")));
