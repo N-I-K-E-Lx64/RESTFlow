@@ -125,7 +125,11 @@ public enum EWorkflowParser {
         CInvokeServiceTask invokeServiceBuilder = new CInvokeServiceTask(lTitle, lResourceIndex, lApi);
 
         if (invokeNode.has("input")) {
-            invokeServiceBuilder = invokeServiceBuilder.setInput(parseInputNode(invokeNode.path("input")));
+            invokeServiceBuilder.setInput(parseInputNode(invokeNode.path("input")));
+        }
+
+        if (invokeNode.has("validator")) {
+            invokeServiceBuilder.setValidator(true);
         }
 
         if (invokeNode.has("assignTo")) {

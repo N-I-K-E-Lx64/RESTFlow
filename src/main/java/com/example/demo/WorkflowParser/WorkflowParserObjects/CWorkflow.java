@@ -23,10 +23,13 @@ public class CWorkflow implements IWorkflow {
 
     private Map<String, IVariable> mVariables;
 
+    private boolean mIsEverythingOkay;
+
     public CWorkflow(String pTitle, String pDescription, Map<String, IVariable> pVariables) {
         this.mTitle = pTitle;
         this.mDescription = pDescription;
         this.mVariables = Collections.synchronizedMap(pVariables);
+        this.mIsEverythingOkay = true;
     }
 
     @NonNull
@@ -35,18 +38,24 @@ public class CWorkflow implements IWorkflow {
         return mTitle;
     }
 
+    @NonNull
     @Override
     public Queue<ITaskAction> getQueue() {
         return mExecution;
     }
 
     @Override
-    public void setQueue(Queue<ITaskAction> pExecution) {
+    public void setQueue(@NonNull Queue<ITaskAction> pExecution) {
         this.mExecution = pExecution;
     }
 
     @Override
-    public void generateExecutionOrder(Queue<ITask> pTasks) {
+    public void setWorkflowStatus(@NonNull boolean pIsEverythingOkay) {
+        this.mIsEverythingOkay = pIsEverythingOkay;
+    }
+
+    @Override
+    public void generateExecutionOrder(@NonNull Queue<ITask> pTasks) {
         for (ITask lTask : pTasks) {
             mExecution.add(EWorkflowTaskFactory.INSTANCE.factory(this, lTask));
         }
@@ -69,16 +78,18 @@ public class CWorkflow implements IWorkflow {
     @Override
     public void executeStep() {
 
-        mCurrentTask.set(mExecution.element());
+        if (mIsEverythingOkay) {
+            mCurrentTask.set(mExecution.element());
 
-        //Den Head der Queue ausführen und wenn true geliefert wird, muss auf eine Nachricht gewartet werden
-        if (mExecution.element().apply(mExecution)) {
-            return;
+            //Den Head der Queue ausführen und wenn true geliefert wird, muss auf eine Nachricht gewartet werden
+            if (mExecution.element().apply(mExecution)) {
+                return;
+            }
+
+            //... wenn false übergeben wird, wird Element aus der Queue entfernt
+            mExecution.remove();
+            this.postAction();
         }
-
-        //... wenn false übergeben wird, wird Element aus der Queue entfernt
-        mExecution.remove();
-        this.postAction();
     }
 
     /**
@@ -99,7 +110,7 @@ public class CWorkflow implements IWorkflow {
     public void accept(IMessage pMessage) {
 
         //Kopf der Queue holen und Nachricht mit aktueller Ausführungsqueue weitergeben
-        mExecution.peek().accept(mExecution, pMessage);
+        mExecution.peek().accept(pMessage);
         this.postAction();
     }
 }

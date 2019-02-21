@@ -5,6 +5,7 @@ import com.example.demo.WorkflowParser.WorkflowParserObjects.CInvokeServiceTask;
 import com.example.demo.WorkflowParser.WorkflowParserObjects.CParameter;
 import com.example.demo.WorkflowParser.WorkflowParserObjects.IParameter;
 import com.example.demo.WorkflowParser.WorkflowParserObjects.IWorkflow;
+import org.raml.v2.api.model.common.ValidationResult;
 import unirest.HttpResponse;
 import unirest.JsonNode;
 import unirest.Unirest;
@@ -18,7 +19,7 @@ public class CInvokeService extends IBaseTaskAction {
 
     private final CInvokeServiceTask mTask;
 
-    public CInvokeService(IWorkflow pWorkflow, CInvokeServiceTask pTask) {
+    CInvokeService(IWorkflow pWorkflow, CInvokeServiceTask pTask) {
         super(pWorkflow);
         mTask = pTask;
     }
@@ -26,6 +27,7 @@ public class CInvokeService extends IBaseTaskAction {
     @Override
     public Boolean apply(Queue<ITaskAction> iTaskActions) {
 
+        //TODO : Better empty Check for Variables
         List<IParameter> emptyVariables = mTask.parameters().entrySet().stream()
                 .filter(parameter -> {
                     if (Objects.isNull(parameter.getValue().value())) {
@@ -40,12 +42,16 @@ public class CInvokeService extends IBaseTaskAction {
             return true;
         }
 
+        buildRequest();
 
         return false;
     }
 
+    /**
+     * @param iMessage
+     */
     @Override
-    public void accept(Queue<ITaskAction> iTaskActions, IMessage iMessage) {
+    public void accept(IMessage iMessage) {
 
         CParameter lParameter = (CParameter) mTask.parameters().get(iMessage.parameterName());
         if (Objects.isNull(lParameter))
@@ -54,8 +60,21 @@ public class CInvokeService extends IBaseTaskAction {
         lParameter.setValue(iMessage.parameterValue());
     }
 
-    public void buildRequest() {
-        String lUrl = mTask.api().baseUri().value() + mTask.api().resources().get(mTask.methodIndex()).relativeUri().value();
+    public void processSuccess(HttpResponse pResponse) {
+        //TODO : Check if Assign activity is stored and if this is the case, perform it.
+
+        if (mTask.isValidatorRequired()) {
+            List<ValidationResult> lValidationResults =
+                    mTask.api().resources().get(mTask.resourceIndex()).methods().get(0).body().get(0).validate(pResponse.getBody().toString());
+
+            if (lValidationResults.size() > 0) {
+                mWorkflow.setWorkflowStatus(false);
+            }
+        }
+    }
+
+    private void buildRequest() {
+        String lUrl = mTask.api().baseUri().value() + mTask.api().resources().get(mTask.resourceIndex()).relativeUri().value();
 
         CRequest lRequest = new CRequest(lUrl);
 
@@ -68,7 +87,7 @@ public class CInvokeService extends IBaseTaskAction {
             lRequest.setFields(lFields);
         }
 
-        switch (mTask.api().resources().get(mTask.methodIndex()).methods().get(0).method().toUpperCase()) {
+        switch (mTask.api().resources().get(mTask.resourceIndex()).methods().get(0).method().toUpperCase()) {
             case "GET":
                 sendGetRequest(lRequest);
                 break;
@@ -77,13 +96,10 @@ public class CInvokeService extends IBaseTaskAction {
                 sendPostRequest(lRequest);
                 break;
         }
-
     }
 
     //TODO : Application-Event-Publisher, der das Ergebnis publisht. Falls das Ergebnis eingetroffen ist (im Success-Fall)
     // accept-Funktion hier im CInvokeService aufrufen und Assign und Validation durchführen!
-
-    //TODO :  UserVariablen-Belegung genauso wie gameAction in CGameActionController
 
     private void sendGetRequest(CRequest pRequest) {
         CompletableFuture<HttpResponse<JsonNode>> future = Unirest.get(pRequest.url())
@@ -91,7 +107,7 @@ public class CInvokeService extends IBaseTaskAction {
                 .queryString(pRequest.fields())
                 .asJsonAsync(response -> {
                     //response.ifFailure(failure ->);
-                    //response.ifSuccess(success ->);
+                    response.ifSuccess(this::processSuccess);
                 });
     }
 
@@ -106,29 +122,33 @@ public class CInvokeService extends IBaseTaskAction {
     }
 
 
-    public class CRequest {
+    private class CRequest {
 
         private final String mUrl;
         private Map<String, String> mHeaders;
         private Map<String, Object> mFields;
 
-        public CRequest(String pUrl) {
+        CRequest(String pUrl) {
             this.mUrl = pUrl;
         }
 
-        public void setFields(Map<String, Object> pFields) {
+        void setFields(Map<String, Object> pFields) {
             this.mFields = pFields;
         }
 
-        public String url() {
+        void setHeaders(Map<String, String> pHeaders) {
+            this.mHeaders = pHeaders;
+        }
+
+        String url() {
             return mUrl;
         }
 
-        public Map<String, String> headers() {
+        Map<String, String> headers() {
             return mHeaders;
         }
 
-        public Map<String, Object> fields() {
+        Map<String, Object> fields() {
             return mFields;
         }
     }

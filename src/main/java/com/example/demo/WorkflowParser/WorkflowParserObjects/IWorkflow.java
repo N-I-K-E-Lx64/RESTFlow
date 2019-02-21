@@ -17,6 +17,8 @@ public interface IWorkflow extends Consumer<IMessage> {
 
     void setQueue(@NonNull Queue<ITaskAction> pExecution);
 
+    void setWorkflowStatus(@NonNull boolean pIsEverythingOkay);
+
     void generateExecutionOrder(@NonNull Queue<ITask> pTasks);
 
     @NonNull

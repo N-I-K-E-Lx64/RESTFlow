@@ -57,7 +57,6 @@ public class CWorkflowManagementController {
         lWorkflow.accept(pMessage);
     }
 
-
     /**
      * Class for representing the messages!
      */
