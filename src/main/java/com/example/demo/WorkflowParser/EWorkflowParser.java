@@ -1,7 +1,6 @@
 package com.example.demo.WorkflowParser;
 
 import com.example.demo.Storage.StorageService;
-import com.example.demo.WorkflowExecution.WorkflowTasks.EWorkflowTaskType;
 import com.example.demo.WorkflowParser.WorkflowParserObjects.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -123,8 +122,7 @@ public enum EWorkflowParser {
                 .findFirst()
                 .orElse(-1);
 
-        CInvokeServiceBuilder invokeServiceBuilder = new CInvokeServiceBuilder(lTitle, lResourceIndex,
-                EWorkflowTaskType.INVOKESERVICE);
+        CInvokeServiceTask invokeServiceBuilder = new CInvokeServiceTask(lTitle, lResourceIndex, lApi);
 
         if (invokeNode.has("input")) {
             invokeServiceBuilder = invokeServiceBuilder.setInput(parseInputNode(invokeNode.path("input")));
@@ -134,7 +132,7 @@ public enum EWorkflowParser {
             buildAssignTask(invokeNode.path("assignTo").asText());
         }
 
-        return invokeServiceBuilder.build();
+        return invokeServiceBuilder;
     }
 
     /**

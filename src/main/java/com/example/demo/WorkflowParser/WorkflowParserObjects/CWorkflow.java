@@ -99,7 +99,7 @@ public class CWorkflow implements IWorkflow {
     public void accept(IMessage pMessage) {
 
         //Kopf der Queue holen und Nachricht mit aktueller Ausführungsqueue weitergeben
-        mExecution.remove().accept(mExecution, pMessage);
+        mExecution.peek().accept(mExecution, pMessage);
         this.postAction();
     }
 }

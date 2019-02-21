@@ -3,8 +3,10 @@ package com.example.demo.Controller;
 import com.example.demo.EWorkflowStorage;
 import com.example.demo.Network.IMessage;
 import com.example.demo.Storage.StorageService;
+import com.example.demo.WorkflowParser.CParameterFactory;
 import com.example.demo.WorkflowParser.EWorkflowParser;
 import com.example.demo.WorkflowParser.WorkflowParserObjects.IWorkflow;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -47,11 +49,30 @@ public class CWorkflowManagementController {
         EWorkflowStorage.INSTANCE.apply(workflow).start();
     }
 
+    @RequestMapping(value = "/setUserParameter", method = RequestMethod.POST)
+    public void setUserVariable(@RequestBody CMessage pMessage) {
+
+        final IWorkflow lWorkflow = EWorkflowStorage.INSTANCE.apply(pMessage.workflow());
+
+        lWorkflow.accept(pMessage);
+    }
+
 
     /**
      * Class for representing the messages!
      */
     public static final class CMessage implements IMessage {
+
+        @JsonProperty("workflow")
+        private String mWorkflow;
+        @JsonProperty("parameter")
+        private String mParameter;
+        @JsonProperty("type")
+        private String mParameterType;
+        @JsonProperty("value")
+        private String mParameterValue;
+
+
 
         //TODO : Implement the get Method!
         @Override
@@ -59,10 +80,20 @@ public class CWorkflowManagementController {
             return null;
         }
 
-        @Override
-        public IWorkflow workflow() {
-            return null;
+        public String workflow() {
+            return mWorkflow;
         }
+
+        public String parameterName() {
+            return mParameter;
+        }
+
+        public Object parameterValue() {
+            return CParameterFactory.getInstance().createParameterValue(mParameterType, mParameterValue);
+        }
+
+
     }
+
 
 }

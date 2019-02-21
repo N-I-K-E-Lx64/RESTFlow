@@ -1,6 +1,6 @@
 package com.example.demo.WorkflowExecution.WorkflowTasks;
 
-import com.example.demo.WorkflowParser.WorkflowParserObjects.CInvokeServiceDefinition;
+import com.example.demo.WorkflowParser.WorkflowParserObjects.CInvokeServiceTask;
 import com.example.demo.WorkflowParser.WorkflowParserObjects.CWorkflow;
 import com.example.demo.WorkflowParser.WorkflowParserObjects.ITask;
 import org.springframework.lang.NonNull;
@@ -12,7 +12,7 @@ public enum EWorkflowTaskFactory {
     public ITaskAction factory(@NonNull CWorkflow pWorkflow, @NonNull ITask pTask) {
         switch (pTask.getWorkflowType()) {
             case INVOKESERVICE:
-                return new CInvokeService(pWorkflow, (CInvokeServiceDefinition) pTask.get());
+                return new CInvokeService(pWorkflow, (CInvokeServiceTask) pTask.get());
 
             case SWITCH:
 
