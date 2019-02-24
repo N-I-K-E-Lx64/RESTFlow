@@ -1,20 +1,20 @@
 package com.example.demo.WorkflowParser.WorkflowParserObjects;
 
 import com.example.demo.WorkflowExecution.WorkflowTasks.EWorkflowTaskType;
-import com.example.demo.WorkflowExecution.WorkflowTasks.ITaskAction;
 import org.raml.v2.api.model.v10.api.Api;
 import org.springframework.lang.NonNull;
 
 import java.util.Map;
 
 public class CInvokeServiceTask implements ITask {
+
     private String mTitle;
     private int mResourceIndex;
     private Map<String, IParameter> mInput;
     private final Api mApi;
-    private final EWorkflowTaskType mTaskType;
     private boolean mIsValidatorRequired;
-    private ITaskAction mAssignTask;
+    private final EWorkflowTaskType mTaskType;
+    private CAssignTask mAssignTask;
 
     public CInvokeServiceTask(String pTitle, int pMethodIndex, Api pApi) {
         this.mTitle = pTitle;
@@ -24,18 +24,21 @@ public class CInvokeServiceTask implements ITask {
         this.mIsValidatorRequired = false;
     }
 
-    public CInvokeServiceTask setInput(Map<String, IParameter> pInput) {
+    public void setInput(Map<String, IParameter> pInput) {
         this.mInput = pInput;
-        return this;
     }
 
-    public CInvokeServiceTask setValidator(boolean pIsValidatorRequired) {
+    public void setValidator(boolean pIsValidatorRequired) {
         this.mIsValidatorRequired = pIsValidatorRequired;
-        return this;
     }
 
+    public void setAssignTask(CAssignTask pAssignTask) {
+        this.mAssignTask = pAssignTask;
+    }
+
+    @NonNull
     @Override
-    public Object get() {
+    public Object raw() {
         return this;
     }
 
@@ -60,5 +63,9 @@ public class CInvokeServiceTask implements ITask {
 
     public boolean isValidatorRequired() {
         return mIsValidatorRequired;
+    }
+
+    public CAssignTask assignTask() {
+        return mAssignTask;
     }
 }

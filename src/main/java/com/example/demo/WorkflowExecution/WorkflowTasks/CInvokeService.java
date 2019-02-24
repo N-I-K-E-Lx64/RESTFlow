@@ -60,8 +60,13 @@ public class CInvokeService extends IBaseTaskAction {
         lParameter.setValue(iMessage.parameterValue());
     }
 
-    public void processSuccess(HttpResponse pResponse) {
-        //TODO : Check if Assign activity is stored and if this is the case, perform it.
+    private void processSuccess(HttpResponse pResponse) {
+
+        if (!Objects.isNull(mTask.assignTask())) {
+            mTask.assignTask().source().setValue(pResponse.getBody());
+
+            EWorkflowTaskFactory.INSTANCE.factory(mWorkflow, mTask.assignTask()).apply(null);
+        }
 
         if (mTask.isValidatorRequired()) {
             List<ValidationResult> lValidationResults =

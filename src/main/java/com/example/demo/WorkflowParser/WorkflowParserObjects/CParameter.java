@@ -25,15 +25,14 @@ public class CParameter<T> implements IParameter {
         return mName;
     }
 
+    //TODO - überlegen ob das besser ist! Bsp. siehe CNotificationService
     @NonNull
-    @Override
     public T value() {
         return mValue;
     }
 
-    public void setValue(T pValue) {
-        mValue = pValue;
+    public void setValue(@NonNull Object pValue) {
+        mValue = (T) pValue;
     }
-
 
 }
