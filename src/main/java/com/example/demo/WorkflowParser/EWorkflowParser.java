@@ -95,6 +95,11 @@ public enum EWorkflowParser {
                 lExecutionOrder.add(parseInvokeNode(processNode.path("invoke")));
             }
         }
+
+        if (processNode.has("switch")) {
+            lExecutionOrder.add(parseSwitchNode(processNode.path("switch")));
+        }
+
         return lExecutionOrder;
     }
 
@@ -137,6 +142,17 @@ public enum EWorkflowParser {
         }
 
         return invokeServiceBuilder;
+    }
+
+    public ITask parseSwitchNode(JsonNode switchNode) {
+
+        if (switchNode.has("CONDITION")) {
+
+        } else {
+            throw new WorkflowParseException("Switch-Activity hat keine Bedingung hinterlegt!");
+        }
+
+        return null;
     }
 
     /**
@@ -209,14 +225,33 @@ public enum EWorkflowParser {
         return CParameterFactory.getInstance().createParameter(lParameterType, lParameterName, isUserParameter);
     }
 
-    public void buildAssignTask(String assignTo) {
+    /**
+     * @param assignTo
+     * @return
+     */
+    public CAssignTask buildAssignTask(String assignTo) {
         String lPrefix = assignTo.split("\\.")[0];
         String lVariable = assignTo.split("\\.")[1];
 
+        Map<String, IVariable> variables = CVariableTempStorage.getInstance().reference();
+
         if (lPrefix.equals("VARIABLES")) {
+            String variableKey = variables.entrySet().stream()
+                    .filter(variable -> variable.getValue().name().equals(lVariable))
+                    .map(Map.Entry::getKey)
+                    .findFirst()
+                    .orElse("FALSE");
 
+            if (!variableKey.equals("FALSE")) {
+                IParameter lParameter = createVariableReference(variableKey, variables.get(variableKey));
+
+                return new CAssignTask(null, lParameter);
+            } else {
+                throw new WorkflowParseException("Variable could not be found. It was probably not created.");
+            }
+        } else {
+            throw new WorkflowParseException("Results can only be assigned to variables.");
         }
-
     }
 
     public IParameter createVariableReference(String variableName, IVariable variable) {
