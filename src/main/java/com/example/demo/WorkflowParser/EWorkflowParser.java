@@ -227,7 +227,9 @@ public enum EWorkflowParser {
                     .orElse("FALSE");
 
             if (!variableKey.equals("FALSE")) {
-                return new CAssignTask(variables.get(variableKey));
+                IParameter lParameter = createVariableReference(variableKey, variables.get(variableKey));
+
+                return new CAssignTask(null, lParameter);
             } else {
                 throw new WorkflowParseException("Variable could not be found. It was probably not created.");
             }
