@@ -22,7 +22,7 @@ public class CAssignTask implements ITask {
 
     @NonNull
     @Override
-    public Object get() {
+    public Object raw() {
         return this;
     }
 
@@ -30,5 +30,13 @@ public class CAssignTask implements ITask {
     @Override
     public EWorkflowTaskType getWorkflowType() {
         return mTaskType;
+    }
+
+    public IParameter source() {
+        return mSourceReference.get();
+    }
+
+    public IParameter target() {
+        return mTargetReference.get();
     }
 }

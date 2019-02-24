@@ -3,6 +3,8 @@ package com.example.demo.WorkflowParser;
 import com.example.demo.WorkflowParser.WorkflowParserObjects.CParameter;
 import com.example.demo.WorkflowParser.WorkflowParserObjects.IParameter;
 
+import java.text.MessageFormat;
+
 public class CParameterFactory {
     private static CParameterFactory ourInstance = new CParameterFactory();
 
@@ -36,7 +38,23 @@ public class CParameterFactory {
                 return lParameterDouble;
 
             default:
-                throw new WorkflowParseException("Parameter-Type doesn't match known types!");
+                throw new WorkflowParseException(MessageFormat.format("Parameter-Type [{0}] doesn't match known types!", pParameterType));
+        }
+    }
+
+    public Object createParameterValue(String pParameterType, String pParameterValue) {
+        switch (pParameterType.toUpperCase()) {
+            case "STRING":
+                return pParameterValue;
+
+            case "INT":
+                return Integer.parseInt(pParameterValue);
+
+            case "DOUBLE":
+                return Double.parseDouble(pParameterValue);
+
+            default:
+                throw new RuntimeException(MessageFormat.format("Parameter-Type [{0}] doesn't match known types!", pParameterType));
         }
     }
 }

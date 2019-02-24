@@ -6,7 +6,7 @@ import org.springframework.lang.NonNull;
 public interface ITask<T> {
 
     @NonNull
-    T get();
+    T raw();
 
     @NonNull
     EWorkflowTaskType getWorkflowType();
