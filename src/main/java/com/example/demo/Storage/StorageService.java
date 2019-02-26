@@ -12,11 +12,13 @@ public interface StorageService {
 
     void deleteAll();
 
-    String store(MultipartFile file);
+    void initWorkflowDirectory(String workflowName);
+
+    String store(MultipartFile file, String workflowName);
 
     Stream<Path> loadAll();
 
     Path load(String filename);
 
-    Resource loadAsResource(String filename);
+    Resource loadAsResource(String filename, String workflowName);
 }

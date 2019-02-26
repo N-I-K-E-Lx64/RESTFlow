@@ -19,19 +19,20 @@ public class CParameter<T> implements IParameter {
         this.mIsUserParameter = pIsUserParameter;
     }
 
-    public void setValue(T pValue) {
-        this.mValue = pValue;
-    }
-
     @NonNull
     @Override
     public String name() {
         return mName;
     }
 
+    //TODO - überlegen ob das besser ist! Bsp. siehe CNotificationService
     @NonNull
-    @Override
-    public Object value() {
+    public T value() {
         return mValue;
     }
+
+    public void setValue(@NonNull Object pValue) {
+        mValue = (T) pValue;
+    }
+
 }

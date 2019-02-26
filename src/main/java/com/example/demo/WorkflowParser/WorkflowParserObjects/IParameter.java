@@ -9,4 +9,6 @@ public interface IParameter<T> {
 
     @NonNull
     T value();
+
+    void setValue(@NonNull T pValue);
 }

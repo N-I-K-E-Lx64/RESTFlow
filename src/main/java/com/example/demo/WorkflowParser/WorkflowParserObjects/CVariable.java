@@ -12,17 +12,18 @@ public class CVariable implements IVariable {
         this.mName = pName;
     }
 
-
     @Override
-    public void setValue(JsonNode pValue) {
+    public void setValue(@NonNull JsonNode pValue) {
         mValue = pValue;
     }
 
+    @NonNull
     @Override
     public JsonNode value() {
         return mValue;
     }
 
+    @NonNull
     @Override
     public String name() {
         return mName;

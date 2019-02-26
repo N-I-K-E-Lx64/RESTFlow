@@ -33,30 +33,37 @@ public class FileUploadController {
     }
 
     @RequestMapping(value = "/uploadFile", method = RequestMethod.POST)
-    public UploadFileResponse uploadFile(@RequestParam("file") MultipartFile file) {
-        String fileName = mStorageService.store(file);
+    public UploadFileResponse uploadFile(@RequestParam("file") MultipartFile file,
+                                         @RequestParam("workflow") String workflowName) {
+
+        mStorageService.initWorkflowDirectory(workflowName);
+
+        String fileName = mStorageService.store(file, workflowName);
 
         String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
                 .path("/downloadFile/")
                 .path(fileName)
                 .toUriString();
 
-        return new UploadFileResponse(fileName, fileDownloadUri, file.getContentType(), file.getSize());
+        return new UploadFileResponse(file.getOriginalFilename(), workflowName, fileDownloadUri, file.getContentType(), file.getSize());
     }
 
     @PostMapping("/uploadMultipleFiles")
-    public List<UploadFileResponse> uploadMultipleFiles(@RequestParam("files") MultipartFile[] files) {
+    public List<UploadFileResponse> uploadMultipleFiles(@RequestParam("files") MultipartFile[] files,
+                                                        @RequestParam("workflow") String workflowName) {
+
         return Arrays.asList(files)
                 .stream()
-                .map(file -> uploadFile(file))
+                .map(file -> uploadFile(file, workflowName))
                 .collect(Collectors.toList());
     }
 
-    @GetMapping("/downloadFile/{fileName:.+}")
-    public ResponseEntity<Resource> downloadFile(@PathVariable String fileName, HttpServletRequest request) {
+    @GetMapping("/downloadFile/{workflowName:.+}/{fileName:.+}")
+    public ResponseEntity<Resource> downloadFile(@PathVariable String workflowName, @PathVariable String fileName,
+                                                 HttpServletRequest request) {
 
         // Load file as Resource
-        Resource resource = mStorageService.loadAsResource(fileName);
+        Resource resource = mStorageService.loadAsResource(fileName, workflowName);
 
         // Determine file's content type
         String contentType = null;

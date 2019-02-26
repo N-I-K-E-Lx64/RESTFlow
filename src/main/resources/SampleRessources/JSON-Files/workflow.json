@@ -1,52 +1,44 @@
 {
-  "title": "workflow1",
-  "description": "test-workflow",
-  "variables": [
-    "order"
-  ],
-  "sequence": [
-    {
-      "title": "MarketWS",
-      "RAML-File": "G:/GIT Repositorys/RESTFlow/src/main/resources/SampleRessources/RAML-Files/Market.raml",
-      "resource": "/getBestOffer",
-      "input": {
-        "user_parameter": [
-          {
-            "name": "partNumber",
-            "type": "string"
+  "workflow": {
+    "title": "test",
+    "description": "test",
+    "variables": [
+      "order",
+      "RESULT"
+    ],
+    "process": {
+      "invoke": [
+        {
+          "title": "MarketWS",
+          "raml": "Market.raml",
+          "resource": "/getBestOffer",
+          "input": {
+            "user-parameter": [
+              {
+                "name": "partNumber",
+                "type": "String"
+              },
+              {
+                "name": "budget",
+                "type": "double"
+              }
+            ]
           },
-          {
-            "name": "budget",
-            "type": "double"
-          }
-        ]
-      },
-      "output": [
+          "validator": "MarketWS.TYPE.Order",
+          "assignTo": "VARIABLES.order"
+        },
         {
-          "name": "order",
-          "type": "MarketWS.Type.Order"
-        }
-      ],
-      "assign": {
-        "from": "OUTPUT.order",
-        "to": "VARIABLES.order"
-      }
-    },
-    {
-      "title": "OrderWS",
-      "RAML-File": "G:/GIT Repositorys/RESTFlow/src/main/resources/SampleRessources/RAML-Files/Order.raml",
-      "resource": "/placeOrder",
-      "input": {
-        "parameter": [
-          "VARIABLES.order"
-        ]
-      },
-      "output": [
-        {
-          "name": "confirmation",
-          "type": "string"
+          "title": "OrderWS",
+          "raml": "Order.raml",
+          "resource": "/placeOrder",
+          "input": {
+            "variables": {
+              "variable": "order"
+            }
+          },
+          "assignTo": "VARIABLES.RESULT"
         }
       ]
     }
-  ]
+  }
 }
