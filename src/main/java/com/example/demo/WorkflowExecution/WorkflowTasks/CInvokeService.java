@@ -20,9 +20,8 @@ import java.util.stream.Collectors;
 
 public class CInvokeService extends IBaseTaskAction {
 
-    private final CInvokeServiceTask mTask;
-
     private static final ObjectMapper mMapper = new ObjectMapper();
+    private final CInvokeServiceTask mTask;
 
     CInvokeService(IWorkflow pWorkflow, CInvokeServiceTask pTask) {
         super(pWorkflow);
@@ -35,10 +34,7 @@ public class CInvokeService extends IBaseTaskAction {
         //TODO : Better empty Check for Variables
         List<IParameter> emptyVariables = mTask.parameters().entrySet().stream()
                 .filter(parameter -> {
-                    if (Objects.isNull(parameter.getValue().value())) {
-                        return true;
-                    }
-                    return false;
+                    return Objects.isNull(parameter.getValue().value());
                 }).map(map -> map.getValue())
                 .collect(Collectors.toList());
 
@@ -82,23 +78,19 @@ public class CInvokeService extends IBaseTaskAction {
         }
 
         if (!Objects.isNull(mTask.assignTask())) {
-            mTask.assignTask().source().setValue(lResponseNode);
+            mTask.assignTask().setJsonSource(lResponseNode);
 
             EWorkflowTaskFactory.INSTANCE.factory(mWorkflow, mTask.assignTask()).apply(mWorkflow.getQueue());
         }
 
         if (mTask.isValidatorRequired()) {
-            try {
-                List<ValidationResult> lValidationResults =
-                        mTask.api().resources().get(mTask.resourceIndex()).methods().get(0).body().get(0).validate(pResponse.body().string());
+            List<ValidationResult> lValidationResults =
+                    mTask.api().resources().get(mTask.resourceIndex()).methods().get(0).body().get(0).validate(lResponseNode.asText());
 
-                if (lValidationResults.size() > 0) {
-                    mWorkflow.setWorkflowStatus(false);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
+
+            if (lValidationResults.size() > 0) {
+                mWorkflow.setWorkflowStatus(false);
             }
         }
     }
-
 }

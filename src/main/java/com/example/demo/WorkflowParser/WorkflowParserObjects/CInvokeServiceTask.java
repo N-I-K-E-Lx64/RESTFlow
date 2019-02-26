@@ -14,7 +14,7 @@ public class CInvokeServiceTask implements ITask {
     private final Api mApi;
     private boolean mIsValidatorRequired;
     private final EWorkflowTaskType mTaskType;
-    private CAssignTask mAssignTask;
+    private CInvokeAssignTask mAssignTask;
 
     public CInvokeServiceTask(String pTitle, int pMethodIndex, Api pApi) {
         this.mTitle = pTitle;
@@ -32,7 +32,7 @@ public class CInvokeServiceTask implements ITask {
         this.mIsValidatorRequired = pIsValidatorRequired;
     }
 
-    public void setAssignTask(CAssignTask pAssignTask) {
+    public void setAssignTask(CInvokeAssignTask pAssignTask) {
         this.mAssignTask = pAssignTask;
     }
 
@@ -65,7 +65,7 @@ public class CInvokeServiceTask implements ITask {
         return mIsValidatorRequired;
     }
 
-    public CAssignTask assignTask() {
+    public CInvokeAssignTask assignTask() {
         return mAssignTask;
     }
 }

@@ -229,7 +229,7 @@ public enum EWorkflowParser {
      * @param assignTo
      * @return
      */
-    public CAssignTask buildAssignTask(String assignTo) {
+    public CInvokeAssignTask buildAssignTask(String assignTo) {
         String lPrefix = assignTo.split("\\.")[0];
         String lVariable = assignTo.split("\\.")[1];
 
@@ -243,7 +243,7 @@ public enum EWorkflowParser {
                     .orElse("FALSE");
 
             if (!variableKey.equals("FALSE")) {
-                return new CAssignTask(null, variables.get(variableKey));
+                return new CInvokeAssignTask(variables.get(variableKey));
             } else {
                 throw new WorkflowParseException("Variable could not be found. It was probably not created.");
             }

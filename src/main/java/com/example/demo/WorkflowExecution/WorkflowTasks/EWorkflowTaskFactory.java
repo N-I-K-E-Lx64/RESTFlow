@@ -1,13 +1,7 @@
 package com.example.demo.WorkflowExecution.WorkflowTasks;
 
 
-import com.example.demo.WorkflowParser.WorkflowParserObjects.CInvokeServiceTask;
-import com.example.demo.WorkflowParser.WorkflowParserObjects.CWorkflow;
-import com.example.demo.WorkflowParser.WorkflowParserObjects.CAssignTask;
-import com.example.demo.WorkflowParser.WorkflowParserObjects.CInvokeServiceTask;
-
-import com.example.demo.WorkflowParser.WorkflowParserObjects.ITask;
-import com.example.demo.WorkflowParser.WorkflowParserObjects.IWorkflow;
+import com.example.demo.WorkflowParser.WorkflowParserObjects.*;
 import org.springframework.lang.NonNull;
 
 public enum EWorkflowTaskFactory {
@@ -23,6 +17,9 @@ public enum EWorkflowTaskFactory {
 
             case ASSIGN:
                 return new CAssign(pWorkflow, (CAssignTask) pTask.raw());
+
+            case INVOKEASSIGN:
+                return new CInvokeAssign(pWorkflow, (CInvokeAssignTask) pTask.raw());
 
             default:
                 throw new RuntimeException("Chosen task is unknown!");
