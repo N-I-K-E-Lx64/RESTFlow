@@ -138,7 +138,7 @@ public enum EWorkflowParser {
         }
 
         if (invokeNode.has("assignTo")) {
-            buildAssignTask(invokeNode.path("assignTo").asText());
+            invokeServiceBuilder.setAssignTask(buildAssignTask(invokeNode.path("assignTo").asText()));
         }
 
         return invokeServiceBuilder;
@@ -243,9 +243,7 @@ public enum EWorkflowParser {
                     .orElse("FALSE");
 
             if (!variableKey.equals("FALSE")) {
-                IParameter lParameter = createVariableReference(variableKey, variables.get(variableKey));
-
-                return new CAssignTask(null, lParameter);
+                return new CAssignTask(null, variables.get(variableKey));
             } else {
                 throw new WorkflowParseException("Variable could not be found. It was probably not created.");
             }

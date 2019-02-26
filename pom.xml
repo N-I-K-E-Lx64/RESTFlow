@@ -60,11 +60,11 @@
             <version>1.0.28</version>
         </dependency>
 
-        <!-- Unirest - HTTP Client Library -->
+        <!-- OKHttp3 - HTTP Client Library -->
         <dependency>
-            <groupId>io.github.openunirest</groupId>
-            <artifactId>open-unirest-java</artifactId>
-            <version>3.3.03</version>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>3.13.1</version>
         </dependency>
 
     </dependencies>

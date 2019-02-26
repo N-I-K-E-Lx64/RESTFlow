@@ -7,15 +7,15 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class CAssignTask implements ITask {
 
-    private final AtomicReference<IParameter> mSourceReference;
-    private final AtomicReference<IParameter> mTargetReference;
+    private final AtomicReference<IVariable> mSourceReference;
+    private final AtomicReference<IVariable> mTargetReference;
 
     private final EWorkflowTaskType mTaskType;
     //TODO : Filter-Möglichkeiten implementieren!
 
-    public CAssignTask(IParameter pVariableReference, IParameter pTargetReference) {
-        mSourceReference = new AtomicReference<IParameter>(pVariableReference);
-        mTargetReference = new AtomicReference<IParameter>(pVariableReference);
+    public CAssignTask(IVariable pVariableReference, IVariable pTargetReference) {
+        mSourceReference = new AtomicReference<>(pVariableReference);
+        mTargetReference = new AtomicReference<>(pVariableReference);
 
         mTaskType = EWorkflowTaskType.ASSIGN;
     }
@@ -32,11 +32,11 @@ public class CAssignTask implements ITask {
         return mTaskType;
     }
 
-    public IParameter source() {
+    public IVariable source() {
         return mSourceReference.get();
     }
 
-    public IParameter target() {
+    public IVariable target() {
         return mTargetReference.get();
     }
 }

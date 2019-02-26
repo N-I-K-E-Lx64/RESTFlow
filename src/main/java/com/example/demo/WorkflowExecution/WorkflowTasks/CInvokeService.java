@@ -1,23 +1,28 @@
 package com.example.demo.WorkflowExecution.WorkflowTasks;
 
-import com.example.demo.Network.IMessage;
+import com.example.demo.Network.*;
+import com.example.demo.WorkflowExecution.Objects.CWorkflowExecutionException;
 import com.example.demo.WorkflowParser.WorkflowParserObjects.CInvokeServiceTask;
 import com.example.demo.WorkflowParser.WorkflowParserObjects.CParameter;
 import com.example.demo.WorkflowParser.WorkflowParserObjects.IParameter;
 import com.example.demo.WorkflowParser.WorkflowParserObjects.IWorkflow;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import okhttp3.Response;
 import org.raml.v2.api.model.common.ValidationResult;
-import unirest.HttpResponse;
-import unirest.JsonNode;
-import unirest.Unirest;
 
+import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
+import java.util.List;
+import java.util.Objects;
+import java.util.Queue;
 import java.util.stream.Collectors;
 
 public class CInvokeService extends IBaseTaskAction {
 
     private final CInvokeServiceTask mTask;
+
+    private static final ObjectMapper mMapper = new ObjectMapper();
 
     CInvokeService(IWorkflow pWorkflow, CInvokeServiceTask pTask) {
         super(pWorkflow);
@@ -42,7 +47,13 @@ public class CInvokeService extends IBaseTaskAction {
             return true;
         }
 
-        buildRequest();
+        String lUrl = mTask.api().baseUri().value() + mTask.api().resources().get(mTask.resourceIndex()).relativeUri().value();
+
+        ERequestType lRequestType = ERequestType.INSTANCE.get(mTask.api().resources().get(mTask.resourceIndex()).methods().get(0).method());
+
+        IRequest lRequest = new CRequest(lUrl, lRequestType, mTask.parameters());
+
+        processSuccess(ERequestSender.INSTANCE.buildRequest(lRequest));
 
         return false;
     }
@@ -60,101 +71,34 @@ public class CInvokeService extends IBaseTaskAction {
         lParameter.setValue(iMessage.parameterValue());
     }
 
-    private void processSuccess(HttpResponse pResponse) {
+    private void processSuccess(Response pResponse) {
+
+        JsonNode lResponseNode;
+
+        try {
+            lResponseNode = mMapper.readTree(pResponse.body().string());
+        } catch (IOException e) {
+            throw new CWorkflowExecutionException("Can't parse Response Body into a Json Node", e);
+        }
 
         if (!Objects.isNull(mTask.assignTask())) {
-            mTask.assignTask().source().setValue(pResponse.getBody());
+            mTask.assignTask().source().setValue(lResponseNode);
 
-            EWorkflowTaskFactory.INSTANCE.factory(mWorkflow, mTask.assignTask()).apply(null);
+            EWorkflowTaskFactory.INSTANCE.factory(mWorkflow, mTask.assignTask()).apply(mWorkflow.getQueue());
         }
 
         if (mTask.isValidatorRequired()) {
-            List<ValidationResult> lValidationResults =
-                    mTask.api().resources().get(mTask.resourceIndex()).methods().get(0).body().get(0).validate(pResponse.getBody().toString());
+            try {
+                List<ValidationResult> lValidationResults =
+                        mTask.api().resources().get(mTask.resourceIndex()).methods().get(0).body().get(0).validate(pResponse.body().string());
 
-            if (lValidationResults.size() > 0) {
-                mWorkflow.setWorkflowStatus(false);
+                if (lValidationResults.size() > 0) {
+                    mWorkflow.setWorkflowStatus(false);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
 
-    private void buildRequest() {
-        String lUrl = mTask.api().baseUri().value() + mTask.api().resources().get(mTask.resourceIndex()).relativeUri().value();
-
-        CRequest lRequest = new CRequest(lUrl);
-
-        if (mTask.parameters().size() > 0) {
-            Map<String, Object> lFields = new HashMap<>();
-            mTask.parameters().forEach((key, value) -> {
-                lFields.put(key, value.value());
-            });
-
-            lRequest.setFields(lFields);
-        }
-
-        switch (mTask.api().resources().get(mTask.resourceIndex()).methods().get(0).method().toUpperCase()) {
-            case "GET":
-                sendGetRequest(lRequest);
-                break;
-
-            case "POST":
-                sendPostRequest(lRequest);
-                break;
-        }
-    }
-
-    //TODO : Application-Event-Publisher, der das Ergebnis publisht. Falls das Ergebnis eingetroffen ist (im Success-Fall)
-    // accept-Funktion hier im CInvokeService aufrufen und Assign und Validation durchführen!
-
-    private void sendGetRequest(CRequest pRequest) {
-        CompletableFuture<HttpResponse<JsonNode>> future = Unirest.get(pRequest.url())
-                //.headers(pRequest.headers())
-                .queryString(pRequest.fields())
-                .asJsonAsync(response -> {
-                    //response.ifFailure(failure ->);
-                    response.ifSuccess(this::processSuccess);
-                });
-    }
-
-    private void sendPostRequest(CRequest pRequest) {
-        CompletableFuture<HttpResponse<JsonNode>> future = Unirest.post(pRequest.url())
-                //.headers(pRequest.headers())
-                .queryString(pRequest.fields())
-                .asJsonAsync(response -> {
-                    response.ifFailure(System.out::println);
-                    response.ifSuccess(this::processSuccess);
-                });
-    }
-
-
-    private class CRequest {
-
-        private final String mUrl;
-        private Map<String, String> mHeaders;
-        private Map<String, Object> mFields;
-
-        CRequest(String pUrl) {
-            this.mUrl = pUrl;
-        }
-
-        void setFields(Map<String, Object> pFields) {
-            this.mFields = pFields;
-        }
-
-        void setHeaders(Map<String, String> pHeaders) {
-            this.mHeaders = pHeaders;
-        }
-
-        String url() {
-            return mUrl;
-        }
-
-        Map<String, String> headers() {
-            return mHeaders;
-        }
-
-        Map<String, Object> fields() {
-            return mFields;
-        }
-    }
 }
