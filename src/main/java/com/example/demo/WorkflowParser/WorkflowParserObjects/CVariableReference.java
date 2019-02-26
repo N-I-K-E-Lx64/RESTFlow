@@ -1,5 +1,6 @@
 package com.example.demo.WorkflowParser.WorkflowParserObjects;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.lang.NonNull;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -28,5 +29,10 @@ public class CVariableReference implements IParameter {
     @Override
     public IVariable value() {
         return mVariable.get();
+    }
+
+    @Override
+    public void setValue(Object pValue) {
+        mVariable.get().setValue((JsonNode) pValue);
     }
 }

@@ -96,9 +96,9 @@ public enum EWorkflowParser {
             }
         }
 
-        if (processNode.has("switch")) {
+        /*if (processNode.has("switch")) {
             lExecutionOrder.add(parseSwitchNode(processNode.path("switch")));
-        }
+        }*/
 
         return lExecutionOrder;
     }
@@ -144,7 +144,7 @@ public enum EWorkflowParser {
         return invokeServiceBuilder;
     }
 
-    public ITask parseSwitchNode(JsonNode switchNode) {
+    /*public ITask parseSwitchNode(JsonNode switchNode) {
 
         if (switchNode.has("CONDITION")) {
 
@@ -153,7 +153,7 @@ public enum EWorkflowParser {
         }
 
         return null;
-    }
+    }*/
 
     /**
      * Erstellt alle Parameter Objekte anhand der Informationen im Input-Teil!

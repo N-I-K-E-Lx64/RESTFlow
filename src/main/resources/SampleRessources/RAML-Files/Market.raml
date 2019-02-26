@@ -1,7 +1,7 @@
 #%RAML 1.0
 title: Market
 version: v1
-baseUri: http://api.samplehost.com
+baseUri: http://localhost:3000
 
 uses:
   OrderLibrary: OrderLibrary.raml
@@ -27,4 +27,4 @@ types:
         body:
           application/json:
             type: OrderLibrary.Order
-            example: { "partNumber": "TRFR2022", "description": "Touringrahmen-Silber", "price": 14.91, "currency" : EUR, "suppliernumber": "000012100", "quantity": 67}
+            example: { "partNumber": "TRFR2022", "description": "Touringrahmen-Silber", "price": "14.91", "currency" : EUR, "suppliernumber": "000012100", "quantity": 67}

@@ -52,7 +52,7 @@ public class CInvokeService extends IBaseTaskAction {
      */
     @Override
     public void accept(IMessage iMessage) {
-
+        //TODO : Check if Parameter is already set!
         CParameter lParameter = (CParameter) mTask.parameters().get(iMessage.parameterName());
         if (Objects.isNull(lParameter))
             throw new RuntimeException(MessageFormat.format("Parameter [{0}] ist nicht vorhanden.", iMessage.parameterName()));
@@ -108,7 +108,7 @@ public class CInvokeService extends IBaseTaskAction {
 
     private void sendGetRequest(CRequest pRequest) {
         CompletableFuture<HttpResponse<JsonNode>> future = Unirest.get(pRequest.url())
-                .headers(pRequest.headers())
+                //.headers(pRequest.headers())
                 .queryString(pRequest.fields())
                 .asJsonAsync(response -> {
                     //response.ifFailure(failure ->);
@@ -118,11 +118,11 @@ public class CInvokeService extends IBaseTaskAction {
 
     private void sendPostRequest(CRequest pRequest) {
         CompletableFuture<HttpResponse<JsonNode>> future = Unirest.post(pRequest.url())
-                .headers(pRequest.headers())
+                //.headers(pRequest.headers())
                 .queryString(pRequest.fields())
                 .asJsonAsync(response -> {
-                    //response.ifFailure(failure ->);
-                    //response.ifSuccess(success ->);
+                    response.ifFailure(System.out::println);
+                    response.ifSuccess(this::processSuccess);
                 });
     }
 
