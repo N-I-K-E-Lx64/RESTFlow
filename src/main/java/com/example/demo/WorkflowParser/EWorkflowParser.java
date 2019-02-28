@@ -112,7 +112,6 @@ public enum EWorkflowParser {
     public ITask parseInvokeNode(JsonNode invokeNode) {
 
         String lTitle = invokeNode.path("title").asText("No Title");
-        //TODO: Get RAML-File from StorageService
 
         final Api lApi;
         try {

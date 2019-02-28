@@ -85,7 +85,8 @@ public class CInvokeService extends IBaseTaskAction {
 
         if (mTask.isValidatorRequired()) {
             List<ValidationResult> lValidationResults =
-                    mTask.api().resources().get(mTask.resourceIndex()).methods().get(0).body().get(0).validate(lResponseNode.asText());
+                    mTask.api().resources().get(mTask.resourceIndex()).methods().get(0).responses().get(0).body().get(0)
+                            .validate(lResponseNode.toString());
 
 
             if (lValidationResults.size() > 0) {
