@@ -1,6 +1,6 @@
 package com.example.demo;
 
-import com.example.demo.WorkflowParser.WorkflowParserObjects.IWorkflow;
+import com.example.demo.WorkflowExecution.Objects.IWorkflow;
 import org.springframework.lang.NonNull;
 
 /**

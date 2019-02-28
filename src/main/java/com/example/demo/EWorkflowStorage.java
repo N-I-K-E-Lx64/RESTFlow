@@ -1,6 +1,6 @@
 package com.example.demo;
 
-import com.example.demo.WorkflowParser.WorkflowParserObjects.IWorkflow;
+import com.example.demo.WorkflowExecution.Objects.IWorkflow;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.lang.NonNull;

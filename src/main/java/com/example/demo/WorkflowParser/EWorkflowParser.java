@@ -1,6 +1,8 @@
 package com.example.demo.WorkflowParser;
 
 import com.example.demo.Storage.StorageService;
+import com.example.demo.WorkflowExecution.Objects.CWorkflow;
+import com.example.demo.WorkflowExecution.Objects.IWorkflow;
 import com.example.demo.WorkflowParser.WorkflowParserObjects.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

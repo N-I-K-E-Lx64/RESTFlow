@@ -1,6 +1,6 @@
 package com.example.demo.WorkflowExecution.WorkflowTasks;
 
-import com.example.demo.WorkflowParser.WorkflowParserObjects.IWorkflow;
+import com.example.demo.WorkflowExecution.Objects.IWorkflow;
 
 public abstract class IBaseTaskAction implements ITaskAction {
 

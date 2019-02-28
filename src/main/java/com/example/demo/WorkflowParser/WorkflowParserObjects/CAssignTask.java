@@ -3,10 +3,13 @@ package com.example.demo.WorkflowParser.WorkflowParserObjects;
 import com.example.demo.WorkflowExecution.WorkflowTasks.EWorkflowTaskType;
 import org.springframework.lang.NonNull;
 
+import java.text.MessageFormat;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class CAssignTask implements ITask {
 
+    //TODO : Create Title (z.B. Assign {Variable1} to {Variable2}
+    private final String mTitle;
     private final AtomicReference<IVariable> mSourceReference;
     private final AtomicReference<IVariable> mTargetReference;
 
@@ -17,6 +20,8 @@ public class CAssignTask implements ITask {
         mSourceReference = new AtomicReference<>(pVariableReference);
         mTargetReference = new AtomicReference<>(pVariableReference);
 
+        mTitle = MessageFormat.format("Assign {0} to {1}", mSourceReference.get().name(), mTargetReference.get().name());
+
         mTaskType = EWorkflowTaskType.ASSIGN;
     }
 
@@ -24,6 +29,12 @@ public class CAssignTask implements ITask {
     @Override
     public Object raw() {
         return this;
+    }
+
+    @NonNull
+    @Override
+    public String title() {
+        return mTitle;
     }
 
     @NonNull

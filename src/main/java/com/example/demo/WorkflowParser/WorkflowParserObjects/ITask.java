@@ -9,6 +9,9 @@ public interface ITask<T> {
     T raw();
 
     @NonNull
+    String title();
+
+    @NonNull
     EWorkflowTaskType getWorkflowType();
 
 }

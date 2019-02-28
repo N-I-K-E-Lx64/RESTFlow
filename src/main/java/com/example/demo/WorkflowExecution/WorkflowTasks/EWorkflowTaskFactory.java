@@ -1,7 +1,11 @@
 package com.example.demo.WorkflowExecution.WorkflowTasks;
 
 
-import com.example.demo.WorkflowParser.WorkflowParserObjects.*;
+import com.example.demo.WorkflowExecution.Objects.IWorkflow;
+import com.example.demo.WorkflowParser.WorkflowParserObjects.CAssignTask;
+import com.example.demo.WorkflowParser.WorkflowParserObjects.CInvokeAssignTask;
+import com.example.demo.WorkflowParser.WorkflowParserObjects.CInvokeServiceTask;
+import com.example.demo.WorkflowParser.WorkflowParserObjects.ITask;
 import org.springframework.lang.NonNull;
 
 public enum EWorkflowTaskFactory {
