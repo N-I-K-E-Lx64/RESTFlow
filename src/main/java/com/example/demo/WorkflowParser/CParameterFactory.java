@@ -38,7 +38,7 @@ public class CParameterFactory {
                 return lParameterDouble;
 
             default:
-                throw new WorkflowParseException(MessageFormat.format("Parameter-Type [{0}] doesn't match known types!", pParameterType));
+                throw new CWorkflowParseException(MessageFormat.format("Parameter-Type [{0}] doesn't match known types!", pParameterType));
         }
     }
 

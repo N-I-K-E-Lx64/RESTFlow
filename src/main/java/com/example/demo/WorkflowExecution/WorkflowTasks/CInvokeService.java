@@ -1,6 +1,7 @@
 package com.example.demo.WorkflowExecution.WorkflowTasks;
 
 import com.example.demo.Network.*;
+import com.example.demo.WorkflowExecution.Objects.CUserInteractionException;
 import com.example.demo.WorkflowExecution.Objects.CWorkflowExecutionException;
 import com.example.demo.WorkflowParser.WorkflowParserObjects.CInvokeServiceTask;
 import com.example.demo.WorkflowParser.WorkflowParserObjects.CParameter;
@@ -61,10 +62,11 @@ public class CInvokeService extends IBaseTaskAction {
     public void accept(IMessage iMessage) {
         //TODO : Check if Parameter is already set!
         CParameter lParameter = (CParameter) mTask.parameters().get(iMessage.parameterName());
-        if (Objects.isNull(lParameter))
-            throw new RuntimeException(MessageFormat.format("Parameter [{0}] ist nicht vorhanden.", iMessage.parameterName()));
-
-        lParameter.setValue(iMessage.parameterValue());
+        if (Objects.isNull(lParameter)) {
+            throw new CUserInteractionException(MessageFormat.format("Parameter [{0}] does not exist!", iMessage.parameterName()));
+        } else {
+            lParameter.setValue(iMessage.parameterValue());
+        }
     }
 
     private void processSuccess(Response pResponse) {

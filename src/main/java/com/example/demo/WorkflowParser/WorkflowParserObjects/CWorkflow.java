@@ -61,6 +61,7 @@ public class CWorkflow implements IWorkflow {
         }
     }
 
+    @NonNull
     @Override
     public IWorkflow start() {
 
