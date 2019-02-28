@@ -118,13 +118,17 @@ public enum EWorkflowParser {
             lApi = ERamlParser.INSTANCE.parseRaml(
                     this.storageService.loadAsResource(invokeNode.path("raml").asText(), this.workflowTitle));
         } catch (IOException e) {
-            throw new WorkflowParseException("Cannot parse RAML-File", e);
+            throw new CWorkflowParseException("Cannot parse RAML-File!", e);
         }
 
         int lResourceIndex = IntStream.range(0, lApi.resources().size())
                 .filter(resourceIndex -> lApi.resources().get(resourceIndex).relativeUri().value().equals(invokeNode.path("resource").asText()))
                 .findFirst()
                 .orElse(-1);
+
+        if (lResourceIndex == -1) {
+            throw new CWorkflowParseException("Resource was not found!");
+        }
 
         CInvokeServiceTask invokeServiceBuilder = new CInvokeServiceTask(lTitle, lResourceIndex, lApi);
 
@@ -148,7 +152,7 @@ public enum EWorkflowParser {
         if (switchNode.has("CONDITION")) {
 
         } else {
-            throw new WorkflowParseException("Switch-Activity hat keine Bedingung hinterlegt!");
+            throw new CWorkflowParseException("Switch-Activity hat keine Bedingung hinterlegt!");
         }
 
         return null;
@@ -244,10 +248,10 @@ public enum EWorkflowParser {
             if (!variableKey.equals("FALSE")) {
                 return new CInvokeAssignTask(variables.get(variableKey));
             } else {
-                throw new WorkflowParseException("Variable could not be found. It was probably not created.");
+                throw new CWorkflowParseException("Variable could not be found. It was probably not created.");
             }
         } else {
-            throw new WorkflowParseException("Results can only be assigned to variables.");
+            throw new CWorkflowParseException("Results can only be assigned to variables.");
         }
     }
 
