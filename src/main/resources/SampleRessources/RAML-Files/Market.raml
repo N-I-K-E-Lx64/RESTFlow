@@ -1,17 +1,17 @@
 #%RAML 1.0
 title: Market
 version: v1
-baseUri: http://localhost:3000
+baseUri: http://localhost:8081
 
 uses:
   OrderLibrary: OrderLibrary.raml
 
 types:
-  test:
+  orderRequest:
     type: object
     properties:
       partNumber: string
-      budget: number
+      budget: string
 
 
 /getBestOffer:
@@ -19,12 +19,12 @@ types:
     description: Determines the cheapest offer and makes an order. The cheapest material should be ordered as often as the budget allows.
     body:
       application/json:
-        type: test
-        example: { "partNumber": "TRFR2022", "budget": 25.20 }
+        type: orderRequest
+        example: { "partNumber": "TRFR2022", "budget": "25.20" }
 
     responses:
       200:
         body:
           application/json:
             type: OrderLibrary.Order
-            example: { "partNumber": "TRFR2022", "description": "Touringrahmen-Silber", "price": "14.91", "currency" : EUR, "suppliernumber": "000012100", "quantity": 67}
+            example: { "number": "TRFR2022", "description": "Touringrahmen-Silber", "price": 14.91, "currency" : EUR, "suppliernumber": "000012100", "quantity": 67}

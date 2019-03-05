@@ -30,6 +30,7 @@ public enum ERequestSender {
             case POST:
                 String lJson = pRequest.fieldsAsJson();
                 if (!lJson.equals("")) {
+                    logger.info(lJson);
                     RequestBody lBody = RequestBody.create(JSON, lJson);
                     builder.post(lBody);
                 }
