@@ -9,7 +9,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class CInvokeAssignTask implements ITask {
 
-    //TODO : Create Title (z.B. Assign Invoke Result to {Variable Name}
     private final String mTitle;
     private final AtomicReference<IVariable> mTargetReference;
     private JsonNode mJsonSource;

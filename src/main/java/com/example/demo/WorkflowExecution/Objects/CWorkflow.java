@@ -53,6 +53,12 @@ public class CWorkflow implements IWorkflow {
 
     @NonNull
     @Override
+    public Map<String, IVariable> variables() {
+        return mVariables;
+    }
+
+    @NonNull
+    @Override
     public List<String> emptyVariables() {
         return mEmptyVariables;
     }

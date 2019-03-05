@@ -11,7 +11,6 @@ import com.example.demo.WorkflowParser.WorkflowParserObjects.IParameter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.Response;
-import org.raml.v2.api.model.common.ValidationResult;
 import org.springframework.lang.NonNull;
 
 import java.io.IOException;
@@ -68,13 +67,14 @@ public class CInvokeService extends IBaseTaskAction {
      */
     @Override
     public void accept(IMessage iMessage) {
-        //TODO : Check if Parameter is already set!
         CParameter lParameter = (CParameter) mTask.parameters().get(iMessage.parameterName());
         if (Objects.isNull(lParameter)) {
             throw new CUserInteractionException(MessageFormat.format("Parameter [{0}] does not exist!", iMessage.parameterName()));
-        } else {
-            lParameter.setValue(iMessage.parameterValue());
+        } else if (!Objects.isNull(lParameter.value())) {
+            throw new CUserInteractionException(MessageFormat.format("Parameter [{0}] already set!", iMessage.parameterName()));
         }
+
+        lParameter.setValue(iMessage.parameterValue());
 
         mWorkflow.emptyVariables().remove(iMessage.parameterName());
 
@@ -97,17 +97,6 @@ public class CInvokeService extends IBaseTaskAction {
             mTask.assignTask().setJsonSource(lResponseNode);
 
             EWorkflowTaskFactory.INSTANCE.factory(mWorkflow, mTask.assignTask()).apply(mWorkflow.getQueue());
-        }
-
-        if (mTask.isValidatorRequired()) {
-            List<ValidationResult> lValidationResults =
-                    mTask.api().resources().get(mTask.resourceIndex()).methods().get(0).responses().get(0).body().get(0)
-                            .validate(lResponseNode.toString());
-
-
-            if (lValidationResults.size() > 0) {
-                mWorkflow.setStatus(EWorkflowStatus.ERROR);
-            }
         }
     }
 

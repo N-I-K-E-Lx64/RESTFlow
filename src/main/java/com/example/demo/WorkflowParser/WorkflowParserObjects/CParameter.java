@@ -25,7 +25,6 @@ public class CParameter<T> implements IParameter {
         return mName;
     }
 
-    //TODO - überlegen ob das besser ist! Bsp. siehe CNotificationService
     @NonNull
     public T value() {
         return mValue;

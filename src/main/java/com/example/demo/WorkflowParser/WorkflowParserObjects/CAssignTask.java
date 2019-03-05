@@ -8,7 +8,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class CAssignTask implements ITask {
 
-    //TODO : Create Title (z.B. Assign {Variable1} to {Variable2}
     private final String mTitle;
     private final AtomicReference<IVariable> mSourceReference;
     private final AtomicReference<IVariable> mTargetReference;

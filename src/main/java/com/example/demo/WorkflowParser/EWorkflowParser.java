@@ -13,10 +13,7 @@ import org.springframework.core.io.Resource;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.IntStream;
 
@@ -123,6 +120,10 @@ public enum EWorkflowParser {
             throw new CWorkflowParseException("Cannot parse RAML-File!", e);
         }
 
+        if (Objects.isNull(lApi)) {
+            throw new CWorkflowParseException("Cannot parse RAML-File");
+        }
+
         int lResourceIndex = IntStream.range(0, lApi.resources().size())
                 .filter(resourceIndex -> lApi.resources().get(resourceIndex).relativeUri().value().equals(invokeNode.path("resource").asText()))
                 .findFirst()
@@ -136,10 +137,6 @@ public enum EWorkflowParser {
 
         if (invokeNode.has("input")) {
             invokeServiceBuilder.setInput(parseInputNode(invokeNode.path("input")));
-        }
-
-        if (invokeNode.has("validator")) {
-            invokeServiceBuilder.setValidator(true);
         }
 
         if (invokeNode.has("assignTo")) {
