@@ -4,16 +4,21 @@ import com.example.demo.WorkflowExecution.WorkflowTasks.EWorkflowTaskType;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.lang.NonNull;
 
+import java.text.MessageFormat;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class CInvokeAssignTask implements ITask {
 
+    private final String mTitle;
     private final AtomicReference<IVariable> mTargetReference;
-    private final EWorkflowTaskType mTaskType;
     private JsonNode mJsonSource;
 
+    private final EWorkflowTaskType mTaskType;
+
     public CInvokeAssignTask(IVariable pTargetReference) {
-        this.mTargetReference = new AtomicReference<>(pTargetReference);
+        mTargetReference = new AtomicReference<>(pTargetReference);
+
+        mTitle = MessageFormat.format("Assign Invoke Result to {0}", mTargetReference.get().name());
 
         mTaskType = EWorkflowTaskType.INVOKEASSIGN;
     }
@@ -22,6 +27,12 @@ public class CInvokeAssignTask implements ITask {
     @Override
     public Object raw() {
         return this;
+    }
+
+    @NonNull
+    @Override
+    public String title() {
+        return mTitle;
     }
 
     @NonNull

@@ -3,18 +3,20 @@ package com.example.demo.WorkflowExecution.WorkflowTasks;
 import com.example.demo.Network.*;
 import com.example.demo.WorkflowExecution.Objects.CUserInteractionException;
 import com.example.demo.WorkflowExecution.Objects.CWorkflowExecutionException;
+import com.example.demo.WorkflowExecution.Objects.EWorkflowStatus;
+import com.example.demo.WorkflowExecution.Objects.IWorkflow;
 import com.example.demo.WorkflowParser.WorkflowParserObjects.CInvokeServiceTask;
 import com.example.demo.WorkflowParser.WorkflowParserObjects.CParameter;
 import com.example.demo.WorkflowParser.WorkflowParserObjects.IParameter;
-import com.example.demo.WorkflowParser.WorkflowParserObjects.IWorkflow;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.Response;
-import org.raml.v2.api.model.common.ValidationResult;
+import org.springframework.lang.NonNull;
 
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.stream.Collectors;
@@ -36,11 +38,16 @@ public class CInvokeService extends IBaseTaskAction {
         List<IParameter> emptyVariables = mTask.parameters().entrySet().stream()
                 .filter(parameter -> {
                     return Objects.isNull(parameter.getValue().value());
-                }).map(map -> map.getValue())
+                }).map(Map.Entry::getValue)
                 .collect(Collectors.toList());
 
         //Request kann nur ausgeführt werden, wenn alle Variablen belegt sind!
         if (emptyVariables.size() > 0) {
+            mWorkflow.setStatus(EWorkflowStatus.WAITING);
+            mWorkflow.setEmptyVariables(emptyVariables.stream()
+                    .map(variable -> variable.name())
+                    .collect(Collectors.toList()));
+
             return true;
         }
 
@@ -50,7 +57,7 @@ public class CInvokeService extends IBaseTaskAction {
 
         IRequest lRequest = new CRequest(lUrl, lRequestType, mTask.parameters());
 
-        processSuccess(ERequestSender.INSTANCE.buildRequest(lRequest));
+        processSuccess(Objects.requireNonNull(ERequestSender.INSTANCE.buildRequest(lRequest)));
 
         return false;
     }
@@ -60,12 +67,19 @@ public class CInvokeService extends IBaseTaskAction {
      */
     @Override
     public void accept(IMessage iMessage) {
-        //TODO : Check if Parameter is already set!
         CParameter lParameter = (CParameter) mTask.parameters().get(iMessage.parameterName());
         if (Objects.isNull(lParameter)) {
             throw new CUserInteractionException(MessageFormat.format("Parameter [{0}] does not exist!", iMessage.parameterName()));
-        } else {
-            lParameter.setValue(iMessage.parameterValue());
+        } else if (!Objects.isNull(lParameter.value())) {
+            throw new CUserInteractionException(MessageFormat.format("Parameter [{0}] already set!", iMessage.parameterName()));
+        }
+
+        lParameter.setValue(iMessage.parameterValue());
+
+        mWorkflow.emptyVariables().remove(iMessage.parameterName());
+
+        if (!(mWorkflow.emptyVariables().size() > 0)) {
+            mWorkflow.setStatus(EWorkflowStatus.WORKING);
         }
     }
 
@@ -84,16 +98,11 @@ public class CInvokeService extends IBaseTaskAction {
 
             EWorkflowTaskFactory.INSTANCE.factory(mWorkflow, mTask.assignTask()).apply(mWorkflow.getQueue());
         }
+    }
 
-        if (mTask.isValidatorRequired()) {
-            List<ValidationResult> lValidationResults =
-                    mTask.api().resources().get(mTask.resourceIndex()).methods().get(0).responses().get(0).body().get(0)
-                            .validate(lResponseNode.toString());
-
-
-            if (lValidationResults.size() > 0) {
-                mWorkflow.setWorkflowStatus(false);
-            }
-        }
+    @NonNull
+    @Override
+    public String title() {
+        return mTask.title();
     }
 }

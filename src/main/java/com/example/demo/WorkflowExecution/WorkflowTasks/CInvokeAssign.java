@@ -1,8 +1,9 @@
 package com.example.demo.WorkflowExecution.WorkflowTasks;
 
 import com.example.demo.Network.IMessage;
+import com.example.demo.WorkflowExecution.Objects.IWorkflow;
 import com.example.demo.WorkflowParser.WorkflowParserObjects.CInvokeAssignTask;
-import com.example.demo.WorkflowParser.WorkflowParserObjects.IWorkflow;
+import org.springframework.lang.NonNull;
 
 import java.util.Queue;
 
@@ -25,5 +26,11 @@ public class CInvokeAssign extends IBaseTaskAction {
         mTask.target().setValue(mTask.jsonSource());
 
         return false;
+    }
+
+    @NonNull
+    @Override
+    public String title() {
+        return mTask.title();
     }
 }

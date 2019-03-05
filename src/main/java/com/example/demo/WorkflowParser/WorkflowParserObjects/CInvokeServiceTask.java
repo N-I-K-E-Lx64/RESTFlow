@@ -4,6 +4,7 @@ import com.example.demo.WorkflowExecution.WorkflowTasks.EWorkflowTaskType;
 import org.raml.v2.api.model.v10.api.Api;
 import org.springframework.lang.NonNull;
 
+import java.text.MessageFormat;
 import java.util.Map;
 
 public class CInvokeServiceTask implements ITask {
@@ -12,24 +13,18 @@ public class CInvokeServiceTask implements ITask {
     private int mResourceIndex;
     private Map<String, IParameter> mInput;
     private final Api mApi;
-    private boolean mIsValidatorRequired;
     private final EWorkflowTaskType mTaskType;
     private CInvokeAssignTask mAssignTask;
 
     public CInvokeServiceTask(String pTitle, int pMethodIndex, Api pApi) {
-        this.mTitle = pTitle;
+        this.mTitle = MessageFormat.format("Invoking Webservice {0}", pTitle);
         this.mResourceIndex = pMethodIndex;
         this.mApi = pApi;
         this.mTaskType = EWorkflowTaskType.INVOKESERVICE;
-        this.mIsValidatorRequired = false;
     }
 
     public void setInput(Map<String, IParameter> pInput) {
         this.mInput = pInput;
-    }
-
-    public void setValidator(boolean pIsValidatorRequired) {
-        this.mIsValidatorRequired = pIsValidatorRequired;
     }
 
     public void setAssignTask(CInvokeAssignTask pAssignTask) {
@@ -40,6 +35,11 @@ public class CInvokeServiceTask implements ITask {
     @Override
     public Object raw() {
         return this;
+    }
+
+    @Override
+    public String title() {
+        return mTitle;
     }
 
     @NonNull
@@ -59,10 +59,6 @@ public class CInvokeServiceTask implements ITask {
 
     public Api api() {
         return mApi;
-    }
-
-    public boolean isValidatorRequired() {
-        return mIsValidatorRequired;
     }
 
     public CInvokeAssignTask assignTask() {

@@ -1,14 +1,13 @@
-package com.example.demo.WorkflowParser.WorkflowParserObjects;
+package com.example.demo.WorkflowExecution.Objects;
 
 import com.example.demo.Network.IMessage;
-import com.example.demo.WorkflowExecution.Objects.CWorkflowExecutionException;
 import com.example.demo.WorkflowExecution.WorkflowTasks.EWorkflowTaskFactory;
 import com.example.demo.WorkflowExecution.WorkflowTasks.ITaskAction;
+import com.example.demo.WorkflowParser.WorkflowParserObjects.ITask;
+import com.example.demo.WorkflowParser.WorkflowParserObjects.IVariable;
 import org.springframework.lang.NonNull;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -23,19 +22,45 @@ public class CWorkflow implements IWorkflow {
 
     private Map<String, IVariable> mVariables;
 
-    private boolean mIsEverythingOkay;
+    private List<String> mEmptyVariables = new LinkedList<>();
+
+    private EWorkflowStatus mStatus;
 
     public CWorkflow(String pTitle, String pDescription, Map<String, IVariable> pVariables) {
         this.mTitle = pTitle;
         this.mDescription = pDescription;
         this.mVariables = Collections.synchronizedMap(pVariables);
-        this.mIsEverythingOkay = true;
+        this.mStatus = EWorkflowStatus.WORKING;
     }
 
     @NonNull
     @Override
     public String name() {
         return mTitle;
+    }
+
+    @NonNull
+    @Override
+    public EWorkflowStatus status() {
+        return mStatus;
+    }
+
+    @NonNull
+    @Override
+    public ITaskAction currentTask() {
+        return mCurrentTask.get();
+    }
+
+    @NonNull
+    @Override
+    public Map<String, IVariable> variables() {
+        return mVariables;
+    }
+
+    @NonNull
+    @Override
+    public List<String> emptyVariables() {
+        return mEmptyVariables;
     }
 
     @NonNull
@@ -50,8 +75,13 @@ public class CWorkflow implements IWorkflow {
     }
 
     @Override
-    public void setWorkflowStatus(@NonNull boolean pIsEverythingOkay) {
-        this.mIsEverythingOkay = pIsEverythingOkay;
+    public void setStatus(@NonNull EWorkflowStatus pStatus) {
+        this.mStatus = pStatus;
+    }
+
+    @Override
+    public void setEmptyVariables(List<String> pEmptyVariables) {
+        this.mEmptyVariables = pEmptyVariables;
     }
 
     @Override
@@ -79,7 +109,7 @@ public class CWorkflow implements IWorkflow {
     @Override
     public void executeStep() {
 
-        if (mIsEverythingOkay) {
+        if (mStatus == EWorkflowStatus.WORKING) {
             mCurrentTask.set(mExecution.element());
 
             //Den Head der Queue ausführen und wenn true geliefert wird, muss auf eine Nachricht gewartet werden
