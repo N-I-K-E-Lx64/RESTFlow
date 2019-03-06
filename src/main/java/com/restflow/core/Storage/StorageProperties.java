@@ -1,0 +1,17 @@
+package com.restflow.core.Storage;
+
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+@ConfigurationProperties("storage")
+public class StorageProperties {
+
+    private String mLocation = "upload-dir";
+
+    public String location() {
+        return mLocation;
+    }
+
+    public void setLocation(String pLocation) {
+        this.mLocation = pLocation;
+    }
+}
