@@ -10,7 +10,7 @@ import com.example.demo.WorkflowParser.WorkflowParserObjects.CParameter;
 import com.example.demo.WorkflowParser.WorkflowParserObjects.IParameter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import okhttp3.Response;
+import okhttp3.ResponseBody;
 import org.springframework.lang.NonNull;
 
 import java.io.IOException;
@@ -57,7 +57,7 @@ public class CInvokeService extends IBaseTaskAction {
 
         IRequest lRequest = new CRequest(lUrl, lRequestType, mTask.parameters());
 
-        processSuccess(Objects.requireNonNull(ERequestSender.INSTANCE.buildRequest(lRequest)));
+        processSuccess(Objects.requireNonNull(ERequestSender.INSTANCE.buildRequest(lRequest, mWorkflow)));
 
         return false;
     }
@@ -83,14 +83,14 @@ public class CInvokeService extends IBaseTaskAction {
         }
     }
 
-    private void processSuccess(Response pResponse) {
+    private void processSuccess(ResponseBody pResponse) {
 
         JsonNode lResponseNode;
 
         try {
-            lResponseNode = mMapper.readTree(pResponse.body().string());
-        } catch (IOException e) {
-            throw new CWorkflowExecutionException("Can't parse Response Body into a Json Node", e);
+            lResponseNode = mMapper.readTree(pResponse.string());
+        } catch (IOException ex) {
+            throw new CWorkflowExecutionException("Can't parse Response Body into a Json Node", ex);
         }
 
         if (!Objects.isNull(mTask.assignTask())) {

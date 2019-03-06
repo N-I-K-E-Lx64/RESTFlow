@@ -1,5 +1,8 @@
 package com.example.demo.Network;
 
+import com.example.demo.WorkflowExecution.Objects.CWorkflowExecutionException;
+import com.example.demo.WorkflowExecution.Objects.EWorkflowStatus;
+import com.example.demo.WorkflowExecution.Objects.IWorkflow;
 import okhttp3.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -17,7 +20,7 @@ public enum ERequestSender {
 
     private final OkHttpClient mClient = new OkHttpClient();
 
-    public Response buildRequest(IRequest pRequest) {
+    public ResponseBody buildRequest(IRequest pRequest, IWorkflow pWorkflow) {
 
         Request.Builder builder = new Request.Builder();
         builder.url(pRequest.url());
@@ -30,7 +33,6 @@ public enum ERequestSender {
             case POST:
                 String lJson = pRequest.fieldsAsJson();
                 if (!lJson.equals("")) {
-                    logger.info(lJson);
                     RequestBody lBody = RequestBody.create(JSON, lJson);
                     builder.post(lBody);
                 }
@@ -43,12 +45,18 @@ public enum ERequestSender {
 
         Request lRequest = builder.build();
 
-        try {
-            return mClient.newCall(lRequest).execute();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        try (Response lResponse = mClient.newCall(lRequest).execute()) {
+            if (!lResponse.isSuccessful()) {
+                pWorkflow.setStatus(EWorkflowStatus.ERROR);
+                logger.error("Request could not be executed successfully!" + lResponse);
+                throw new CWorkflowExecutionException("Request could not be executed successfully!");
+            }
 
-        return null;
+            return lResponse.body();
+        } catch (IOException ex) {
+            pWorkflow.setStatus(EWorkflowStatus.ERROR);
+            logger.error("Request could not be executed successfully" + ex);
+            throw new CWorkflowExecutionException("Request could not be executed successfully!", ex);
+        }
     }
 }
