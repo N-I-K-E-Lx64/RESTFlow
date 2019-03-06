@@ -14,7 +14,7 @@ import java.util.function.Consumer;
 public interface IWorkflow extends Consumer<IMessage> {
 
     @NonNull
-    String name();
+    String title();
 
     @NonNull
     String description();
@@ -42,12 +42,14 @@ public interface IWorkflow extends Consumer<IMessage> {
 
     void generateExecutionOrder(@NonNull Queue<ITask> pTasks);
 
+    Queue<ITask> resetInput(@NonNull Queue<ITask> pTasks);
+
+    Map<String, IVariable> resetVariable(@NonNull Map<String, IVariable> pVariables);
+
     @NonNull
     IWorkflow start();
 
     void executeStep();
 
     void postAction();
-
-    Object clone();
 }

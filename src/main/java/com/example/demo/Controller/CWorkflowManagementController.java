@@ -82,9 +82,16 @@ public class CWorkflowManagementController {
     @RequestMapping(value = "/restart/{workflow:.+}")
     public ResponseEntity<?> restartWorkflow(@PathVariable String workflow) {
 
+        IWorkflow lWorkflow1 = ERunningWorkflows.INSTANCE.apply(workflow);
         ERunningWorkflows.INSTANCE.remove(workflow);
 
-        ERunningWorkflows.INSTANCE.add(EWorkflowDefinitons.INSTANCE.apply(workflow)).start();
+        IWorkflow lWorkflow = EWorkflowDefinitons.INSTANCE.apply(workflow);
+
+        if (lWorkflow1.equals(lWorkflow)) {
+            logger.error("No deep Copy!");
+        }
+
+        ERunningWorkflows.INSTANCE.add(lWorkflow).start();
 
         return ResponseEntity.status(200).contentType(MediaType.TEXT_PLAIN)
                 .body(MessageFormat.format("Successfully restarted [{0}]", workflow));

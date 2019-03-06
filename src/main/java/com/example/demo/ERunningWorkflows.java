@@ -25,12 +25,12 @@ public enum ERunningWorkflows implements IRunningWorkflows, Supplier<Set<String>
     @Override
     public IWorkflow add(@NonNull final IWorkflow pWorkflow) {
 
-        if (mWorkflows.containsKey(pWorkflow.name()))
+        if (mWorkflows.containsKey(pWorkflow.title()))
             throw new RuntimeException(MessageFormat.format("Workflow [{0}] existiert schon", pWorkflow));
 
-        mWorkflows.put(pWorkflow.name(), pWorkflow);
+        mWorkflows.put(pWorkflow.title(), pWorkflow);
 
-        logger.info("Saved Workflow: " + pWorkflow.name());
+        logger.info("Saved Workflow: " + pWorkflow.title());
 
         return pWorkflow;
     }

@@ -5,7 +5,7 @@ import org.springframework.lang.NonNull;
 
 public interface IVariable {
 
-    void setValue(@NonNull JsonNode pValue);
+    void setValue(JsonNode pValue);
 
     @NonNull
     JsonNode value();

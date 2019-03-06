@@ -25,7 +25,6 @@ public class CParameter<T> implements IParameter {
         return mName;
     }
 
-    @NonNull
     public T value() {
         return mValue;
     }

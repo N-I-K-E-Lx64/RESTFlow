@@ -64,4 +64,10 @@ public class CInvokeServiceTask implements ITask {
     public CInvokeAssignTask assignTask() {
         return mAssignTask;
     }
+
+    public void resetInput() {
+        mInput.forEach((key, value) -> {
+            value.setValue(null);
+        });
+    }
 }

@@ -3,6 +3,7 @@ package com.example.demo.WorkflowExecution.Objects;
 import com.example.demo.Network.IMessage;
 import com.example.demo.WorkflowExecution.WorkflowTasks.EWorkflowTaskFactory;
 import com.example.demo.WorkflowExecution.WorkflowTasks.ITaskAction;
+import com.example.demo.WorkflowParser.WorkflowParserObjects.CInvokeServiceTask;
 import com.example.demo.WorkflowParser.WorkflowParserObjects.ITask;
 import com.example.demo.WorkflowParser.WorkflowParserObjects.IVariable;
 import org.springframework.lang.NonNull;
@@ -11,7 +12,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class CWorkflow implements IWorkflow, Cloneable {
+public class CWorkflow implements IWorkflow {
 
     private final String mTitle;
     private final String mDescription;
@@ -28,31 +29,28 @@ public class CWorkflow implements IWorkflow, Cloneable {
 
     /**
      * Clone Constructor
-     *
-     * @param pTitle
-     * @param pDescription
-     * @param pVariables
-     * @param pExecution
+     * @param that
      */
-    public CWorkflow(@NonNull final String pTitle, @NonNull final String pDescription, @NonNull final Map<String, IVariable> pVariables,
-                     @NonNull final Queue<ITaskAction> pExecution) {
-        this.mTitle = pTitle;
-        this.mDescription = pDescription;
-        this.mVariables = Collections.synchronizedMap(pVariables);
+    public CWorkflow(@NonNull final IWorkflow that, @NonNull final Queue<ITask> tasks) {
+        this.mTitle = that.title();
+        this.mDescription = that.description();
+        this.mVariables = Collections.synchronizedMap(resetVariable(that.variables()));
+        generateExecutionOrder(resetInput(tasks));
+
         this.mStatus = EWorkflowStatus.WORKING;
-        this.mExecution = pExecution;
     }
 
     public CWorkflow(String pTitle, String pDescription, Map<String, IVariable> pVariables) {
         this.mTitle = pTitle;
         this.mDescription = pDescription;
         this.mVariables = Collections.synchronizedMap(pVariables);
+
         this.mStatus = EWorkflowStatus.WORKING;
     }
 
     @NonNull
     @Override
-    public String name() {
+    public String title() {
         return mTitle;
     }
 
@@ -114,6 +112,26 @@ public class CWorkflow implements IWorkflow, Cloneable {
         }
     }
 
+    @Override
+    public Queue<ITask> resetInput(@NonNull Queue<ITask> pTasks) {
+        pTasks.forEach(task -> {
+            if (task instanceof CInvokeServiceTask) {
+                ((CInvokeServiceTask) task).resetInput();
+            }
+        });
+
+        return pTasks;
+    }
+
+    @Override
+    public Map<String, IVariable> resetVariable(@NonNull Map<String, IVariable> pVariables) {
+        pVariables.forEach((key, value) -> {
+            value.setValue(null);
+        });
+
+        return pVariables;
+    }
+
     @NonNull
     @Override
     public IWorkflow start() {
@@ -167,14 +185,5 @@ public class CWorkflow implements IWorkflow, Cloneable {
         //Kopf der Queue holen und Nachricht mit aktueller Ausführungsqueue weitergeben
         mExecution.peek().accept(pMessage);
         this.postAction();
-    }
-
-    @Override
-    public Object clone() {
-        try {
-            return super.clone();
-        } catch (CloneNotSupportedException e) {
-            return new CWorkflow(this.name(), this.description(), this.variables(), this.execution());
-        }
     }
 }

@@ -1,5 +1,6 @@
 package com.example.demo.WorkflowParser;
 
+import com.example.demo.EWorkflowDefinitons;
 import com.example.demo.Storage.StorageService;
 import com.example.demo.WorkflowExecution.Objects.CWorkflow;
 import com.example.demo.WorkflowExecution.Objects.IWorkflow;
@@ -66,7 +67,10 @@ public enum EWorkflowParser {
         CVariableTempStorage.getInstance().setReference(lVariables);
 
         JsonNode processNode = workflowNode.path("process");
-        lWorkflow.generateExecutionOrder(parseProcessNode(processNode));
+        Queue<ITask> lTasks = parseProcessNode(processNode);
+        lWorkflow.generateExecutionOrder(lTasks);
+
+        EWorkflowDefinitons.INSTANCE.addExecutionOrder(lTasks, lWorkflowTitle);
 
         logger.info("Successfully parsed Workflow: " + lWorkflowTitle);
 
