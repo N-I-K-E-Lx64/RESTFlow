@@ -96,7 +96,7 @@ public class CInvokeService extends IBaseTaskAction {
         if (!Objects.isNull(mTask.assignTask())) {
             mTask.assignTask().setJsonSource(lResponseNode);
 
-            EWorkflowTaskFactory.INSTANCE.factory(mWorkflow, mTask.assignTask()).apply(mWorkflow.getQueue());
+            EWorkflowTaskFactory.INSTANCE.factory(mWorkflow, mTask.assignTask()).apply(mWorkflow.execution());
         }
     }
 

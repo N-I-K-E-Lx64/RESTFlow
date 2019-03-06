@@ -1,6 +1,6 @@
 package com.example.demo.Controller;
 
-import com.example.demo.EWorkflowStorage;
+import com.example.demo.ERunningWorkflows;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -15,6 +15,6 @@ public class CWorkflowController {
     @RequestMapping(value = "/list", produces = APPLICATION_JSON_VALUE)
     public Set<String> listWorkflows() {
 
-        return EWorkflowStorage.INSTANCE.get();
+        return ERunningWorkflows.INSTANCE.get();
     }
 }

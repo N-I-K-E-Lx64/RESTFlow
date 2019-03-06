@@ -11,7 +11,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class CWorkflow implements IWorkflow {
+public class CWorkflow implements IWorkflow, Cloneable {
 
     private final String mTitle;
     private final String mDescription;
@@ -26,6 +26,23 @@ public class CWorkflow implements IWorkflow {
 
     private EWorkflowStatus mStatus;
 
+    /**
+     * Clone Constructor
+     *
+     * @param pTitle
+     * @param pDescription
+     * @param pVariables
+     * @param pExecution
+     */
+    public CWorkflow(@NonNull final String pTitle, @NonNull final String pDescription, @NonNull final Map<String, IVariable> pVariables,
+                     @NonNull final Queue<ITaskAction> pExecution) {
+        this.mTitle = pTitle;
+        this.mDescription = pDescription;
+        this.mVariables = Collections.synchronizedMap(pVariables);
+        this.mStatus = EWorkflowStatus.WORKING;
+        this.mExecution = pExecution;
+    }
+
     public CWorkflow(String pTitle, String pDescription, Map<String, IVariable> pVariables) {
         this.mTitle = pTitle;
         this.mDescription = pDescription;
@@ -37,6 +54,12 @@ public class CWorkflow implements IWorkflow {
     @Override
     public String name() {
         return mTitle;
+    }
+
+    @NonNull
+    @Override
+    public String description() {
+        return mDescription;
     }
 
     @NonNull
@@ -65,7 +88,7 @@ public class CWorkflow implements IWorkflow {
 
     @NonNull
     @Override
-    public Queue<ITaskAction> getQueue() {
+    public Queue<ITaskAction> execution() {
         return mExecution;
     }
 
@@ -135,6 +158,7 @@ public class CWorkflow implements IWorkflow {
             return;
         }
 
+        setStatus(EWorkflowStatus.FINISHED);
     }
 
     @Override
@@ -143,5 +167,14 @@ public class CWorkflow implements IWorkflow {
         //Kopf der Queue holen und Nachricht mit aktueller Ausführungsqueue weitergeben
         mExecution.peek().accept(pMessage);
         this.postAction();
+    }
+
+    @Override
+    public Object clone() {
+        try {
+            return super.clone();
+        } catch (CloneNotSupportedException e) {
+            return new CWorkflow(this.name(), this.description(), this.variables(), this.execution());
+        }
     }
 }

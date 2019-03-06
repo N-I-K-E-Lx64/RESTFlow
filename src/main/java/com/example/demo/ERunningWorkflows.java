@@ -13,17 +13,17 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public enum EWorkflowStorage implements IWorkflowStorage, Supplier<Set<String>>, Function<String, IWorkflow> {
+public enum ERunningWorkflows implements IRunningWorkflows, Supplier<Set<String>>, Function<String, IWorkflow> {
 
     INSTANCE;
-  
-    private static final Logger logger = LogManager.getLogger(EWorkflowStorage.class);
+
+    private static final Logger logger = LogManager.getLogger(ERunningWorkflows.class);
 
     private final Map<String, IWorkflow> mWorkflows = new ConcurrentHashMap<>();
 
     @NonNull
     @Override
-    public IWorkflowStorage add(@NonNull final IWorkflow pWorkflow) {
+    public IWorkflow add(@NonNull final IWorkflow pWorkflow) {
 
         if (mWorkflows.containsKey(pWorkflow.name()))
             throw new RuntimeException(MessageFormat.format("Workflow [{0}] existiert schon", pWorkflow));
@@ -32,14 +32,14 @@ public enum EWorkflowStorage implements IWorkflowStorage, Supplier<Set<String>>,
 
         logger.info("Saved Workflow: " + pWorkflow.name());
 
-        return this;
+        return pWorkflow;
     }
 
     @NonNull
     @Override
-    public IWorkflowStorage remove(@NonNull final IWorkflow pWorkflow) {
+    public IRunningWorkflows remove(@NonNull final String pWorkflow) {
 
-        mWorkflows.remove(pWorkflow.name());
+        mWorkflows.remove(pWorkflow);
 
         return this;
     }

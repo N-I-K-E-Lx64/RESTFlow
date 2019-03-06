@@ -70,8 +70,6 @@ public enum EWorkflowParser {
 
         logger.info("Successfully parsed Workflow: " + lWorkflowTitle);
 
-        this.workflowTitle = null;
-
         return lWorkflow;
     }
 
