@@ -6,7 +6,7 @@ import org.springframework.lang.NonNull;
 /**
  * Interface um Workflows zu verwalten
  */
-public interface IWorkflowStorage {
+public interface IRunningWorkflows {
 
     /**
      * Fügt einen Workflow hinzu.
@@ -15,7 +15,7 @@ public interface IWorkflowStorage {
      * @return Objektreferenz auf alle Workflows
      */
     @NonNull
-    IWorkflowStorage add(@NonNull final IWorkflow pWorkflow);
+    IWorkflow add(@NonNull final IWorkflow pWorkflow);
 
     /**
      * Entfernt einen Workflow
@@ -24,5 +24,5 @@ public interface IWorkflowStorage {
      * @return Objektreferenz auf alle Workflows
      */
     @NonNull
-    IWorkflowStorage remove(@NonNull final IWorkflow pWorkflow);
+    IRunningWorkflows remove(@NonNull final String pWorkflow);
 }

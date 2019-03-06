@@ -4,6 +4,7 @@ public enum EWorkflowStatus {
 
     WORKING,
     WAITING,
+    FINISHED,
     ERROR;
 
     /**
@@ -18,6 +19,9 @@ public enum EWorkflowStatus {
 
             case WAITING:
                 return "Waiting";
+
+            case FINISHED:
+                return "Finished";
 
             case ERROR:
                 return "Failure";

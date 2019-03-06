@@ -17,6 +17,9 @@ public interface IWorkflow extends Consumer<IMessage> {
     String name();
 
     @NonNull
+    String description();
+
+    @NonNull
     EWorkflowStatus status();
 
     @NonNull
@@ -29,7 +32,7 @@ public interface IWorkflow extends Consumer<IMessage> {
     List<String> emptyVariables();
 
     @NonNull
-    Queue<ITaskAction> getQueue();
+    Queue<ITaskAction> execution();
 
     void setQueue(@NonNull Queue<ITaskAction> pExecution);
 
@@ -45,4 +48,6 @@ public interface IWorkflow extends Consumer<IMessage> {
     void executeStep();
 
     void postAction();
+
+    Object clone();
 }

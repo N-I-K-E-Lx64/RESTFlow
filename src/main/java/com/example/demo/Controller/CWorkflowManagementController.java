@@ -1,6 +1,7 @@
 package com.example.demo.Controller;
 
-import com.example.demo.EWorkflowStorage;
+import com.example.demo.ERunningWorkflows;
+import com.example.demo.EWorkflowDefinitons;
 import com.example.demo.Network.IMessage;
 import com.example.demo.Responses.CVariableResponse;
 import com.example.demo.Storage.StorageService;
@@ -43,14 +44,13 @@ public class CWorkflowManagementController {
         EWorkflowParser.INSTANCE.init(storageService);
     }
 
-    @ResponseBody
     @RequestMapping(value = "/parseWorkflow", method = RequestMethod.POST)
-    public ResponseEntity parseWorkflow(@RequestParam("workflow") String workflow, @RequestParam("workflowFile") String workflowFile) {
+    public ResponseEntity<?> parseWorkflow(@RequestParam("workflow") String workflow, @RequestParam("workflowFile") String workflowFile) {
 
         Resource lWorkflowResource = mStorageService.loadAsResource(workflowFile, workflow);
         if (FilenameUtils.getExtension(lWorkflowResource.getFilename()).equals("json")) {
             try {
-                EWorkflowStorage.INSTANCE.add(EWorkflowParser.INSTANCE.parseWorkflow(lWorkflowResource));
+                EWorkflowDefinitons.INSTANCE.add(EWorkflowParser.INSTANCE.parseWorkflow(lWorkflowResource));
             } catch (IOException e) {
                 logger.error(e.getMessage());
             } catch (CWorkflowParseException e) {
@@ -67,18 +67,34 @@ public class CWorkflowManagementController {
     }
 
     @RequestMapping(value = "/start/{workflow:.+}")
-    public ResponseEntity<String> startWorkflow(@PathVariable String workflow) {
+    public ResponseEntity<?> startWorkflow(@PathVariable String workflow) {
 
-        EWorkflowStorage.INSTANCE.apply(workflow).start();
+        IWorkflow lWorkflow = EWorkflowDefinitons.INSTANCE.apply(workflow);
+
+        ERunningWorkflows.INSTANCE.add(lWorkflow);
+
+        lWorkflow.start();
 
         return ResponseEntity.status(200).contentType(MediaType.TEXT_PLAIN)
                 .body(MessageFormat.format("Successfully started [{0}]", workflow));
     }
 
+    @RequestMapping(value = "/restart/{workflow:.+}")
+    public ResponseEntity<?> restartWorkflow(@PathVariable String workflow) {
+
+        ERunningWorkflows.INSTANCE.remove(workflow);
+
+        ERunningWorkflows.INSTANCE.add(EWorkflowDefinitons.INSTANCE.apply(workflow)).start();
+
+        return ResponseEntity.status(200).contentType(MediaType.TEXT_PLAIN)
+                .body(MessageFormat.format("Successfully restarted [{0}]", workflow));
+
+    }
+
     @RequestMapping(value = "/setUserParameter", method = RequestMethod.POST)
     public ResponseEntity setUserVariable(@RequestBody CMessage pMessage) {
 
-        final IWorkflow lWorkflow = EWorkflowStorage.INSTANCE.apply(pMessage.workflow());
+        final IWorkflow lWorkflow = ERunningWorkflows.INSTANCE.apply(pMessage.workflow());
 
         lWorkflow.accept(pMessage);
 
@@ -87,10 +103,10 @@ public class CWorkflowManagementController {
                 pMessage.parameterName(), pMessage.parameterValue()));
     }
 
-    @RequestMapping(value = "/status/{workflow:.+}")
+    @RequestMapping(value = "/status/{workflow:.+}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> checkStatus(@PathVariable String workflow) {
 
-        final IWorkflow lWorkflow = EWorkflowStorage.INSTANCE.apply(workflow);
+        final IWorkflow lWorkflow = ERunningWorkflows.INSTANCE.apply(workflow);
 
         switch (lWorkflow.status()) {
             case WORKING:
@@ -99,6 +115,14 @@ public class CWorkflowManagementController {
                 lWorkingNode.put("currentTask", lWorkflow.currentTask().title());
 
                 return ResponseEntity.ok(lWorkingNode);
+
+            case FINISHED:
+                ArrayNode lVariables = mapper.valueToTree(checkVariableStatus(workflow));
+                ObjectNode lFinishedNode = mapper.createObjectNode();
+                lFinishedNode.put("message", MessageFormat.format("Workflow [{0}] is completed", workflow));
+                lFinishedNode.putArray("variables").addAll(lVariables);
+
+                return ResponseEntity.ok(lFinishedNode);
 
             case WAITING:
                 ArrayNode lEmptyVariables = mapper.valueToTree(lWorkflow.emptyVariables());
@@ -123,7 +147,7 @@ public class CWorkflowManagementController {
     @RequestMapping(value = "/variables/{workflow:.+}")
     public List<CVariableResponse> checkVariableStatus(@PathVariable String workflow) {
 
-        final IWorkflow lWorkflow = EWorkflowStorage.INSTANCE.apply(workflow);
+        final IWorkflow lWorkflow = ERunningWorkflows.INSTANCE.apply(workflow);
 
         //TODO better solution
         return lWorkflow.variables().entrySet().stream()
