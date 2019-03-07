@@ -1,6 +1,7 @@
 package com.restflow.core.WorkflowParser.WorkflowParserObjects.Tasks;
 
 import com.restflow.core.WorkflowExecution.WorkflowTasks.EWorkflowTaskType;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.IParameter;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.ITask;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.IVariable;
 import org.springframework.lang.NonNull;
@@ -11,17 +12,17 @@ import java.util.concurrent.atomic.AtomicReference;
 public class CAssignTask implements ITask {
 
     private final String mTitle;
-    private final AtomicReference<IVariable> mSourceReference;
+    private final IParameter mSourceParameter;
     private final AtomicReference<IVariable> mTargetReference;
 
     private final EWorkflowTaskType mTaskType;
     //TODO : Filter-Möglichkeiten implementieren!
 
-    public CAssignTask(IVariable pVariableReference, IVariable pTargetReference) {
-        mSourceReference = new AtomicReference<>(pVariableReference);
-        mTargetReference = new AtomicReference<>(pVariableReference);
+    public CAssignTask(IParameter pSourceParameter, IVariable pTargetReference) {
+        mSourceParameter = pSourceParameter;
+        mTargetReference = new AtomicReference<>(pTargetReference);
 
-        mTitle = MessageFormat.format("Assign {0} to {1}", mSourceReference.get().name(), mTargetReference.get().name());
+        mTitle = MessageFormat.format("Assign {0} to {1}", mSourceParameter.name(), mTargetReference.get().name());
 
         mTaskType = EWorkflowTaskType.ASSIGN;
     }
@@ -44,8 +45,8 @@ public class CAssignTask implements ITask {
         return mTaskType;
     }
 
-    public IVariable source() {
-        return mSourceReference.get();
+    public IParameter source() {
+        return mSourceParameter;
     }
 
     public IVariable target() {

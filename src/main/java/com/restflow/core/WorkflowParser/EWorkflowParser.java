@@ -4,9 +4,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.restflow.core.EWorkflowDefinitons;
 import com.restflow.core.Storage.StorageService;
+import com.restflow.core.WorkflowExecution.Condition.EConditionType;
 import com.restflow.core.WorkflowExecution.Objects.CWorkflow;
 import com.restflow.core.WorkflowExecution.Objects.IWorkflow;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.*;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.Tasks.CAssignTask;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.Tasks.CInvokeAssignTask;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.Tasks.CInvokeServiceTask;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.Tasks.CSwitchTask;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.raml.v2.api.model.v10.api.Api;
@@ -16,6 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 public enum EWorkflowParser {
@@ -97,9 +103,17 @@ public enum EWorkflowParser {
             }
         }
 
-        /*if (processNode.has("switch")) {
+        if (processNode.has("switch")) {
             lExecutionOrder.add(parseSwitchNode(processNode.path("switch")));
-        }*/
+        }
+
+        if (processNode.has("assign")) {
+            if (processNode.path("assign").isArray()) {
+                processNode.path("assign").forEach(task -> lExecutionOrder.add(parseAssignNode(task)));
+            } else {
+                lExecutionOrder.add(parseAssignNode(processNode.path("assign")));
+            }
+        }
 
         return lExecutionOrder;
     }
@@ -148,16 +162,45 @@ public enum EWorkflowParser {
         return invokeServiceBuilder;
     }
 
-    /*public ITask parseSwitchNode(JsonNode switchNode) {
+    /**
+     * @param switchNode
+     * @return
+     */
+    public ITask parseSwitchNode(JsonNode switchNode) {
 
-        if (switchNode.has("CONDITION")) {
-
+        ICondition lCondition;
+        if (switchNode.has("condition")) {
+            lCondition = createCondition(switchNode.path("condition"));
         } else {
-            throw new CWorkflowParseException("Switch-Activity hat keine Bedingung hinterlegt!");
+            throw new CWorkflowParseException("Switch Task has no condition!");
         }
 
-        return null;
-    }*/
+        return new CSwitchTask(lCondition, parseProcessNode(switchNode.path("case")), parseProcessNode(switchNode.path("otherwise")));
+    }
+
+    /**
+     * @param assignNode
+     * @return
+     */
+    public ITask parseAssignNode(JsonNode assignNode) {
+
+        IParameter lSourceParameter = null;
+        if (assignNode.has("source")) {
+            JsonNode lSourceNode = assignNode.path("source");
+            if (lSourceNode.path("parameter").has("value")) {
+                lSourceParameter = createParameterWithValue(lSourceNode.path("parameter"));
+            }
+        } else {
+            throw new CWorkflowParseException("Assign Task has no Source Parameter");
+        }
+
+        IVariable lTargetVariable = null;
+        if (assignNode.has("target")) {
+            lTargetVariable = CVariableTempStorage.getInstance().apply(assignNode.path("target").asText());
+        }
+
+        return new CAssignTask(lSourceParameter, lTargetVariable);
+    }
 
     /**
      * Erstellt alle Parameter Objekte anhand der Informationen im Input-Teil!
@@ -216,6 +259,31 @@ public enum EWorkflowParser {
     }
 
     /**
+     * @param conditionNode
+     * @return
+     */
+    public ICondition createCondition(JsonNode conditionNode) {
+
+        EConditionType lConditionType = EConditionType.INSTANCE.conditionType(conditionNode.path("operator").asText());
+
+        IParameter lValue1;
+        if (!(conditionNode.path("value1").isObject())) {
+            lValue1 = createSwitchParameterReference(conditionNode.path("value1").textValue());
+        } else {
+            lValue1 = createParameterWithValue(conditionNode.path("value1"));
+        }
+
+        IParameter lValue2;
+        if (!(conditionNode.path("value2").isObject())) {
+            lValue2 = createSwitchParameterReference(conditionNode.path("value1").textValue());
+        } else {
+            lValue2 = createParameterWithValue(conditionNode.path("value2"));
+        }
+
+        return new CCondition(lConditionType, lValue1, lValue2);
+    }
+
+    /**
      * Creates a CParameter Generic-Object
      *
      * @param parameterNode   the Json-Node which holds the Data
@@ -229,7 +297,16 @@ public enum EWorkflowParser {
         return CParameterFactory.getInstance().createParameter(lParameterType, lParameterName, isUserParameter);
     }
 
+    public IParameter createParameterWithValue(JsonNode parameterNode) {
+        String lParameterType = parameterNode.path("type").asText();
+        String lParameterValue = parameterNode.path("value").asText();
+
+        return new CParameter(CParameterFactory.getInstance().createParameterValue(lParameterType, lParameterValue),
+                parameterNode.path("name").asText(), false);
+    }
+
     /**
+     *
      * @param assignTo
      * @return
      */
@@ -258,5 +335,16 @@ public enum EWorkflowParser {
 
     public IParameter createVariableReference(String variableName, IVariable variable) {
         return new CVariableReference(variableName, variable);
+    }
+
+    public IParameter createSwitchParameterReference(String pParameter) {
+
+        if (pParameter.contains("VARIABLES")) {
+            String[] segments = pParameter.split(Pattern.quote("."));
+
+            return createVariableReference(segments[1], CVariableTempStorage.getInstance().apply(segments[1]));
+        } else {
+            throw new CWorkflowParseException("Keyword for Variables not found!");
+        }
     }
 }

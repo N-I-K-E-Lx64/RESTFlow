@@ -5,6 +5,7 @@ import com.restflow.core.WorkflowParser.WorkflowParserObjects.IParameter;
 
 import java.text.MessageFormat;
 
+//TODO: Change this to ENUM!
 public class CParameterFactory {
     private static CParameterFactory ourInstance = new CParameterFactory();
 

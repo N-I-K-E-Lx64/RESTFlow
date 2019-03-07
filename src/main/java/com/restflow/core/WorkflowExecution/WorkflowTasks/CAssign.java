@@ -1,5 +1,7 @@
 package com.restflow.core.WorkflowExecution.WorkflowTasks;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.restflow.core.Network.IMessage;
 import com.restflow.core.WorkflowExecution.Objects.IWorkflow;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.Tasks.CAssignTask;
@@ -24,7 +26,11 @@ public class CAssign extends IBaseTaskAction {
     @Override
     public Boolean apply(Queue<ITaskAction> iTaskActions) {
 
-        mTask.target().setValue(mTask.source().value());
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode lParameterNode = mapper.createObjectNode();
+        lParameterNode.putPOJO(mTask.source().name(), mTask.source().value());
+
+        mTask.target().setValue(lParameterNode);
 
         return false;
     }

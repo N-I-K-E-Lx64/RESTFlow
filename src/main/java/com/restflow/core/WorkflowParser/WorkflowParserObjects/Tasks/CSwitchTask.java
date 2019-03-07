@@ -1,7 +1,7 @@
 package com.restflow.core.WorkflowParser.WorkflowParserObjects.Tasks;
 
 import com.restflow.core.WorkflowExecution.WorkflowTasks.EWorkflowTaskType;
-import com.restflow.core.WorkflowParser.WorkflowParserObjects.CCondition;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.ICondition;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.ITask;
 import org.springframework.lang.NonNull;
 
@@ -12,12 +12,16 @@ public class CSwitchTask implements ITask {
     private final String mTitle;
     private final EWorkflowTaskType mTaskType;
 
-    private CCondition mCondition;
+    private ICondition mCondition;
     private Queue<ITask> mCaseExecution;
     private Queue<ITask> mElseExecution;
 
-    public CSwitchTask(String pTitle) {
-        this.mTitle = pTitle;
+    //TODO : Title erstellen
+    public CSwitchTask(@NonNull final ICondition pCondition, @NonNull final Queue<ITask> pCase, @NonNull final Queue<ITask> pElse) {
+        this.mTitle = "Switch Task";
+        this.mCondition = pCondition;
+        this.mCaseExecution = pCase;
+        this.mElseExecution = pElse;
 
         this.mTaskType = EWorkflowTaskType.SWITCH;
     }
@@ -40,12 +44,12 @@ public class CSwitchTask implements ITask {
         return mTaskType;
     }
 
-    public void setCondition(@NonNull final CCondition pCondition) {
+    public void setCondition(@NonNull final ICondition pCondition) {
         this.mCondition = pCondition;
     }
 
     @NonNull
-    public CCondition condition() {
+    public ICondition condition() {
         return mCondition;
     }
 

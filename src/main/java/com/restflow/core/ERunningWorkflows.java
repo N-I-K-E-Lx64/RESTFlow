@@ -49,7 +49,7 @@ public enum ERunningWorkflows implements IRunningWorkflows, Supplier<Set<String>
 
         final IWorkflow lWorkflow = mWorkflows.get(pWorkflowTitle);
         if (Objects.isNull(lWorkflow))
-            throw new RuntimeException(MessageFormat.format("Workflow mit dem Namen [{0}] nicht gefunden", pWorkflowTitle));
+            throw new RuntimeException(MessageFormat.format("Workflow [{0}] could not be found!", pWorkflowTitle));
 
         return lWorkflow;
     }
