@@ -2,12 +2,8 @@ package com.restflow.core.WorkflowParser.WorkflowParserObjects;
 
 import org.springframework.lang.NonNull;
 
-public interface IParameter<T> {
+public interface ICondition {
 
     @NonNull
-    String name();
-
-    T value();
-
-    void setValue(T pValue);
+    Boolean execute();
 }

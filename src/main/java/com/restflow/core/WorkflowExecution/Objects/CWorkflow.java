@@ -3,9 +3,9 @@ package com.restflow.core.WorkflowExecution.Objects;
 import com.restflow.core.Network.IMessage;
 import com.restflow.core.WorkflowExecution.WorkflowTasks.EWorkflowTaskFactory;
 import com.restflow.core.WorkflowExecution.WorkflowTasks.ITaskAction;
-import com.restflow.core.WorkflowParser.WorkflowParserObjects.CInvokeServiceTask;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.ITask;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.IVariable;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.Tasks.CInvokeServiceTask;
 import org.springframework.lang.NonNull;
 
 import java.util.*;
@@ -91,8 +91,9 @@ public class CWorkflow implements IWorkflow {
     }
 
     @Override
-    public void setQueue(@NonNull Queue<ITaskAction> pExecution) {
-        this.mExecution = pExecution;
+    public void setQueue(@NonNull Queue<ITask> pExecution) {
+        mExecution.clear();
+        generateExecutionOrder(pExecution);
     }
 
     @Override

@@ -1,7 +1,9 @@
-package com.restflow.core.WorkflowParser.WorkflowParserObjects;
+package com.restflow.core.WorkflowParser.WorkflowParserObjects.Tasks;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.restflow.core.WorkflowExecution.WorkflowTasks.EWorkflowTaskType;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.ITask;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.IVariable;
 import org.springframework.lang.NonNull;
 
 import java.text.MessageFormat;
@@ -37,7 +39,7 @@ public class CInvokeAssignTask implements ITask {
 
     @NonNull
     @Override
-    public EWorkflowTaskType getWorkflowType() {
+    public EWorkflowTaskType taskType() {
         return mTaskType;
     }
 

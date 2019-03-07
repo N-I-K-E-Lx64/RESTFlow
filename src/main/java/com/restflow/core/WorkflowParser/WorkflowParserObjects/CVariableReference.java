@@ -15,10 +15,6 @@ public class CVariableReference implements IParameter {
         this.mVariable.set(pVariable);
     }
 
-    public void setReference(IVariable pVariable) {
-        mVariable.set(pVariable);
-    }
-
     @NonNull
     @Override
     public String name() {

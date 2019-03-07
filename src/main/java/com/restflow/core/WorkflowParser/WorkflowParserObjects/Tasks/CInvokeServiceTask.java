@@ -1,6 +1,8 @@
-package com.restflow.core.WorkflowParser.WorkflowParserObjects;
+package com.restflow.core.WorkflowParser.WorkflowParserObjects.Tasks;
 
 import com.restflow.core.WorkflowExecution.WorkflowTasks.EWorkflowTaskType;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.IParameter;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.ITask;
 import org.raml.v2.api.model.v10.api.Api;
 import org.springframework.lang.NonNull;
 
@@ -9,11 +11,12 @@ import java.util.Map;
 
 public class CInvokeServiceTask implements ITask {
 
-    private String mTitle;
-    private int mResourceIndex;
+    private final String mTitle;
+    private final EWorkflowTaskType mTaskType;
+    private final int mResourceIndex;
     private Map<String, IParameter> mInput;
     private final Api mApi;
-    private final EWorkflowTaskType mTaskType;
+
     private CInvokeAssignTask mAssignTask;
 
     public CInvokeServiceTask(String pTitle, int pMethodIndex, Api pApi) {
@@ -37,6 +40,7 @@ public class CInvokeServiceTask implements ITask {
         return this;
     }
 
+    @NonNull
     @Override
     public String title() {
         return mTitle;
@@ -44,7 +48,7 @@ public class CInvokeServiceTask implements ITask {
 
     @NonNull
     @Override
-    public EWorkflowTaskType getWorkflowType() {
+    public EWorkflowTaskType taskType() {
         return mTaskType;
     }
 

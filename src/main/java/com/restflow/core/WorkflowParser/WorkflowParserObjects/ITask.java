@@ -12,6 +12,6 @@ public interface ITask<T> {
     String title();
 
     @NonNull
-    EWorkflowTaskType getWorkflowType();
+    EWorkflowTaskType taskType();
 
 }

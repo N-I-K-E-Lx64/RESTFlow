@@ -7,9 +7,9 @@ import com.restflow.core.WorkflowExecution.Objects.CUserInteractionException;
 import com.restflow.core.WorkflowExecution.Objects.CWorkflowExecutionException;
 import com.restflow.core.WorkflowExecution.Objects.EWorkflowStatus;
 import com.restflow.core.WorkflowExecution.Objects.IWorkflow;
-import com.restflow.core.WorkflowParser.WorkflowParserObjects.CInvokeServiceTask;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.CParameter;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.IParameter;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.Tasks.CInvokeServiceTask;
 import okhttp3.ResponseBody;
 import org.springframework.lang.NonNull;
 

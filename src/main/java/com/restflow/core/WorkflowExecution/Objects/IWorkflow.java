@@ -34,7 +34,7 @@ public interface IWorkflow extends Consumer<IMessage> {
     @NonNull
     Queue<ITaskAction> execution();
 
-    void setQueue(@NonNull Queue<ITaskAction> pExecution);
+    void setQueue(@NonNull Queue<ITask> pExecution);
 
     void setStatus(@NonNull EWorkflowStatus pStatus);
 
