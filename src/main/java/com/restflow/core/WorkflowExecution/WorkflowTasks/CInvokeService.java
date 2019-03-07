@@ -10,7 +10,6 @@ import com.restflow.core.WorkflowExecution.Objects.IWorkflow;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.CParameter;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.IParameter;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.Tasks.CInvokeServiceTask;
-import okhttp3.ResponseBody;
 import org.springframework.lang.NonNull;
 
 import java.io.IOException;
@@ -83,12 +82,12 @@ public class CInvokeService extends IBaseTaskAction {
         }
     }
 
-    private void processSuccess(ResponseBody pResponse) {
+    private void processSuccess(IResponse pResponse) {
 
         JsonNode lResponseNode;
 
         try {
-            lResponseNode = mMapper.readTree(pResponse.string());
+            lResponseNode = mMapper.readTree(pResponse.response());
         } catch (IOException ex) {
             throw new CWorkflowExecutionException("Can't parse Response Body into a Json Node", ex);
         }

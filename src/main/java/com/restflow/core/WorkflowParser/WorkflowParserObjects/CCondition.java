@@ -1,7 +1,10 @@
 package com.restflow.core.WorkflowParser.WorkflowParserObjects;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.restflow.core.WorkflowExecution.Condition.EConditionType;
 import com.restflow.core.WorkflowExecution.Objects.CConditionException;
+import com.restflow.core.WorkflowExecution.Objects.CWorkflowExecutionException;
 import org.springframework.lang.NonNull;
 
 import java.text.MessageFormat;
@@ -27,11 +30,19 @@ public class CCondition implements ICondition {
         Object lFirstParameter = mFirstParameter.get().value();
         Object lSecondParameter = mSecondParameter.get().value();
 
+        if (lFirstParameter instanceof IVariable) {
+            lFirstParameter = deserializeVariable((IVariable) lFirstParameter);
+        }
+
+        if (lSecondParameter instanceof IVariable) {
+            lSecondParameter = deserializeVariable((IVariable) lSecondParameter);
+        }
+
         if (Objects.isNull(lFirstParameter) || Objects.isNull(lSecondParameter)) {
 
             throw new CConditionException("No decision with a null value is possible!");
 
-        } else if ((lFirstParameter instanceof String || lSecondParameter instanceof String) &&
+        } /*else if ((lFirstParameter instanceof String || lSecondParameter instanceof String) &&
                 (mConditionType.equals(EConditionType.BIGGER) || mConditionType.equals(EConditionType.SMALLER) ||
                         mConditionType.equals(EConditionType.NUMBER_EQUALS) || mConditionType.equals(EConditionType.NOT_NUMBER_EQUALS))) {
 
@@ -42,7 +53,7 @@ public class CCondition implements ICondition {
                 mConditionType.equals(EConditionType.STRING_CONTAINS) || mConditionType.equals(EConditionType.NOT_STRING_CONTAINS))) {
 
             throw new CConditionException("No string related comparisons on numbers possible!");
-        }
+        }*/
 
         switch (mConditionType) {
             case SMALLER:
@@ -80,5 +91,15 @@ public class CCondition implements ICondition {
 
     private String stringParameter(Object pString) {
         return (String) pString;
+    }
+
+    private String deserializeVariable(IVariable pVariable) {
+
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            return mapper.writeValueAsString(pVariable.value());
+        } catch (JsonProcessingException ex) {
+            throw new CWorkflowExecutionException("Variable cannot be parsed to string!", ex);
+        }
     }
 }

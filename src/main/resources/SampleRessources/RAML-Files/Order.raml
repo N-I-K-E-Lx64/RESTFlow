@@ -6,6 +6,11 @@ baseUri: http://localhost:8082
 uses:
   OrderLibrary: OrderLibrary.raml
 
+types:
+  OrderConfirmation:
+    properties:
+      message: string
+
 /placeOrder:
   post:
     description:
@@ -13,7 +18,15 @@ uses:
       application/json:
         type: OrderLibrary.Order
     responses:
+      404:
+        body:
+          application/json:
+            type: OrderConfirmation
+            example: {"message": "ERROR: You can only order part TRFR2004 here. You ordered [TRFR2003]"}
       200:
         body:
           application/json:
-            type: string
+            type: OrderConfirmation
+            example: {"message": "SUCCESS: Order number [0]"}
+
+          

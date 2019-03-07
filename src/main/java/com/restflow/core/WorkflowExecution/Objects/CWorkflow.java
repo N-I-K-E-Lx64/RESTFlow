@@ -94,6 +94,7 @@ public class CWorkflow implements IWorkflow {
     public void setQueue(@NonNull Queue<ITask> pExecution) {
         mExecution.clear();
         generateExecutionOrder(pExecution);
+        start();
     }
 
     @Override

@@ -19,6 +19,7 @@ import org.springframework.core.io.Resource;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.regex.Pattern;
@@ -64,7 +65,7 @@ public enum EWorkflowParser {
 
         if (workflowNode.has("variables")) {
             for (Iterator<JsonNode> variableIterator = workflowNode.path("variables").elements(); variableIterator.hasNext(); ) {
-                IVariable lTempVariable = new CVariable(variableIterator.next().asText());
+                IVariable lTempVariable = createVariable(variableIterator.next());
                 lVariables.put(lTempVariable.name(), lTempVariable);
             }
         }
@@ -303,6 +304,23 @@ public enum EWorkflowParser {
 
         return new CParameter(CParameterFactory.getInstance().createParameterValue(lParameterType, lParameterValue),
                 parameterNode.path("name").asText(), false);
+    }
+
+    /**
+     * @param variableNode
+     * @return
+     */
+    public IVariable createVariable(JsonNode variableNode) {
+
+        switch (variableNode.path("type").asText().toUpperCase()) {
+            case "JSON":
+
+            case "STRING":
+
+            default:
+                throw new CWorkflowParseException(MessageFormat.format("Variable type [{0}] unknown", variableNode.path("type").asText()));
+        }
+
     }
 
     /**

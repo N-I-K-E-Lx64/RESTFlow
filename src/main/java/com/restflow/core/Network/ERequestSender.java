@@ -20,7 +20,7 @@ public enum ERequestSender {
 
     private final OkHttpClient mClient = new OkHttpClient();
 
-    public ResponseBody buildRequest(IRequest pRequest, IWorkflow pWorkflow) {
+    public IResponse buildRequest(IRequest pRequest, IWorkflow pWorkflow) {
 
         Request.Builder builder = new Request.Builder();
         builder.url(pRequest.url());
@@ -42,7 +42,7 @@ public enum ERequestSender {
                 throw new RuntimeException(MessageFormat.format("Unknown Http-Type: [{0}]!", pRequest.type()));
 
         }
-
+        logger.info("Sending request to: " + pRequest.url());
         Request lRequest = builder.build();
 
         try (Response lResponse = mClient.newCall(lRequest).execute()) {
@@ -52,7 +52,7 @@ public enum ERequestSender {
                 throw new CWorkflowExecutionException("Request could not be executed successfully!");
             }
 
-            return lResponse.body();
+            return new CResponse(lResponse.body().contentType().toString(), lResponse.body().string());
         } catch (IOException ex) {
             pWorkflow.setStatus(EWorkflowStatus.ERROR);
             logger.error("Request could not be executed successfully" + ex);

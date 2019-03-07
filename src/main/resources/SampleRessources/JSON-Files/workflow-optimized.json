@@ -3,9 +3,18 @@
     "title": "test",
     "description": "test",
     "variables": [
-      "order",
-      "order_confirmation",
-      "RESULT"
+      {
+        "name": "order",
+        "type": "JSON"
+      },
+      {
+        "name": "order_confirmation",
+        "type": "STRING"
+      },
+      {
+        "name": "RESULT",
+        "type": "STRING"
+      }
     ],
     "process": {
       "invoke": [
