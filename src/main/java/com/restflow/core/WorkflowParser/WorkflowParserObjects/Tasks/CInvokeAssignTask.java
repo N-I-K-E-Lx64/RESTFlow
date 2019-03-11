@@ -14,6 +14,7 @@ public class CInvokeAssignTask implements ITask {
     private final String mTitle;
     private final AtomicReference<IVariable> mTargetReference;
     private JsonNode mJsonSource;
+    private String mStringSource;
 
     private final EWorkflowTaskType mTaskType;
 
@@ -43,8 +44,12 @@ public class CInvokeAssignTask implements ITask {
         return mTaskType;
     }
 
-    public void setJsonSource(JsonNode pJsonSource) {
+    public void setJsonSource(@NonNull final JsonNode pJsonSource) {
         mJsonSource = pJsonSource;
+    }
+
+    public void setStringSource(@NonNull final String pStringSource) {
+        mStringSource = pStringSource;
     }
 
     @NonNull
@@ -55,5 +60,10 @@ public class CInvokeAssignTask implements ITask {
     @NonNull
     public JsonNode jsonSource() {
         return mJsonSource;
+    }
+
+    @NonNull
+    public String stringSource() {
+        return mStringSource;
     }
 }

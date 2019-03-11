@@ -162,8 +162,8 @@ public class CWorkflowManagementController {
                 .collect(Collectors.toList());
     }
 
-    private CVariableResponse createVariableResponse(String pVariableName, JsonNode pVariableValue) {
-        return new CVariableResponse(pVariableName, pVariableValue);
+    private CVariableResponse createVariableResponse(String pVariableName, Object pVariableValue) {
+        return new CVariableResponse(pVariableName, (JsonNode) pVariableValue);
     }
 
     @ExceptionHandler(CWorkflowParseException.class)

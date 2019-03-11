@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.restflow.core.Network.IMessage;
 import com.restflow.core.WorkflowExecution.Objects.IWorkflow;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.CJsonVariable;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.CStringVariable;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.Tasks.CAssignTask;
 import org.springframework.lang.NonNull;
 
@@ -26,11 +28,15 @@ public class CAssign extends IBaseTaskAction {
     @Override
     public Boolean apply(Queue<ITaskAction> iTaskActions) {
 
-        ObjectMapper mapper = new ObjectMapper();
-        ObjectNode lParameterNode = mapper.createObjectNode();
-        lParameterNode.putPOJO(mTask.source().name(), mTask.source().value());
+        if (mTask.target() instanceof CJsonVariable) {
+            ObjectMapper mapper = new ObjectMapper();
+            ObjectNode lParameterNode = mapper.createObjectNode();
+            lParameterNode.putPOJO(mTask.source().name(), mTask.source().value());
 
-        mTask.target().setValue(lParameterNode);
+            mTask.target().setValue(lParameterNode);
+        } else if (mTask.target() instanceof CStringVariable) {
+            mTask.target().setValue(mTask.source().value());
+        }
 
         return false;
     }

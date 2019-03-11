@@ -95,11 +95,15 @@ public class CCondition implements ICondition {
 
     private String deserializeVariable(IVariable pVariable) {
 
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            return mapper.writeValueAsString(pVariable.value());
-        } catch (JsonProcessingException ex) {
-            throw new CWorkflowExecutionException("Variable cannot be parsed to string!", ex);
+        if (pVariable instanceof CJsonVariable) {
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                return mapper.writeValueAsString(pVariable.value());
+            } catch (JsonProcessingException ex) {
+                throw new CWorkflowExecutionException("Variable cannot be parsed to string!", ex);
+            }
+        } else {
+            return (String) pVariable.value();
         }
     }
 }

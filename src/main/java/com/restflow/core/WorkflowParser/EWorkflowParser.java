@@ -312,15 +312,15 @@ public enum EWorkflowParser {
      */
     public IVariable createVariable(JsonNode variableNode) {
 
+        String lVariableName = variableNode.path("name").asText();
         switch (variableNode.path("type").asText().toUpperCase()) {
             case "JSON":
-
+                return new CJsonVariable(lVariableName);
             case "STRING":
-
+                return new CStringVariable(lVariableName);
             default:
                 throw new CWorkflowParseException(MessageFormat.format("Variable type [{0}] unknown", variableNode.path("type").asText()));
         }
-
     }
 
     /**

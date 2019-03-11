@@ -3,18 +3,18 @@ package com.restflow.core.WorkflowParser.WorkflowParserObjects;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.lang.NonNull;
 
-public class CVariable implements IVariable {
+public class CJsonVariable implements IVariable {
 
     private final String mName;
     private JsonNode mValue;
 
-    public CVariable(@NonNull String pName) {
+    public CJsonVariable(@NonNull final String pName) {
         this.mName = pName;
     }
 
     @Override
-    public void setValue(@NonNull JsonNode pValue) {
-        mValue = pValue;
+    public void setValue(@NonNull final Object pValue) {
+        mValue = (JsonNode) pValue;
     }
 
     @NonNull

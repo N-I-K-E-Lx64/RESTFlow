@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 
 public class CInvokeService extends IBaseTaskAction {
 
-    private static final ObjectMapper mMapper = new ObjectMapper();
+    private static final ObjectMapper mapper = new ObjectMapper();
     private final CInvokeServiceTask mTask;
 
     CInvokeService(IWorkflow pWorkflow, CInvokeServiceTask pTask) {
@@ -84,18 +84,26 @@ public class CInvokeService extends IBaseTaskAction {
 
     private void processSuccess(IResponse pResponse) {
 
-        JsonNode lResponseNode;
+        if (pResponse.mediaType().equals("application/json;charset=UTF-8")) {
+            JsonNode lResponseNode;
 
-        try {
-            lResponseNode = mMapper.readTree(pResponse.response());
-        } catch (IOException ex) {
-            throw new CWorkflowExecutionException("Can't parse Response Body into a Json Node", ex);
-        }
+            try {
+                lResponseNode = mapper.readTree(pResponse.response());
+            } catch (IOException ex) {
+                throw new CWorkflowExecutionException("Can't parse Response Body into a Json Node", ex);
+            }
 
-        if (!Objects.isNull(mTask.assignTask())) {
-            mTask.assignTask().setJsonSource(lResponseNode);
+            if (!(Objects.isNull(mTask.assignTask()))) {
+                mTask.assignTask().setJsonSource(lResponseNode);
 
-            EWorkflowTaskFactory.INSTANCE.factory(mWorkflow, mTask.assignTask()).apply(mWorkflow.execution());
+                EWorkflowTaskFactory.INSTANCE.factory(mWorkflow, mTask.assignTask()).apply(mWorkflow.execution());
+            }
+        } else if (pResponse.mediaType().equals("text/plain")) {
+            if (!(Objects.isNull(mTask.assignTask()))) {
+                mTask.assignTask().setStringSource(pResponse.response());
+
+                EWorkflowTaskFactory.INSTANCE.factory(mWorkflow, mTask.assignTask()).apply(mWorkflow.execution());
+            }
         }
     }
 
