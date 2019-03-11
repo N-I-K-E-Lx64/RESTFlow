@@ -56,7 +56,7 @@
           "value2": {
             "type": "String",
             "name": "checkResult",
-            "value": "Success"
+            "value": "SUCCESS"
           }
         },
         "case": {

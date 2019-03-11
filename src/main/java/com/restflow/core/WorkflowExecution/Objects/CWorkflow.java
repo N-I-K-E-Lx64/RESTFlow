@@ -152,7 +152,7 @@ public class CWorkflow implements IWorkflow {
     @Override
     public void executeStep() {
 
-        if (mStatus == EWorkflowStatus.WORKING) {
+        if (mStatus == EWorkflowStatus.WORKING && !(mStatus == EWorkflowStatus.FINISHED)) {
             mCurrentTask.set(mExecution.element());
 
             //Den Head der Queue ausführen und wenn true geliefert wird, muss auf eine Nachricht gewartet werden
@@ -161,8 +161,10 @@ public class CWorkflow implements IWorkflow {
             }
 
             //... wenn false übergeben wird, wird Element aus der Queue entfernt
-            mExecution.remove();
-            this.postAction();
+            if (!mExecution.isEmpty()) {
+                mExecution.remove();
+                this.postAction();
+            }
         }
     }
 

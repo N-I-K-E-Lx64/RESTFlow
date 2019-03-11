@@ -28,6 +28,8 @@ public enum ERequestSender {
         switch (pRequest.type()) {
             case GET:
                 builder.get();
+
+                logger.info("Sending request to: " + pRequest.url());
                 break;
 
             case POST:
@@ -35,6 +37,8 @@ public enum ERequestSender {
                 if (!lJson.equals("")) {
                     RequestBody lBody = RequestBody.create(JSON, lJson);
                     builder.post(lBody);
+
+                    logger.info("Sending request to: " + pRequest.url() + " with JSON: " + pRequest.fieldsAsJson());
                 }
                 break;
 
@@ -42,7 +46,7 @@ public enum ERequestSender {
                 throw new RuntimeException(MessageFormat.format("Unknown Http-Type: [{0}]!", pRequest.type()));
 
         }
-        logger.info("Sending request to: " + pRequest.url());
+
         Request lRequest = builder.build();
 
         try (Response lResponse = mClient.newCall(lRequest).execute()) {

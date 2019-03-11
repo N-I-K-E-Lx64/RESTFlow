@@ -163,6 +163,12 @@ public class CWorkflowManagementController {
     }
 
     private CVariableResponse createVariableResponse(String pVariableName, Object pVariableValue) {
+        if (pVariableValue instanceof String) {
+            ObjectMapper mapper = new ObjectMapper();
+            ObjectNode lStringNode = mapper.createObjectNode();
+            lStringNode.put("text", (String) pVariableValue);
+            return new CVariableResponse(pVariableName, lStringNode);
+        }
         return new CVariableResponse(pVariableName, (JsonNode) pVariableValue);
     }
 
