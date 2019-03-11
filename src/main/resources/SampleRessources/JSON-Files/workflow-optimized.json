@@ -3,8 +3,18 @@
     "title": "test",
     "description": "test",
     "variables": [
-      "order",
-      "RESULT"
+      {
+        "name": "order",
+        "type": "JSON"
+      },
+      {
+        "name": "order_confirmation",
+        "type": "STRING"
+      },
+      {
+        "name": "RESULT",
+        "type": "STRING"
+      }
     ],
     "process": {
       "invoke": [
@@ -36,48 +46,42 @@
               "variable": "order"
             }
           },
-          "assignTo": "VARIABLES.RESULT"
+          "assignTo": "VARIABLES.order_confirmation"
         }
       ],
       "switch": {
         "condition": {
-          "operator": ">",
-          "value1": "VARIABLES.order",
-          "value2": 100
+          "operator": "CONTAINS",
+          "value1": "VARIABLES.order_confirmation",
+          "value2": {
+            "type": "String",
+            "name": "checkResult",
+            "value": "SUCCESS"
+          }
         },
         "case": {
-          "invoke": [
-            {
-              "title": "MarketWS",
-              "raml": "Market.raml",
-              "resource": "/getBestOffer",
-              "input": {
-                "user-parameter": [
-                  {
-                    "name": "partNumber",
-                    "type": "String"
-                  },
-                  {
-                    "name": "budget",
-                    "type": "double"
-                  }
-                ]
-              },
-              "validator": "MarketWS.TYPE.Order",
-              "assignTo": "VARIABLES.order"
+          "assign": {
+            "source": {
+              "parameter": {
+                "type": "String",
+                "name": "SuccessResult",
+                "value": "Success"
+              }
             },
-            {
-              "title": "OrderWS",
-              "raml": "Order.raml",
-              "resource": "/placeOrder",
-              "input": {
-                "variable": "order"
-              },
-              "assignTo": "VARIABLES.result"
-            }
-          ]
+            "target": "VARIABLES.RESULT"
+          }
         },
         "otherwise": {
+          "assign": {
+            "source": {
+              "parameter": {
+                "type": "String",
+                "name": "ErrorResult",
+                "value": "Error"
+              }
+            },
+            "target": "VARIABLES.RESULT"
+          }
         }
       }
     }

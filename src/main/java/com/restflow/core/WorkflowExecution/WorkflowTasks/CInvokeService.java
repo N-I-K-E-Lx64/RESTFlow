@@ -1,0 +1,115 @@
+package com.restflow.core.WorkflowExecution.WorkflowTasks;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.restflow.core.Network.*;
+import com.restflow.core.WorkflowExecution.Objects.CUserInteractionException;
+import com.restflow.core.WorkflowExecution.Objects.CWorkflowExecutionException;
+import com.restflow.core.WorkflowExecution.Objects.EWorkflowStatus;
+import com.restflow.core.WorkflowExecution.Objects.IWorkflow;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.CParameter;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.IParameter;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.Tasks.CInvokeServiceTask;
+import org.springframework.lang.NonNull;
+
+import java.io.IOException;
+import java.text.MessageFormat;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Queue;
+import java.util.stream.Collectors;
+
+public class CInvokeService extends IBaseTaskAction {
+
+    private static final ObjectMapper mapper = new ObjectMapper();
+    private final CInvokeServiceTask mTask;
+
+    CInvokeService(IWorkflow pWorkflow, CInvokeServiceTask pTask) {
+        super(pWorkflow);
+        mTask = pTask;
+    }
+
+    @Override
+    public Boolean apply(Queue<ITaskAction> iTaskActions) {
+
+        //TODO : Better empty Check for Variables
+        List<IParameter> emptyVariables = mTask.parameters().entrySet().stream()
+                .filter(parameter -> {
+                    return Objects.isNull(parameter.getValue().value());
+                }).map(Map.Entry::getValue)
+                .collect(Collectors.toList());
+
+        //Request kann nur ausgeführt werden, wenn alle Variablen belegt sind!
+        if (emptyVariables.size() > 0) {
+            mWorkflow.setStatus(EWorkflowStatus.WAITING);
+            mWorkflow.setEmptyVariables(emptyVariables.stream()
+                    .map(variable -> variable.name())
+                    .collect(Collectors.toList()));
+
+            return true;
+        }
+
+        String lUrl = mTask.api().baseUri().value() + mTask.api().resources().get(mTask.resourceIndex()).relativeUri().value();
+
+        ERequestType lRequestType = ERequestType.INSTANCE.get(mTask.api().resources().get(mTask.resourceIndex()).methods().get(0).method());
+
+        IRequest lRequest = new CRequest(lUrl, lRequestType, mTask.parameters());
+
+        processSuccess(Objects.requireNonNull(ERequestSender.INSTANCE.buildRequest(lRequest, mWorkflow)));
+
+        return false;
+    }
+
+    /**
+     * @param iMessage
+     */
+    @Override
+    public void accept(IMessage iMessage) {
+        CParameter lParameter = (CParameter) mTask.parameters().get(iMessage.parameterName());
+        if (Objects.isNull(lParameter)) {
+            throw new CUserInteractionException(MessageFormat.format("Parameter [{0}] does not exist!", iMessage.parameterName()));
+        } else if (!Objects.isNull(lParameter.value())) {
+            throw new CUserInteractionException(MessageFormat.format("Parameter [{0}] already set!", iMessage.parameterName()));
+        }
+
+        lParameter.setValue(iMessage.parameterValue());
+
+        mWorkflow.emptyVariables().remove(iMessage.parameterName());
+
+        if (!(mWorkflow.emptyVariables().size() > 0)) {
+            mWorkflow.setStatus(EWorkflowStatus.WORKING);
+        }
+    }
+
+    private void processSuccess(IResponse pResponse) {
+
+        if (pResponse.mediaType().equals("application/json;charset=UTF-8")) {
+            JsonNode lResponseNode;
+
+            try {
+                lResponseNode = mapper.readTree(pResponse.response());
+            } catch (IOException ex) {
+                throw new CWorkflowExecutionException("Can't parse Response Body into a Json Node", ex);
+            }
+
+            if (!(Objects.isNull(mTask.assignTask()))) {
+                mTask.assignTask().setJsonSource(lResponseNode);
+
+                EWorkflowTaskFactory.INSTANCE.factory(mWorkflow, mTask.assignTask()).apply(mWorkflow.execution());
+            }
+        } else if (pResponse.mediaType().equals("text/plain")) {
+            if (!(Objects.isNull(mTask.assignTask()))) {
+                mTask.assignTask().setStringSource(pResponse.response());
+
+                EWorkflowTaskFactory.INSTANCE.factory(mWorkflow, mTask.assignTask()).apply(mWorkflow.execution());
+            }
+        }
+    }
+
+    @NonNull
+    @Override
+    public String title() {
+        return mTask.title();
+    }
+}
