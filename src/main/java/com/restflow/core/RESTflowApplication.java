@@ -12,10 +12,10 @@ import org.springframework.context.annotation.Bean;
 @EnableConfigurationProperties({
         StorageProperties.class
 })
-public class DemoApplication {
+public class RESTflowApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(DemoApplication.class, args);
+        SpringApplication.run(RESTflowApplication.class, args);
     }
 
     @Bean
