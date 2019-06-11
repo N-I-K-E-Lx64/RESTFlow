@@ -5,11 +5,11 @@ import org.springframework.lang.NonNull;
 public class CResponse implements IResponse {
 
     private final String mMediaType;
-    private final String mRespone;
+    private final String mResponse;
 
-    public CResponse(@NonNull final String pMediaType, @NonNull final String pRespone) {
+    public CResponse(@NonNull final String pMediaType, @NonNull final String pResponse) {
         this.mMediaType = pMediaType;
-        this.mRespone = pRespone;
+        this.mResponse = pResponse;
     }
 
     @NonNull
@@ -21,6 +21,6 @@ public class CResponse implements IResponse {
     @NonNull
     @Override
     public String response() {
-        return mRespone;
+        return mResponse;
     }
 }

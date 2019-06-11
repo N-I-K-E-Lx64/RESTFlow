@@ -50,11 +50,12 @@ public class CInvokeService extends IBaseTaskAction {
             return true;
         }
 
-        String lUrl = mTask.api().baseUri().value() + mTask.api().resources().get(mTask.resourceIndex()).relativeUri().value();
+        String lBaseUrl = mTask.api().baseUri().value();
+        String lResourceUrl = mTask.api().resources().get(mTask.resourceIndex()).relativeUri().value();
+        String lRequestType = mTask.api().resources().get(mTask.resourceIndex()).methods().get(0).method();
 
-        ERequestType lRequestType = ERequestType.INSTANCE.get(mTask.api().resources().get(mTask.resourceIndex()).methods().get(0).method());
-
-        IRequest lRequest = new CRequest(lUrl, lRequestType, mTask.parameters());
+        IRequest lRequest = new CRequest(lBaseUrl, lResourceUrl,
+                ERequestTypeBuilder.INSTANCE.createHttpMethodFromString(lRequestType), mTask.parameters());
 
         processSuccess(Objects.requireNonNull(ERequestSender.INSTANCE.buildRequest(lRequest, mWorkflow)));
 

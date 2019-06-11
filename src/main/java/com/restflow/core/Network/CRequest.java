@@ -1,39 +1,56 @@
 package com.restflow.core.Network;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.IParameter;
-import com.restflow.core.WorkflowParser.WorkflowParserObjects.IVariable;
+import org.springframework.http.HttpMethod;
 import org.springframework.lang.NonNull;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public class CRequest implements IRequest {
 
-    private final String mUrl;
-    private final ERequestType mRequestType;
-    private final Map<String, IParameter> mFields;
+    private final String mBaseUrl;
+    private final String mResourceUrl;
+    private final HttpMethod mRequestType;
+    private final Map mFields;
 
-    public CRequest(@NonNull String pUrl, @NonNull ERequestType pRequestType, @NonNull Map<String, IParameter> pFields) {
-        this.mUrl = pUrl;
+    public CRequest(@NonNull final String pUrl, @NonNull final String pResourceUrl,
+                    @NonNull HttpMethod pRequestType, @NonNull Map<String, IParameter> pFields) {
+        this.mBaseUrl = pUrl;
+        this.mResourceUrl = pResourceUrl;
         this.mRequestType = pRequestType;
         this.mFields = pFields;
     }
 
+    /*
+    TODO: Alles auf LinkedMultiValueMap umbauen!
+    TODO: Parser so anpassen, dass er mit mehreren Parametern bezogen auf den selben key umgehen kann.
+     */
+
     @NonNull
     @Override
-    public String url() {
-        return mUrl;
+    public String baseUrl() {
+        return mBaseUrl;
     }
 
     @NonNull
     @Override
-    public ERequestType type() {
+    public String resourceUrl() {
+        return mResourceUrl;
+    }
+
+    @NonNull
+    @Override
+    public HttpMethod type() {
         return mRequestType;
     }
 
     @NonNull
+    @Override
+    public Map fields() {
+        return mFields;
+    }
+
+    /*@NonNull
     @Override
     public String fieldsAsJson() {
         ObjectMapper mapper = new ObjectMapper();
@@ -60,5 +77,5 @@ public class CRequest implements IRequest {
         }
 
         return "";
-    }
+    }*/
 }

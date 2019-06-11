@@ -1,15 +1,21 @@
 package com.restflow.core.Network;
 
+import org.springframework.http.HttpMethod;
 import org.springframework.lang.NonNull;
+
+import java.util.Map;
 
 public interface IRequest {
 
     @NonNull
-    String url();
+    String baseUrl();
 
     @NonNull
-    ERequestType type();
+    String resourceUrl();
 
     @NonNull
-    String fieldsAsJson();
+    HttpMethod type();
+
+    @NonNull
+    Map fields();
 }
