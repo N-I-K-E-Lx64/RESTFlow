@@ -24,6 +24,7 @@ public class CParameterFactory {
      * @param isUserparameter Is true if the parameter value, must be entered by a user.
      * @return an IParameter-Object
      */
+    //TODO : Fix the Warnings!
     public IParameter createParameter(String pParameterType, String pParameterName, Boolean isUserparameter) {
         switch (pParameterType.toUpperCase()) {
             case "STRING":
