@@ -12,8 +12,8 @@ import com.restflow.core.Responses.CVariableResponse;
 import com.restflow.core.Storage.StorageService;
 import com.restflow.core.WorkflowExecution.Objects.CUserInteractionException;
 import com.restflow.core.WorkflowExecution.Objects.IWorkflow;
-import com.restflow.core.WorkflowParser.CParameterFactory;
 import com.restflow.core.WorkflowParser.CWorkflowParseException;
+import com.restflow.core.WorkflowParser.EParameterFactory;
 import com.restflow.core.WorkflowParser.EWorkflowParser;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
@@ -215,7 +215,7 @@ public class CWorkflowManagementController {
         }
 
         public Object parameterValue() {
-            return CParameterFactory.getInstance().createParameterValue(mParameterType, mParameterValue);
+            return EParameterFactory.INSTANCE.createParameterValue(mParameterType, mParameterValue);
         }
 
 

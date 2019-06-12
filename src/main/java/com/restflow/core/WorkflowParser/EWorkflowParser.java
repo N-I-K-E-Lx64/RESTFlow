@@ -295,14 +295,14 @@ public enum EWorkflowParser {
         String lParameterType = parameterNode.path("type").asText();
         String lParameterName = parameterNode.path("name").asText();
 
-        return CParameterFactory.getInstance().createParameter(lParameterType, lParameterName, isUserParameter);
+        return EParameterFactory.INSTANCE.createParameter(lParameterType, lParameterName, isUserParameter);
     }
 
     public IParameter createParameterWithValue(JsonNode parameterNode) {
         String lParameterType = parameterNode.path("type").asText();
         String lParameterValue = parameterNode.path("value").asText();
 
-        return new CParameter(CParameterFactory.getInstance().createParameterValue(lParameterType, lParameterValue),
+        return new CParameter(EParameterFactory.INSTANCE.createParameterValue(lParameterType, lParameterValue),
                 parameterNode.path("name").asText(), false);
     }
 
