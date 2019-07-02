@@ -5,16 +5,9 @@ import com.restflow.core.WorkflowParser.WorkflowParserObjects.IParameter;
 
 import java.text.MessageFormat;
 
-//TODO: Change this to ENUM!
-public class CParameterFactory {
-    private static CParameterFactory ourInstance = new CParameterFactory();
+public enum EParameterFactory {
 
-    private CParameterFactory() {
-    }
-
-    public static CParameterFactory getInstance() {
-        return ourInstance;
-    }
+    INSTANCE;
 
     /**
      * Creates an object based on given parameters.
@@ -27,16 +20,13 @@ public class CParameterFactory {
     public IParameter createParameter(String pParameterType, String pParameterName, Boolean isUserparameter) {
         switch (pParameterType.toUpperCase()) {
             case "STRING":
-                IParameter<String> lParameterString = new CParameter<String>(pParameterName, isUserparameter);
-                return lParameterString;
+                return new CParameter<String>(pParameterName, isUserparameter);
 
             case "INT":
-                IParameter<Integer> lParameterInteger = new CParameter<Integer>(pParameterName, isUserparameter);
-                return lParameterInteger;
+                return new CParameter<Integer>(pParameterName, isUserparameter);
 
             case "DOUBLE":
-                IParameter<Double> lParameterDouble = new CParameter<Double>(pParameterName, isUserparameter);
-                return lParameterDouble;
+                return new CParameter<Double>(pParameterName, isUserparameter);
 
             default:
                 throw new CWorkflowParseException(MessageFormat.format("Parameter-Type [{0}] doesn't match known types!", pParameterType));

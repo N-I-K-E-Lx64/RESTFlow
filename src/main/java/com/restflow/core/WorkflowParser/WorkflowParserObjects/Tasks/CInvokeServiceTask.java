@@ -57,6 +57,7 @@ public class CInvokeServiceTask implements ITask {
         return mInput;
     }
 
+    @NonNull
     public int resourceIndex() {
         return mResourceIndex;
     }
