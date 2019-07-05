@@ -42,18 +42,7 @@ public class CCondition implements ICondition {
 
             throw new CConditionException("No decision with a null value is possible!");
 
-        } /*else if ((lFirstParameter instanceof String || lSecondParameter instanceof String) &&
-                (mConditionType.equals(EConditionType.BIGGER) || mConditionType.equals(EConditionType.SMALLER) ||
-                        mConditionType.equals(EConditionType.NUMBER_EQUALS) || mConditionType.equals(EConditionType.NOT_NUMBER_EQUALS))) {
-
-            throw new CConditionException("No number related comparisons on strings possible!");
-
-        } else if ((!(lFirstParameter instanceof String) || !(lSecondParameter instanceof String) &&
-                (mConditionType.equals(EConditionType.STRING_EQUALS) || mConditionType.equals(EConditionType.NOT_STRING_EQUALS)) ||
-                mConditionType.equals(EConditionType.STRING_CONTAINS) || mConditionType.equals(EConditionType.NOT_STRING_CONTAINS))) {
-
-            throw new CConditionException("No string related comparisons on numbers possible!");
-        }*/
+        }
 
         switch (mConditionType) {
             case SMALLER:
@@ -62,17 +51,17 @@ public class CCondition implements ICondition {
             case BIGGER:
                 return doubleParameter(lFirstParameter) > doubleParameter(lSecondParameter);
 
-            case NUMBER_EQUALS:
-                return doubleParameter(lFirstParameter) == doubleParameter(lSecondParameter);
+            case GREATER_OR_ERQUAL:
+                return doubleParameter(lFirstParameter) >= doubleParameter(lSecondParameter);
 
-            case NOT_NUMBER_EQUALS:
-                return !(doubleParameter(lFirstParameter) == doubleParameter(lSecondParameter));
+            case LESS_OR_EQUAL:
+                return (doubleParameter(lFirstParameter) <= doubleParameter(lSecondParameter));
 
-            case STRING_EQUALS:
-                return stringParameter(lFirstParameter).equals(stringParameter(lSecondParameter));
+            case EQUALS:
+                return lFirstParameter.equals(lSecondParameter);
 
-            case NOT_STRING_EQUALS:
-                return !(stringParameter(lFirstParameter).equals(stringParameter(lSecondParameter)));
+            case NOT_EQUALS:
+                return !(lFirstParameter.equals(lSecondParameter));
 
             case STRING_CONTAINS:
                 return stringParameter(lFirstParameter).contains(stringParameter(lSecondParameter));

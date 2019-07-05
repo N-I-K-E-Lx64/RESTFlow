@@ -52,8 +52,7 @@ public class FileUploadController {
     public List<UploadFileResponse> uploadMultipleFiles(@RequestParam("files") MultipartFile[] files,
                                                         @RequestParam("workflow") String workflowName) {
 
-        return Arrays.asList(files)
-                .stream()
+        return Arrays.stream(files)
                 .map(file -> uploadFile(file, workflowName))
                 .collect(Collectors.toList());
     }

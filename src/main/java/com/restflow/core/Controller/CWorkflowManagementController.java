@@ -13,7 +13,6 @@ import com.restflow.core.Storage.StorageService;
 import com.restflow.core.WorkflowExecution.Objects.CUserInteractionException;
 import com.restflow.core.WorkflowExecution.Objects.IWorkflow;
 import com.restflow.core.WorkflowParser.CWorkflowParseException;
-import com.restflow.core.WorkflowParser.EParameterFactory;
 import com.restflow.core.WorkflowParser.EWorkflowParser;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
@@ -107,7 +106,7 @@ public class CWorkflowManagementController {
 
         return ResponseEntity.status(200).contentType(MediaType.TEXT_PLAIN)
                 .body(MessageFormat.format("Parameter [{0}] was successfully overwritten with the following value [{1}]!",
-                pMessage.parameterName(), pMessage.parameterValue()));
+                        pMessage.parameterName(), pMessage.get()));
     }
 
     @RequestMapping(value = "/status/{workflow:.+}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -198,14 +197,6 @@ public class CWorkflowManagementController {
         @JsonProperty("value")
         private String mParameterValue;
 
-
-
-        //TODO : Implement the get Method!
-        @Override
-        public String get() {
-            return null;
-        }
-
         public String workflow() {
             return mWorkflow;
         }
@@ -214,12 +205,10 @@ public class CWorkflowManagementController {
             return mParameter;
         }
 
-        public Object parameterValue() {
-            return EParameterFactory.INSTANCE.createParameterValue(mParameterType, mParameterValue);
+        //TODO : Implement the logic!
+        @Override
+        public String get() {
+            return null;
         }
-
-
     }
-
-
 }

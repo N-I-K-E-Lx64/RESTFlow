@@ -40,6 +40,7 @@ public enum EWorkflowDefinitons implements IWorkflowDefinitions, Supplier<Set<St
         return this;
     }
 
+    @NonNull
     @Override
     public IWorkflowDefinitions remove(IWorkflow pWorkflow) {
 

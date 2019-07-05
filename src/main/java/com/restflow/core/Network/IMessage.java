@@ -7,6 +7,4 @@ public interface IMessage extends Supplier<String> {
     String workflow();
 
     String parameterName();
-
-    Object parameterValue();
 }

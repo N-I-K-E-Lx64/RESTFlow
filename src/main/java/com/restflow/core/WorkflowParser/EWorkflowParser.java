@@ -22,17 +22,20 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
+//TODO : Fix Javadoc
 public enum EWorkflowParser {
 
     INSTANCE;
 
     private static final Logger logger = LogManager.getLogger(EWorkflowParser.class);
 
+    private static final String VARIABLE_PREFIX = "VARIABLES";
+
     private StorageService storageService;
-    private String workflowTitle;
+    private String tempWorkflowName;
+    private ObjectMapper mapper = new ObjectMapper();
 
     //TODO : Dirty Workaround
     public void init(StorageService storageService) {
@@ -49,17 +52,15 @@ public enum EWorkflowParser {
 
         File workflowJsonFile = workflowResource.getFile();
 
-        ObjectMapper objectMapper = new ObjectMapper();
         //Workflow Node works as the rootNode
-        JsonNode rootNode = objectMapper.readTree(workflowJsonFile);
+        JsonNode rootNode = mapper.readTree(workflowJsonFile);
 
         logger.info("Successfully load WorkflowFile!");
 
         JsonNode workflowNode = rootNode.path("workflow");
-        String lWorkflowTitle = workflowNode.path("title").asText();
+        String lWorkflowName = workflowNode.path("name").asText();
+        tempWorkflowName = lWorkflowName;
         String lWorkflowDescription = workflowNode.path("description").asText();
-
-        this.workflowTitle = lWorkflowTitle;
 
         Map<String, IVariable> lVariables = new HashMap<>();
 
@@ -70,16 +71,16 @@ public enum EWorkflowParser {
             }
         }
 
-        CWorkflow lWorkflow = new CWorkflow(lWorkflowTitle, lWorkflowDescription, lVariables);
-        CVariableTempStorage.getInstance().setReference(lVariables);
+        CWorkflow lWorkflow = new CWorkflow(lWorkflowName, lWorkflowDescription, lVariables);
+        EVariableTempStorage.INSTANCE.setReference(lVariables);
 
         JsonNode processNode = workflowNode.path("process");
         Queue<ITask> lTasks = parseProcessNode(processNode);
         lWorkflow.generateExecutionOrder(lTasks);
 
-        EWorkflowDefinitons.INSTANCE.addExecutionOrder(lTasks, lWorkflowTitle);
+        EWorkflowDefinitons.INSTANCE.addExecutionOrder(lTasks, lWorkflowName);
 
-        logger.info("Successfully parsed Workflow: " + lWorkflowTitle);
+        logger.info("Successfully parsed Workflow: " + lWorkflowName);
 
         return lWorkflow;
     }
@@ -94,26 +95,30 @@ public enum EWorkflowParser {
 
         Queue<ITask> lExecutionOrder = new ConcurrentLinkedQueue<>();
 
-        if (processNode.has("invoke")) {
-            if (processNode.path("invoke").isArray()) {
-                for (JsonNode invokeArrayElement : processNode.path("invoke")) {
-                    lExecutionOrder.add(parseInvokeNode(invokeArrayElement));
+        try {
+            if (processNode.has("invoke")) {
+                if (processNode.path("invoke").isArray()) {
+                    for (JsonNode invokeArrayElement : processNode.path("invoke")) {
+                        lExecutionOrder.add(parseInvokeNode(invokeArrayElement));
+                    }
+                } else {
+                    lExecutionOrder.add(parseInvokeNode(processNode.path("invoke")));
                 }
-            } else {
-                lExecutionOrder.add(parseInvokeNode(processNode.path("invoke")));
             }
-        }
 
-        if (processNode.has("switch")) {
-            lExecutionOrder.add(parseSwitchNode(processNode.path("switch")));
-        }
-
-        if (processNode.has("assign")) {
-            if (processNode.path("assign").isArray()) {
-                processNode.path("assign").forEach(task -> lExecutionOrder.add(parseAssignNode(task)));
-            } else {
-                lExecutionOrder.add(parseAssignNode(processNode.path("assign")));
+            if (processNode.has("switch")) {
+                lExecutionOrder.add(parseSwitchNode(processNode.path("switch")));
             }
+
+            if (processNode.has("assign")) {
+                if (processNode.path("assign").isArray()) {
+                    processNode.path("assign").forEach(task -> lExecutionOrder.add(parseAssignNode(task)));
+                } else {
+                    lExecutionOrder.add(parseAssignNode(processNode.path("assign")));
+                }
+            }
+        } catch (IOException e) {
+            throw new CWorkflowParseException(e.getMessage());
         }
 
         return lExecutionOrder;
@@ -125,17 +130,12 @@ public enum EWorkflowParser {
      * @param invokeNode JsonNode mit allen wichtigen Informationen
      * @return ITask´-Objekt mit der Definition zur Erstellung von ausführbaren ITaskAction-Objekten
      */
-    public ITask parseInvokeNode(JsonNode invokeNode) {
-
-        String lTitle = invokeNode.path("title").asText("No Title");
+    public ITask parseInvokeNode(JsonNode invokeNode) throws IOException {
 
         final Api lApi;
-        try {
-            lApi = ERamlParser.INSTANCE.parseRaml(
-                    this.storageService.loadAsResource(invokeNode.path("raml").asText(), this.workflowTitle));
-        } catch (IOException e) {
-            throw new CWorkflowParseException("Cannot parse RAML-File!", e);
-        }
+
+        lApi = ERamlParser.INSTANCE.parseRaml(
+                this.storageService.loadAsResource(invokeNode.path("raml").asText(), tempWorkflowName));
 
         if (Objects.isNull(lApi)) {
             throw new CWorkflowParseException("Cannot parse RAML-File");
@@ -150,14 +150,15 @@ public enum EWorkflowParser {
             throw new CWorkflowParseException("Resource was not found!");
         }
 
-        CInvokeServiceTask invokeServiceBuilder = new CInvokeServiceTask(lTitle, lResourceIndex, lApi);
+        CInvokeServiceTask invokeServiceBuilder = new CInvokeServiceTask(lApi.title().value(), lResourceIndex, lApi);
 
         if (invokeNode.has("input")) {
             invokeServiceBuilder.setInput(parseInputNode(invokeNode.path("input")));
         }
 
+        //TODO : Better Solution!
         if (invokeNode.has("assignTo")) {
-            invokeServiceBuilder.setAssignTask(buildAssignTask(invokeNode.path("assignTo").asText()));
+            invokeServiceBuilder.setAssignTask(buildAssignTask(invokeNode.path("assignTo")));
         }
 
         return invokeServiceBuilder;
@@ -185,22 +186,22 @@ public enum EWorkflowParser {
      */
     public ITask parseAssignNode(JsonNode assignNode) {
 
-        IParameter lSourceParameter = null;
+        CAssignTask lAssignTask = new CAssignTask();
+
         if (assignNode.has("source")) {
             JsonNode lSourceNode = assignNode.path("source");
-            if (lSourceNode.path("parameter").has("value")) {
-                lSourceParameter = createParameterWithValue(lSourceNode.path("parameter"));
+            if (lSourceNode.isObject()) {
+                lAssignTask.setSource(parseParameterNode(lSourceNode));
             }
         } else {
             throw new CWorkflowParseException("Assign Task has no Source Parameter");
         }
 
-        IVariable lTargetVariable = null;
         if (assignNode.has("target")) {
-            lTargetVariable = CVariableTempStorage.getInstance().apply(assignNode.path("target").asText());
+            lAssignTask.setTarget(EVariableTempStorage.INSTANCE.apply(assignNode.path("target").asText()));
         }
 
-        return new CAssignTask(lSourceParameter, lTargetVariable);
+        return lAssignTask;
     }
 
     /**
@@ -209,50 +210,51 @@ public enum EWorkflowParser {
      * @param inputNode JsonNode mit allen wichtigen Informationen
      * @return Map mit allen Parameter-Objekten
      */
-    public Map<String, IParameter> parseInputNode(JsonNode inputNode) {
+    public Map<String, IParameter> parseInputNode(JsonNode inputNode) throws IOException {
 
         Map<String, IParameter> lParameters = new HashMap<>();
         if (inputNode.has("user-parameter")) {
             JsonNode userParameters = inputNode.path("user-parameter");
             if (userParameters.isArray()) {
                 for (JsonNode userParameterNodeElement : userParameters) {
-                    IParameter lTempParameter = createParameter(userParameterNodeElement, true);
-                    lParameters.put(lTempParameter.name(), lTempParameter);
+                    String lParameterName = userParameterNodeElement.path("name").asText();
+                    String lParameterType = userParameterNodeElement.path("type").asText();
+                    lParameters.put(lParameterName,
+                            EParameterFactory.INSTANCE.createParameter(lParameterName, lParameterType, true));
                 }
             } else {
-                IParameter lTempParameter = createParameter(inputNode.path("user-parameter"), true);
-                lParameters.put(lTempParameter.name(), lTempParameter);
+                throw new CWorkflowParseException("Invoke-Input-User Parameters should always be provided in an array!");
             }
         }
 
+        // Used for constant Parameters
         if (inputNode.has("parameter")) {
             JsonNode nonUserParameters = inputNode.path("parameter");
             if (nonUserParameters.isArray()) {
                 for (JsonNode parameterNodeElement : nonUserParameters) {
-                    IParameter lTempParameter = createParameter(parameterNodeElement, false);
-                    lParameters.put(lTempParameter.name(), lTempParameter);
+                    String lParameterName = nonUserParameters.path("name").asText();
+                    String lParameterType = nonUserParameters.path("type").asText();
+
+                    lParameters.put(lParameterName,
+                            EParameterFactory.INSTANCE.createParameterWithValue(lParameterType, lParameterName, nonUserParameters.path("value")));
                 }
             } else {
-                IParameter lTempParameter = createParameter(inputNode.path("parameter"), false);
-                lParameters.put(lTempParameter.name(), lTempParameter);
+                throw new CWorkflowParseException("Invoke-Input-Const Parameters should always be provided in an array!");
             }
         }
 
         if (inputNode.has("variables")) {
-            JsonNode variables = inputNode.path("variables");
+            Map<String, IVariable> lVariables = EVariableTempStorage.INSTANCE.reference();
 
-            Map<String, IVariable> lVariables = CVariableTempStorage.getInstance().reference();
+            if (inputNode.path("variables").isArray()) {
+                String[] variables = mapper.readValue(inputNode.path("variables").asText(), String[].class);
 
-            if (variables.isArray()) {
-                for (JsonNode variableNodeElement : variables) {
-                    String lTempVariableName = variableNodeElement.path("variable").textValue();
-                    lParameters.put(lTempVariableName,
-                            createVariableReference(lTempVariableName, lVariables.get(lTempVariableName)));
+                for (String variableReference : variables) {
+                    lParameters.put(variableReference,
+                            new CVariableReference(variableReference, lVariables.get(variableReference)));
                 }
             } else {
-                String lTempVariableName = variables.path("variable").textValue();
-                lParameters.put(lTempVariableName,
-                        createVariableReference(lTempVariableName, lVariables.get(lTempVariableName)));
+                throw new CWorkflowParseException("Invoke-Input-Variables should always be provided in an array!");
             }
         }
 
@@ -267,43 +269,30 @@ public enum EWorkflowParser {
 
         EConditionType lConditionType = EConditionType.INSTANCE.conditionType(conditionNode.path("operator").asText());
 
-        IParameter lValue1;
-        if (!(conditionNode.path("value1").isObject())) {
-            lValue1 = createSwitchParameterReference(conditionNode.path("value1").textValue());
+        IParameter lParameter1;
+        JsonNode conditionParameter1 = conditionNode.path("value1");
+
+        // Falls eine Vergleichsargument eine Variable enthält
+        if (!(conditionParameter1.isObject())) {
+            lParameter1 = createSwitchParameterReference(conditionParameter1.asText());
         } else {
-            lValue1 = createParameterWithValue(conditionNode.path("value1"));
+            String lParameterName = conditionParameter1.path("name").asText();
+            String lParameterType = conditionParameter1.path("type").asText();
+            lParameter1 = EParameterFactory.INSTANCE.createParameterWithValue(lParameterName, lParameterType, conditionParameter1.path("value"));
         }
 
-        IParameter lValue2;
+        IParameter lParameter2;
+        JsonNode conditionParameter2 = conditionNode.path("value2");
+
         if (!(conditionNode.path("value2").isObject())) {
-            lValue2 = createSwitchParameterReference(conditionNode.path("value1").textValue());
+            lParameter2 = createSwitchParameterReference(conditionParameter2.asText());
         } else {
-            lValue2 = createParameterWithValue(conditionNode.path("value2"));
+            String lParameterName = conditionParameter2.path("name").asText();
+            String lParameterType = conditionParameter2.path("type").asText();
+            lParameter2 = EParameterFactory.INSTANCE.createParameterWithValue(lParameterName, lParameterType, conditionParameter1.path("value"));
         }
 
-        return new CCondition(lConditionType, lValue1, lValue2);
-    }
-
-    /**
-     * Creates a CParameter Generic-Object
-     *
-     * @param parameterNode   the Json-Node which holds the Data
-     * @param isUserParameter
-     * @return finished CParameter Object
-     */
-    public IParameter createParameter(JsonNode parameterNode, boolean isUserParameter) {
-        String lParameterType = parameterNode.path("type").asText();
-        String lParameterName = parameterNode.path("name").asText();
-
-        return EParameterFactory.INSTANCE.createParameter(lParameterType, lParameterName, isUserParameter);
-    }
-
-    public IParameter createParameterWithValue(JsonNode parameterNode) {
-        String lParameterType = parameterNode.path("type").asText();
-        String lParameterValue = parameterNode.path("value").asText();
-
-        return new CParameter(EParameterFactory.INSTANCE.createParameterValue(lParameterType, lParameterValue),
-                parameterNode.path("name").asText(), false);
+        return new CCondition(lConditionType, lParameter1, lParameter2);
     }
 
     /**
@@ -324,17 +313,17 @@ public enum EWorkflowParser {
     }
 
     /**
-     *
-     * @param assignTo
+     * @param targetVariable
      * @return
      */
-    public CInvokeAssignTask buildAssignTask(String assignTo) {
-        String lPrefix = assignTo.split("\\.")[0];
-        String lVariable = assignTo.split("\\.")[1];
+    public CInvokeAssignTask buildAssignTask(JsonNode targetVariable) {
+        String lTargetVariable = targetVariable.asText();
+        String lPrefix = lTargetVariable.split("\\.")[0];
+        String lVariable = lTargetVariable.split("\\.")[1];
 
-        Map<String, IVariable> variables = CVariableTempStorage.getInstance().reference();
+        Map<String, IVariable> variables = EVariableTempStorage.INSTANCE.reference();
 
-        if (lPrefix.equals("VARIABLES")) {
+        if (lPrefix.equals(VARIABLE_PREFIX)) {
             String variableKey = variables.entrySet().stream()
                     .filter(variable -> variable.getValue().name().equals(lVariable))
                     .map(Map.Entry::getKey)
@@ -347,22 +336,27 @@ public enum EWorkflowParser {
                 throw new CWorkflowParseException("Variable could not be found. It was probably not created.");
             }
         } else {
-            throw new CWorkflowParseException("Results can only be assigned to variables.");
+            throw new CWorkflowParseException("Results can only be assigned to variables. " +
+                    "Variable References should have the Prefix VARIABLES!");
         }
     }
 
-    public IParameter createVariableReference(String variableName, IVariable variable) {
-        return new CVariableReference(variableName, variable);
-    }
+    public IParameter createSwitchParameterReference(String pVariableReference) {
 
-    public IParameter createSwitchParameterReference(String pParameter) {
+        String lPrefix = pVariableReference.split("\\.")[0];
+        String lVariableName = pVariableReference.split("\\.")[1];
 
-        if (pParameter.contains("VARIABLES")) {
-            String[] segments = pParameter.split(Pattern.quote("."));
-
-            return createVariableReference(segments[1], CVariableTempStorage.getInstance().apply(segments[1]));
+        if (lPrefix.equals(VARIABLE_PREFIX)) {
+            return new CVariableReference(lVariableName, EVariableTempStorage.INSTANCE.apply(lVariableName));
         } else {
-            throw new CWorkflowParseException("Keyword for Variables not found!");
+            throw new CWorkflowParseException("Variable References should have the Prefix VARIABLES!");
         }
+    }
+
+    public IParameter parseParameterNode(JsonNode parameterNode) {
+        String lParameterName = parameterNode.path("name").asText();
+        String lParameterType = parameterNode.path("type").asText();
+
+        return EParameterFactory.INSTANCE.createParameterWithValue(lParameterName, lParameterType, parameterNode.path("value"));
     }
 }
