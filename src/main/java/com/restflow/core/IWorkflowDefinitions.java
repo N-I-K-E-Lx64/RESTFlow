@@ -11,8 +11,7 @@ public interface IWorkflowDefinitions {
     @NonNull
     IWorkflowDefinitions add(@NonNull final IWorkflow pWorkflow);
 
-    @NonNull
-    IWorkflowDefinitions remove(@NonNull final IWorkflow pWorkflow);
+    void remove(String pWorkflow);
 
     void addExecutionOrder(@NonNull final Queue<ITask> pTasks, @NonNull final String pWorkflow);
 }

@@ -16,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 @Service
@@ -32,6 +33,7 @@ public class FileSystemStorageService implements StorageService {
 
     @Override
     public void init() {
+
         try {
             Files.createDirectories(this.rootLocation);
         } catch (IOException e) {
@@ -40,18 +42,19 @@ public class FileSystemStorageService implements StorageService {
     }
 
     public void deleteAll() {
+
         FileSystemUtils.deleteRecursively(rootLocation.toFile());
     }
 
-    /**
-     * Überprüft, ob der jeweilige Workflow-Ordner bereits existiert, falls nicht erstellt er ihn!
-     *
-     * @param workflowName
-     */
+    public void deleteFolder(String workflowName) {
+
+        Path workflowFolder = rootLocation.resolve(workflowName);
+        FileSystemUtils.deleteRecursively(workflowFolder.toFile());
+    }
+
     @Override
     public void initWorkflowDirectory(String workflowName) {
         try {
-            logger.info(Files.exists(this.rootLocation.resolve(workflowName)));
             if (!Files.exists(this.rootLocation.resolve(workflowName))) {
                 logger.info(this.rootLocation.resolve(workflowName));
                 Path directoryPath = this.rootLocation.resolve(workflowName);
@@ -64,7 +67,7 @@ public class FileSystemStorageService implements StorageService {
 
     public String store(MultipartFile file, String workflow) {
 
-        String filename = StringUtils.cleanPath(file.getOriginalFilename());
+        String filename = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
 
         try {
             if (file.isEmpty()) {
