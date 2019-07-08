@@ -11,7 +11,7 @@ import com.restflow.core.Network.IMessage;
 import com.restflow.core.Responses.CVariableResponse;
 import com.restflow.core.WorkflowExecution.Objects.CUserInteractionException;
 import com.restflow.core.WorkflowExecution.Objects.IWorkflow;
-import com.restflow.core.WorkflowParser.CParameterFactory;
+import com.restflow.core.WorkflowParser.EParameterFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.MediaType;
@@ -183,7 +183,7 @@ public class WorkflowManagementController {
         }
 
         public Object parameterValue() {
-            return CParameterFactory.getInstance().createParameterValue(mParameterType, mParameterValue);
+            return EParameterFactory.INSTANCE.createParameterValue(mParameterType, mParameterValue);
         }
     }
 }
