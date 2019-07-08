@@ -41,11 +41,9 @@ public enum EWorkflowDefinitons implements IWorkflowDefinitions, Supplier<Set<St
     }
 
     @Override
-    public IWorkflowDefinitions remove(IWorkflow pWorkflow) {
+    public void remove(@NonNull final String pWorkflow) {
 
-        mDefinitions.remove(pWorkflow.title());
-
-        return this;
+        mDefinitions.remove(pWorkflow);
     }
 
     @Override

@@ -27,9 +27,10 @@ import java.util.stream.Collectors;
 public class WorkflowManagementController {
 
     private static final Logger logger = LogManager.getLogger(WorkflowManagementController.class);
+
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    @RequestMapping(value = "/start/{workflow:.+}")
+    @RequestMapping(value = "/start/{workflow:.+}", method = RequestMethod.GET)
     public ResponseEntity<?> startWorkflow(@PathVariable String workflow) {
 
         IWorkflow lWorkflow = EWorkflowDefinitons.INSTANCE.apply(workflow);
@@ -44,9 +45,8 @@ public class WorkflowManagementController {
                 .body(MessageFormat.format("Successfully started [{0}]", workflow));
     }
 
-    @RequestMapping(value = "/restart/{workflow:.+}")
-    public ResponseEntity<?> restartWorkflow(@PathVariable String workflow) {
-
+    @RequestMapping(value = "/restart/{workflow:.+}", method = RequestMethod.GET)
+    public ResponseEntity<String> restartWorkflow(@PathVariable String workflow) {
         IWorkflow lWorkflow1 = ERunningWorkflows.INSTANCE.apply(workflow);
         ERunningWorkflows.INSTANCE.remove(workflow);
 
@@ -60,11 +60,21 @@ public class WorkflowManagementController {
 
         ERunningWorkflows.INSTANCE.add(lWorkflow).start();
 
-        return ResponseEntity.status(200).contentType(MediaType.TEXT_PLAIN)
-                .body(MessageFormat.format("Successfully restarted [{0}]", workflow));
+        return ResponseEntity.ok(MessageFormat.format("Successfully restarted [{0}]", workflow));
     }
 
-    @RequestMapping(value = "/status/{workflow:.+}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/stop/{workflow:.+}", method = RequestMethod.GET)
+    public ResponseEntity<String> stopWorkflow(@PathVariable String workflow) {
+        ERunningWorkflows.INSTANCE.remove(workflow);
+
+        logger.info("Stopped Workflow: " + workflow);
+
+        return ResponseEntity.status(200).contentType(MediaType.TEXT_PLAIN)
+                .body(MessageFormat.format("Successfully stopped [{0}]", workflow));
+    }
+
+
+    @RequestMapping(value = "/status/{workflow:.+}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> checkStatus(@PathVariable String workflow) {
 
         final IWorkflow lWorkflow = ERunningWorkflows.INSTANCE.apply(workflow);
@@ -105,6 +115,16 @@ public class WorkflowManagementController {
         }
     }
 
+    @RequestMapping(value = "/variables/{workflow:.+}", method = RequestMethod.GET)
+    public List<CVariableResponse> checkVariableStatus(@PathVariable String workflow) {
+
+        final IWorkflow lWorkflow = ERunningWorkflows.INSTANCE.apply(workflow);
+
+        return lWorkflow.variables().entrySet().stream()
+                .map(variable -> createVariableResponse(variable.getKey(), variable.getValue().value()))
+                .collect(Collectors.toList());
+    }
+
     @RequestMapping(value = "/setUserParameter", method = RequestMethod.POST)
     public ResponseEntity setUserVariable(@RequestBody CMessage pMessage) {
 
@@ -115,16 +135,6 @@ public class WorkflowManagementController {
         return ResponseEntity.status(200).contentType(MediaType.TEXT_PLAIN)
                 .body(MessageFormat.format("Parameter [{0}] was successfully overwritten with the following value [{1}]!",
                         pMessage.parameterName(), pMessage.parameterValue()));
-    }
-
-    @RequestMapping(value = "/variables/{workflow:.+}")
-    public List<CVariableResponse> checkVariableStatus(@PathVariable String workflow) {
-
-        final IWorkflow lWorkflow = ERunningWorkflows.INSTANCE.apply(workflow);
-
-        return lWorkflow.variables().entrySet().stream()
-                .map(variable -> createVariableResponse(variable.getKey(), variable.getValue().value()))
-                .collect(Collectors.toList());
     }
 
     private CVariableResponse createVariableResponse(String pVariableName, Object pVariableValue) {

@@ -12,6 +12,8 @@ public interface StorageService {
 
     void deleteAll();
 
+    void deleteFolder(String workflowName);
+
     void initWorkflowDirectory(String workflowName);
 
     String store(MultipartFile file, String workflowName);
