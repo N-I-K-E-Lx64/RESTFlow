@@ -1,6 +1,5 @@
 package com.restflow.core.WorkflowParser;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.CParameter;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.IParameter;
 
@@ -14,11 +13,11 @@ public enum EParameterFactory {
      * Creates an object based on given parameters.
      *
      * @param pParameterType The Type of the Parameter (String, Int, etc.) used for generify the IParameter Object
-     * @param pParameterName
+     * @param pParameterType
      * @param isUserparameter Is true if the parameter value, must be entered by a user.
      * @return an IParameter-Object
      */
-    public IParameter createParameter(String pParameterType, String pParameterName, Boolean isUserparameter) {
+    public IParameter createParameter(String pParameterName, String pParameterType, Boolean isUserparameter) {
         switch (pParameterType.toUpperCase()) {
             case "STRING":
                 return new CParameter<String>(pParameterName, isUserparameter);
@@ -30,33 +29,28 @@ public enum EParameterFactory {
                 return new CParameter<Double>(pParameterName, isUserparameter);
 
             default:
-                throw new CWorkflowParseException(MessageFormat.format("Parameter-Type [{0}] doesn't match known types!", pParameterType));
+                throw new CWorkflowParseException(MessageFormat.format("Parameter-Type [{0}] doesn't match known types!", pParameterName));
         }
     }
 
-    public IParameter createParameterWithValue(String pParameterType, String pParameterName, JsonNode pParameterValue) {
-
-        return createParameter(pParameterType, pParameterName, false)
+    public IParameter createParameterWithValue(String pParameterName, String pParameterType, String pParameterValue) {
+        return createParameter(pParameterName, pParameterType, false)
                 .setValue(parseParameterValue(pParameterValue, pParameterType));
     }
 
-    public Object parseParameterValue(JsonNode pParameterValue, String pParameterType) {
-        if (pParameterValue.has("value")) {
+    public Object parseParameterValue(String pParameterValue, String pParameterType) {
             switch (pParameterType.toUpperCase()) {
                 case "STRING":
-                    return pParameterValue.asText();
+                    return pParameterValue;
 
                 case "INTEGER":
-                    return pParameterValue.asInt();
+                    return Integer.parseInt(pParameterValue);
 
                 case "Double":
-                    return pParameterValue.asDouble();
+                    return Double.parseDouble(pParameterValue);
 
                 default:
                     throw new CWorkflowParseException(MessageFormat.format("Parameter-Type [{0}] doesn't match known types!", pParameterType));
             }
-        } else {
-            throw new CWorkflowParseException("Parameter Modell has no value attribute!");
-        }
     }
 }

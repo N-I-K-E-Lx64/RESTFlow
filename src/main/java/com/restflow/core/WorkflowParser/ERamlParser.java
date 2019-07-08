@@ -17,9 +17,15 @@ public enum ERamlParser {
 
     private static final Logger logger = LogManager.getLogger(ERamlParser.class);
 
-    public Api parseRaml(Resource ramlResource) throws IOException {
+    public Api parseRaml(Resource ramlResource) {
 
-        File ramlFile = ramlResource.getFile();
+        File ramlFile = null;
+
+        try {
+            ramlFile = ramlResource.getFile();
+        } catch (IOException e) {
+            throw new CWorkflowParseException("Cannot find the specified file: " + ramlResource.getFilename());
+        }
 
         RamlModelResult ramlModelResult = new RamlModelBuilder().buildApi(ramlFile);
         if (ramlModelResult.hasErrors()) {

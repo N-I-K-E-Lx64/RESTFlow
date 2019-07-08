@@ -79,7 +79,7 @@ public class CInvokeService extends IBaseTaskAction {
                     MessageFormat.format("Parameter [{0}] already set!", iMessage.parameterName()));
         }
 
-        lParameter.setValue(iMessage.parameterValue());
+        lParameter.setValue(iMessage.get());
 
         mWorkflow.emptyVariables().remove(iMessage.parameterName());
 

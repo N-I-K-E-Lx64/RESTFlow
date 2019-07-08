@@ -13,6 +13,7 @@ import com.restflow.core.Storage.StorageService;
 import com.restflow.core.WorkflowExecution.Objects.CUserInteractionException;
 import com.restflow.core.WorkflowExecution.Objects.IWorkflow;
 import com.restflow.core.WorkflowParser.CWorkflowParseException;
+import com.restflow.core.WorkflowParser.EParameterFactory;
 import com.restflow.core.WorkflowParser.EWorkflowParser;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
@@ -189,26 +190,25 @@ public class CWorkflowManagementController {
     public static final class CMessage implements IMessage {
 
         @JsonProperty("workflow")
-        private String mWorkflow;
+        private String workflow;
         @JsonProperty("parameter")
-        private String mParameter;
+        private String parameter;
         @JsonProperty("type")
-        private String mParameterType;
+        private String parameterType;
         @JsonProperty("value")
-        private String mParameterValue;
+        private String parameterValue;
 
         public String workflow() {
-            return mWorkflow;
+            return workflow;
         }
 
         public String parameterName() {
-            return mParameter;
+            return parameter;
         }
 
-        //TODO : Implement the logic!
         @Override
-        public String get() {
-            return null;
+        public Object get() {
+            return EParameterFactory.INSTANCE.parseParameterValue(parameterValue, parameterType);
         }
     }
 }
