@@ -6,15 +6,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.restflow.core.ERunningWorkflows;
-import com.restflow.core.EWorkflowDefinitons;
+import com.restflow.core.EWorkflowModels;
 import com.restflow.core.Network.IMessage;
-import com.restflow.core.Responses.CVariableResponse;
+import com.restflow.core.Responses.VariableResponse;
+import com.restflow.core.Responses.WorkflowListResponse;
 import com.restflow.core.Storage.StorageService;
 import com.restflow.core.WorkflowExecution.Objects.CUserInteractionException;
 import com.restflow.core.WorkflowExecution.Objects.IWorkflow;
 import com.restflow.core.WorkflowParser.CWorkflowParseException;
 import com.restflow.core.WorkflowParser.EParameterFactory;
 import com.restflow.core.WorkflowParser.EWorkflowParser;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.IVariable;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -27,6 +29,9 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @RestController
@@ -45,12 +50,15 @@ public class CWorkflowManagementController {
     }
 
     @RequestMapping(value = "/parseWorkflow", method = RequestMethod.POST)
-    public ResponseEntity<?> parseWorkflow(@RequestParam("workflow") String workflow, @RequestParam("workflowFile") String workflowFile) {
+    public ResponseEntity<?> parseWorkflow(@RequestParam("project") String project, @RequestParam("workflowFile") String workflowFile) {
 
-        Resource lWorkflowResource = mStorageService.loadAsResource(workflowFile, workflow);
+        Resource lWorkflowResource = mStorageService.loadAsResource(workflowFile, project);
+        IWorkflow lWorkflowModel = null;
+
         if (FilenameUtils.getExtension(lWorkflowResource.getFilename()).equals("json")) {
             try {
-                EWorkflowDefinitons.INSTANCE.add(EWorkflowParser.INSTANCE.parseWorkflow(lWorkflowResource));
+                lWorkflowModel = EWorkflowParser.INSTANCE.parseWorkflow(lWorkflowResource);
+                EWorkflowModels.INSTANCE.add(lWorkflowModel);
             } catch (IOException e) {
                 logger.error(e.getMessage());
             } catch (CWorkflowParseException e) {
@@ -58,25 +66,28 @@ public class CWorkflowManagementController {
             }
         }
 
+        if (Objects.isNull(lWorkflowModel)) {
+            throw new CWorkflowParseException("bla");
+        }
+
         ObjectNode lSuccessNode = mapper.createObjectNode();
-        lSuccessNode.put("message", "Workflow was successfully parsed!");
-        lSuccessNode.put("workflow", workflow);
+        lSuccessNode.put("message", "Workflow Model was successfully parsed!");
+        lSuccessNode.put("project", project);
         lSuccessNode.put("file", workflowFile);
+        lSuccessNode.put("model", lWorkflowModel.model());
 
         return ResponseEntity.ok(lSuccessNode);
     }
 
-    @RequestMapping(value = "/start/{workflow:.+}")
-    public ResponseEntity<?> startWorkflow(@PathVariable String workflow) {
+    @RequestMapping(value = "/start", method = RequestMethod.POST)
+    public ResponseEntity<?> startWorkflow(@RequestParam("model") String workflowModel, @RequestParam("name") String workflowName) {
 
-        IWorkflow lWorkflow = EWorkflowDefinitons.INSTANCE.apply(workflow);
+        IWorkflow lWorkflow = EWorkflowModels.INSTANCE.apply(workflowModel);
 
-        ERunningWorkflows.INSTANCE.add(lWorkflow);
-
-        lWorkflow.start();
+        ERunningWorkflows.INSTANCE.add(workflowName, lWorkflow).start();
 
         return ResponseEntity.status(200).contentType(MediaType.TEXT_PLAIN)
-                .body(MessageFormat.format("Successfully started [{0}]", workflow));
+                .body(MessageFormat.format("Successfully started [{0}]", workflowName));
     }
 
     @RequestMapping(value = "/restart/{workflow:.+}")
@@ -85,13 +96,13 @@ public class CWorkflowManagementController {
         IWorkflow lWorkflow1 = ERunningWorkflows.INSTANCE.apply(workflow);
         ERunningWorkflows.INSTANCE.remove(workflow);
 
-        IWorkflow lWorkflow = EWorkflowDefinitons.INSTANCE.apply(workflow);
+        IWorkflow lWorkflow = EWorkflowModels.INSTANCE.apply(workflow);
 
         if (lWorkflow1.equals(lWorkflow)) {
             logger.error("No deep Copy!");
         }
 
-        ERunningWorkflows.INSTANCE.add(lWorkflow).start();
+        ERunningWorkflows.INSTANCE.add(lWorkflow.model(), lWorkflow).start();
 
         return ResponseEntity.status(200).contentType(MediaType.TEXT_PLAIN)
                 .body(MessageFormat.format("Successfully restarted [{0}]", workflow));
@@ -151,25 +162,38 @@ public class CWorkflowManagementController {
         }
     }
 
-    @RequestMapping(value = "/variables/{workflow:.+}")
-    public List<CVariableResponse> checkVariableStatus(@PathVariable String workflow) {
+    @RequestMapping(value = "/variables/{workflow:.+}", method = RequestMethod.GET)
+    public List<VariableResponse> checkVariableStatus(@PathVariable String workflow) {
 
-        final IWorkflow lWorkflow = ERunningWorkflows.INSTANCE.apply(workflow);
+        Function<Map.Entry<String, IVariable>, VariableResponse> createResponse = entry -> {
+            IVariable lVariable = entry.getValue();
+            if (lVariable.value() instanceof String) {
+                ObjectNode lStringNode = mapper.createObjectNode();
+                lStringNode.put("String Value", (String) lVariable.value());
 
-        //TODO better solution
-        return lWorkflow.variables().entrySet().stream()
-                .map(variable -> createVariableResponse(variable.getKey(), variable.getValue().value()))
+                return new VariableResponse(lVariable.name(), lStringNode);
+            }
+            return new VariableResponse(lVariable.name(), (JsonNode) lVariable.value());
+        };
+
+        return ERunningWorkflows.INSTANCE.apply(workflow).variables().entrySet().stream()
+                .map(createResponse)
                 .collect(Collectors.toList());
     }
 
-    private CVariableResponse createVariableResponse(String pVariableName, Object pVariableValue) {
-        if (pVariableValue instanceof String) {
-            ObjectMapper mapper = new ObjectMapper();
-            ObjectNode lStringNode = mapper.createObjectNode();
-            lStringNode.put("text", (String) pVariableValue);
-            return new CVariableResponse(pVariableName, lStringNode);
-        }
-        return new CVariableResponse(pVariableName, (JsonNode) pVariableValue);
+    @RequestMapping(value = "/list", method = RequestMethod.GET)
+    public List<WorkflowListResponse> sendWorkflowList() {
+
+        Function<Map.Entry<String, IWorkflow>, WorkflowListResponse> createResponse = entry -> {
+            String lModelName = entry.getValue().model();
+            String lCurrentTask = entry.getValue().currentTask().title();
+
+            return new WorkflowListResponse(entry.getKey(), lModelName, lCurrentTask);
+        };
+
+        return ERunningWorkflows.INSTANCE.get().stream()
+                .map(createResponse)
+                .collect(Collectors.toList());
     }
 
     @ExceptionHandler(CWorkflowParseException.class)

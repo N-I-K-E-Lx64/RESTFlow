@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class CWorkflow implements IWorkflow {
 
-    private final String mTitle;
+    private final String mModelName;
     private final String mDescription;
 
     private Queue<ITaskAction> mExecution = new ConcurrentLinkedQueue<>();
@@ -32,7 +32,7 @@ public class CWorkflow implements IWorkflow {
      * @param that
      */
     public CWorkflow(@NonNull final IWorkflow that, @NonNull final Queue<ITask> tasks) {
-        this.mTitle = that.title();
+        this.mModelName = that.model();
         this.mDescription = that.description();
         this.mVariables = Collections.synchronizedMap(resetVariable(that.variables()));
         generateExecutionOrder(resetInput(tasks));
@@ -41,17 +41,16 @@ public class CWorkflow implements IWorkflow {
     }
 
     public CWorkflow(String pTitle, String pDescription, Map<String, IVariable> pVariables) {
-        this.mTitle = pTitle;
+        this.mModelName = pTitle;
         this.mDescription = pDescription;
         this.mVariables = Collections.synchronizedMap(pVariables);
 
         this.mStatus = EWorkflowStatus.WORKING;
     }
 
-    @NonNull
     @Override
-    public String title() {
-        return mTitle;
+    public String model() {
+        return mModelName;
     }
 
     @NonNull
@@ -139,7 +138,7 @@ public class CWorkflow implements IWorkflow {
     public IWorkflow start() {
 
         if (mExecution.isEmpty()) {
-            throw new CWorkflowExecutionException("Workflow " + this.mTitle + " enthält keine Tasklist!");
+            throw new CWorkflowExecutionException("Workflow " + this.mModelName + " enthält keine Tasklist!");
         }
 
         this.executeStep();
@@ -152,7 +151,7 @@ public class CWorkflow implements IWorkflow {
     @Override
     public void executeStep() {
 
-        if (mStatus == EWorkflowStatus.WORKING && !(mStatus == EWorkflowStatus.FINISHED)) {
+        if (mStatus == EWorkflowStatus.WORKING) {
             mCurrentTask.set(mExecution.element());
 
             //Den Head der Queue ausführen und wenn true geliefert wird, muss auf eine Nachricht gewartet werden
@@ -180,7 +179,7 @@ public class CWorkflow implements IWorkflow {
             return;
         }
 
-        setStatus(EWorkflowStatus.FINISHED);
+        this.setStatus(EWorkflowStatus.FINISHED);
     }
 
     @Override

@@ -16,11 +16,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public enum EWorkflowDefinitons implements IWorkflowDefinitions, Supplier<Set<String>>, Function<String, IWorkflow> {
+public enum EWorkflowModels implements IWorkflowDefinitions, Supplier<Set<String>>, Function<String, IWorkflow> {
 
     INSTANCE;
 
-    private static final Logger logger = LogManager.getLogger(EWorkflowDefinitons.class);
+    private static final Logger logger = LogManager.getLogger(EWorkflowModels.class);
 
     private final Map<String, IWorkflow> mDefinitions = new ConcurrentHashMap<>();
 
@@ -30,12 +30,12 @@ public enum EWorkflowDefinitons implements IWorkflowDefinitions, Supplier<Set<St
     @Override
     public IWorkflowDefinitions add(@NonNull final IWorkflow pWorkflow) {
 
-        if (mDefinitions.containsKey(pWorkflow.title()))
-            throw new RuntimeException(MessageFormat.format("Workflow [{0}] existiert schon", pWorkflow.title()));
+        if (mDefinitions.containsKey(pWorkflow.model()))
+            throw new RuntimeException(MessageFormat.format("Workflow [{0}] already exists", pWorkflow.model()));
 
-        mDefinitions.put(pWorkflow.title(), pWorkflow);
+        mDefinitions.put(pWorkflow.model(), pWorkflow);
 
-        logger.info("Saved Workflow Definition for: " + pWorkflow.title());
+        logger.info("Saved Workflow Definition for: " + pWorkflow.model());
 
         return this;
     }
@@ -44,7 +44,7 @@ public enum EWorkflowDefinitons implements IWorkflowDefinitions, Supplier<Set<St
     @Override
     public IWorkflowDefinitions remove(IWorkflow pWorkflow) {
 
-        mDefinitions.remove(pWorkflow.title());
+        mDefinitions.remove(pWorkflow.model());
 
         return this;
     }

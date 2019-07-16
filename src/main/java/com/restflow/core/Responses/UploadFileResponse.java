@@ -1,4 +1,4 @@
-package com.restflow.core.Storage;
+package com.restflow.core.Responses;
 
 public class UploadFileResponse {
 
@@ -20,7 +20,7 @@ public class UploadFileResponse {
         return fileName;
     }
 
-    public String WorkflowName() {
+    public String getWorkflowName() {
         return workflowName;
     }
 

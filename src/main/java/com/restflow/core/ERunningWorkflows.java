@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public enum ERunningWorkflows implements IRunningWorkflows, Supplier<Set<String>>, Function<String, IWorkflow> {
+public enum ERunningWorkflows implements IRunningWorkflows, Supplier<Set<Map.Entry<String, IWorkflow>>>, Function<String, IWorkflow> {
 
     INSTANCE;
 
@@ -23,23 +23,23 @@ public enum ERunningWorkflows implements IRunningWorkflows, Supplier<Set<String>
 
     @NonNull
     @Override
-    public IWorkflow add(@NonNull final IWorkflow pWorkflow) {
+    public IWorkflow add(@NonNull final String pWorkflowName, @NonNull final IWorkflow pWorkflow) {
 
-        if (mWorkflows.containsKey(pWorkflow.title()))
+        if (mWorkflows.containsKey(pWorkflowName))
             throw new RuntimeException(MessageFormat.format("Workflow [{0}] existiert schon", pWorkflow));
 
-        mWorkflows.put(pWorkflow.title(), pWorkflow);
+        mWorkflows.put(pWorkflowName, pWorkflow);
 
-        logger.info("Saved Workflow: " + pWorkflow.title());
+        logger.info("Saved Workflow: " + pWorkflowName);
 
         return pWorkflow;
     }
 
     @NonNull
     @Override
-    public IRunningWorkflows remove(@NonNull final String pWorkflow) {
+    public IRunningWorkflows remove(@NonNull final String pWorkflowName) {
 
-        mWorkflows.remove(pWorkflow);
+        mWorkflows.remove(pWorkflowName);
 
         return this;
     }
@@ -55,7 +55,7 @@ public enum ERunningWorkflows implements IRunningWorkflows, Supplier<Set<String>
     }
 
     @Override
-    public Set<String> get() {
-        return mWorkflows.keySet();
+    public Set<Map.Entry<String, IWorkflow>> get() {
+        return mWorkflows.entrySet();
     }
 }

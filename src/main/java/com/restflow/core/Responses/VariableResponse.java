@@ -2,13 +2,13 @@ package com.restflow.core.Responses;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-public class CVariableResponse {
+public class VariableResponse {
 
     private final String name;
     private final JsonNode value;
 
 
-    public CVariableResponse(String pName, JsonNode pValue) {
+    public VariableResponse(String pName, JsonNode pValue) {
         this.name = pName;
         this.value = pValue;
     }
