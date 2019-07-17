@@ -10,18 +10,13 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
-//TODO : Change this to ENUM
-public class CVariableTempStorage implements Function<String, IVariable> {
+public enum EVariableTempStorage implements Function<String, IVariable> {
 
-    private static CVariableTempStorage ourInstance = new CVariableTempStorage();
+    INSTANCE;
 
     private AtomicReference<Map<String, IVariable>> mVariableReference = new AtomicReference<>();
 
-    private CVariableTempStorage() {
-    }
-
-    public static CVariableTempStorage getInstance() {
-        return ourInstance;
+    EVariableTempStorage() {
     }
 
     public void setReference(Map<String, IVariable> pReference) {
@@ -45,7 +40,7 @@ public class CVariableTempStorage implements Function<String, IVariable> {
 
         final IVariable lVariable = mVariableReference.get().get(lNormalizedName);
         if (Objects.isNull(lVariable))
-            throw new RuntimeException(MessageFormat.format("Variable [{0}] could not be found!", lNormalizedName));
+            throw new CWorkflowParseException(MessageFormat.format("Variable [{0}] could not be found!", lNormalizedName));
 
         return lVariable;
     }

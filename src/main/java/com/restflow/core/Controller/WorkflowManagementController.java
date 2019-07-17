@@ -5,13 +5,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.restflow.core.ERunningWorkflows;
-import com.restflow.core.EWorkflowDefinitons;
+import com.restflow.core.EActiveWorkflows;
+import com.restflow.core.EWorkflowModels;
 import com.restflow.core.Network.IMessage;
-import com.restflow.core.Responses.CVariableResponse;
+import com.restflow.core.Responses.VariableResponse;
+import com.restflow.core.Responses.WorkflowListResponse;
 import com.restflow.core.WorkflowExecution.Objects.CUserInteractionException;
 import com.restflow.core.WorkflowExecution.Objects.IWorkflow;
 import com.restflow.core.WorkflowParser.EParameterFactory;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.IVariable;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.MediaType;
@@ -20,6 +22,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.text.MessageFormat;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @RestController
@@ -30,27 +34,24 @@ public class WorkflowManagementController {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    @RequestMapping(value = "/start/{workflow:.+}", method = RequestMethod.GET)
-    public ResponseEntity<?> startWorkflow(@PathVariable String workflow) {
+    @RequestMapping(value = "/start", method = RequestMethod.POST)
+    public ResponseEntity<?> startWorkflow(@RequestParam("model") String workflowModel, @RequestParam("name") String workflowName) {
 
-        IWorkflow lWorkflow = EWorkflowDefinitons.INSTANCE.apply(workflow);
+        IWorkflow lWorkflow = EWorkflowModels.INSTANCE.apply(workflowModel);
 
-        ERunningWorkflows.INSTANCE.add(lWorkflow);
-
-        logger.info("Start Workflow: " + workflow);
-
-        lWorkflow.start();
+        EActiveWorkflows.INSTANCE.add(workflowName, lWorkflow).start();
 
         return ResponseEntity.status(200).contentType(MediaType.TEXT_PLAIN)
-                .body(MessageFormat.format("Successfully started [{0}]", workflow));
+                .body(MessageFormat.format("Successfully started [{0}]", workflowName));
     }
 
     @RequestMapping(value = "/restart/{workflow:.+}", method = RequestMethod.GET)
-    public ResponseEntity<String> restartWorkflow(@PathVariable String workflow) {
-        IWorkflow lWorkflow1 = ERunningWorkflows.INSTANCE.apply(workflow);
-        ERunningWorkflows.INSTANCE.remove(workflow);
+    public ResponseEntity<?> restartWorkflow(@PathVariable String workflow) {
 
-        IWorkflow lWorkflow = EWorkflowDefinitons.INSTANCE.apply(workflow);
+        IWorkflow lWorkflow1 = EActiveWorkflows.INSTANCE.apply(workflow);
+        EActiveWorkflows.INSTANCE.remove(workflow);
+
+        IWorkflow lWorkflow = EWorkflowModels.INSTANCE.apply(workflow);
 
         if (lWorkflow1.equals(lWorkflow)) {
             logger.error("No deep Copy!");
@@ -58,26 +59,37 @@ public class WorkflowManagementController {
 
         logger.info("Restart Workflow: " + workflow);
 
-        ERunningWorkflows.INSTANCE.add(lWorkflow).start();
+        EActiveWorkflows.INSTANCE.add(lWorkflow.model(), lWorkflow).start();
 
-        return ResponseEntity.ok(MessageFormat.format("Successfully restarted [{0}]", workflow));
+        return ResponseEntity.status(200).contentType(MediaType.TEXT_PLAIN)
+                .body(MessageFormat.format("Successfully restarted [{0}]", workflow));
     }
 
     @RequestMapping(value = "/stop/{workflow:.+}", method = RequestMethod.GET)
     public ResponseEntity<String> stopWorkflow(@PathVariable String workflow) {
-        ERunningWorkflows.INSTANCE.remove(workflow);
 
-        logger.info("Stopped Workflow: " + workflow);
+        EActiveWorkflows.INSTANCE.remove(workflow);
+
+        logger.info(MessageFormat.format("Stopped execution of [{0}]", workflow));
 
         return ResponseEntity.status(200).contentType(MediaType.TEXT_PLAIN)
                 .body(MessageFormat.format("Successfully stopped [{0}]", workflow));
     }
 
+    @RequestMapping(value = "/setUserParameter", method = RequestMethod.POST)
+    public ResponseEntity setUserVariable(@RequestBody CMessage pMessage) {
+
+        EActiveWorkflows.INSTANCE.apply(pMessage.workflow()).accept(pMessage);
+
+        return ResponseEntity.status(200).contentType(MediaType.TEXT_PLAIN)
+                .body(MessageFormat.format("Parameter [{0}] was successfully overwritten with the following value [{1}]!",
+                        pMessage.parameterName(), pMessage.get()));
+    }
 
     @RequestMapping(value = "/status/{workflow:.+}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> checkStatus(@PathVariable String workflow) {
 
-        final IWorkflow lWorkflow = ERunningWorkflows.INSTANCE.apply(workflow);
+        final IWorkflow lWorkflow = EActiveWorkflows.INSTANCE.apply(workflow);
 
         switch (lWorkflow.status()) {
             case WORKING:
@@ -116,35 +128,38 @@ public class WorkflowManagementController {
     }
 
     @RequestMapping(value = "/variables/{workflow:.+}", method = RequestMethod.GET)
-    public List<CVariableResponse> checkVariableStatus(@PathVariable String workflow) {
+    public List<VariableResponse> checkVariableStatus(@PathVariable String workflow) {
 
-        final IWorkflow lWorkflow = ERunningWorkflows.INSTANCE.apply(workflow);
+        Function<Map.Entry<String, IVariable>, VariableResponse> createResponse = entry -> {
+            IVariable lVariable = entry.getValue();
+            if (lVariable.value() instanceof String) {
+                ObjectNode lStringNode = mapper.createObjectNode();
+                lStringNode.put("String Value", (String) lVariable.value());
 
-        return lWorkflow.variables().entrySet().stream()
-                .map(variable -> createVariableResponse(variable.getKey(), variable.getValue().value()))
+                return new VariableResponse(lVariable.name(), lStringNode);
+            }
+            return new VariableResponse(lVariable.name(), (JsonNode) lVariable.value());
+        };
+
+        return EActiveWorkflows.INSTANCE.apply(workflow).variables().entrySet().stream()
+                            .map(createResponse)
+                            .collect(Collectors.toList());
+
+    }
+
+    @RequestMapping(value = "/list", method = RequestMethod.GET)
+    public List<WorkflowListResponse> sendWorkflowList() {
+
+        Function<Map.Entry<String, IWorkflow>, WorkflowListResponse> createResponse = entry -> {
+            String lModelName = entry.getValue().model() + "-MODEL";
+            String lCurrentTask = entry.getValue().currentTask().title();
+
+            return new WorkflowListResponse(entry.getKey(), lModelName, lCurrentTask);
+        };
+
+        return EActiveWorkflows.INSTANCE.get().stream()
+                .map(createResponse)
                 .collect(Collectors.toList());
-    }
-
-    @RequestMapping(value = "/setUserParameter", method = RequestMethod.POST)
-    public ResponseEntity setUserVariable(@RequestBody CMessage pMessage) {
-
-        final IWorkflow lWorkflow = ERunningWorkflows.INSTANCE.apply(pMessage.workflow());
-
-        lWorkflow.accept(pMessage);
-
-        return ResponseEntity.status(200).contentType(MediaType.TEXT_PLAIN)
-                .body(MessageFormat.format("Parameter [{0}] was successfully overwritten with the following value [{1}]!",
-                        pMessage.parameterName(), pMessage.parameterValue()));
-    }
-
-    private CVariableResponse createVariableResponse(String pVariableName, Object pVariableValue) {
-        if (pVariableValue instanceof String) {
-            ObjectNode lStringNode = mapper.createObjectNode();
-            lStringNode.put("text", (String) pVariableValue);
-
-            return new CVariableResponse(pVariableName, lStringNode);
-        }
-        return new CVariableResponse(pVariableName, (JsonNode) pVariableValue);
     }
 
     @ExceptionHandler(CUserInteractionException.class)
@@ -159,31 +174,25 @@ public class WorkflowManagementController {
     public static final class CMessage implements IMessage {
 
         @JsonProperty("workflow")
-        private String mWorkflow;
+        private String workflow;
         @JsonProperty("parameter")
-        private String mParameter;
+        private String parameter;
         @JsonProperty("type")
-        private String mParameterType;
+        private String parameterType;
         @JsonProperty("value")
-        private String mParameterValue;
-
-
-        //TODO : Implement the get Method!
-        @Override
-        public String get() {
-            return null;
-        }
+        private String parameterValue;
 
         public String workflow() {
-            return mWorkflow;
+            return workflow;
         }
 
         public String parameterName() {
-            return mParameter;
+            return parameter;
         }
 
-        public Object parameterValue() {
-            return EParameterFactory.INSTANCE.createParameterValue(mParameterType, mParameterValue);
+        @Override
+        public Object get() {
+            return EParameterFactory.INSTANCE.parseParameterValue(parameterValue, parameterType);
         }
     }
 }

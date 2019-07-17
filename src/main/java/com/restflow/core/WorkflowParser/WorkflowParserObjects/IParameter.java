@@ -9,5 +9,5 @@ public interface IParameter<T> {
 
     T value();
 
-    void setValue(T pValue);
+    IParameter setValue(T pValue);
 }

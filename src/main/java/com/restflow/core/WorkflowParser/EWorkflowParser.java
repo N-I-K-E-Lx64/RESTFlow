@@ -2,7 +2,7 @@ package com.restflow.core.WorkflowParser;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.restflow.core.EWorkflowDefinitons;
+import com.restflow.core.EWorkflowModels;
 import com.restflow.core.Storage.StorageService;
 import com.restflow.core.WorkflowExecution.Condition.EConditionType;
 import com.restflow.core.WorkflowExecution.Objects.CWorkflow;
@@ -22,17 +22,23 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.regex.Pattern;
+import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
+//TODO : Put all Path String Values in constants!
 public enum EWorkflowParser {
 
     INSTANCE;
 
     private static final Logger logger = LogManager.getLogger(EWorkflowParser.class);
 
+    private static final String VARIABLE_PREFIX = "VARIABLES";
+
     private StorageService storageService;
-    private String workflowTitle;
+
+    private String tempWorkflowName;
+
+    private ObjectMapper mapper = new ObjectMapper();
 
     //TODO : Dirty Workaround
     public void init(StorageService storageService) {
@@ -40,26 +46,27 @@ public enum EWorkflowParser {
     }
 
     /**
-     * Erstellt ein Workflow-Objekt.
+     * Wandelt das Modell eines Workflows in ein ausführbares Workflow Objekt um!
      *
-     * @return fertiges IWorkflow-Objekt
-     * @throws IOException if ResourceFile can not be opened or found.
+     * @return Vollständiges IWorkflow-Objekt
+     * @throws IOException if ResourceFile can not be opened or found
+     *
+     * @see CWorkflow
      */
     public IWorkflow parseWorkflow(Resource workflowResource) throws IOException {
 
         File workflowJsonFile = workflowResource.getFile();
 
-        ObjectMapper objectMapper = new ObjectMapper();
         //Workflow Node works as the rootNode
-        JsonNode rootNode = objectMapper.readTree(workflowJsonFile);
+        JsonNode rootNode = mapper.readTree(workflowJsonFile);
 
         logger.info("Successfully load WorkflowFile!");
 
         JsonNode workflowNode = rootNode.path("workflow");
-        String lWorkflowTitle = workflowNode.path("title").asText();
+        String lWorkflowModel = workflowNode.path("name").asText();
         String lWorkflowDescription = workflowNode.path("description").asText();
 
-        this.workflowTitle = lWorkflowTitle;
+        tempWorkflowName = lWorkflowModel;
 
         Map<String, IVariable> lVariables = new HashMap<>();
 
@@ -70,72 +77,78 @@ public enum EWorkflowParser {
             }
         }
 
-        CWorkflow lWorkflow = new CWorkflow(lWorkflowTitle, lWorkflowDescription, lVariables);
-        CVariableTempStorage.getInstance().setReference(lVariables);
+        CWorkflow lWorkflow = new CWorkflow(lWorkflowModel, lWorkflowDescription, lVariables);
+        EVariableTempStorage.INSTANCE.setReference(lVariables);
 
         JsonNode processNode = workflowNode.path("process");
         Queue<ITask> lTasks = parseProcessNode(processNode);
         lWorkflow.generateExecutionOrder(lTasks);
 
-        EWorkflowDefinitons.INSTANCE.addExecutionOrder(lTasks, lWorkflowTitle);
+        EWorkflowModels.INSTANCE.addExecutionOrder(lTasks, lWorkflowModel);
 
-        logger.info("Successfully parsed Workflow: " + lWorkflowTitle);
+        logger.info("Successfully parsed Workflow-Model: " + lWorkflowModel);
 
         return lWorkflow;
     }
 
     /**
-     * Erstellt eine Queue von ITask-Objekten
      *
-     * @param processNode JsonNode mit allen wichtigen Informationen
+     * @param processNode JsonNode mit einem Array an WorkflowTasks. Die einzelnen Tasks werden in der Reihenfolge
+     *                    ihres Arrays abgearbeitet, somit wird diese Reihenfolge ebenfalls in die ExecutionOrder
+     *                    übertragen!
      * @return Queue von ITask-Objekten
      */
     public Queue<ITask> parseProcessNode(JsonNode processNode) {
 
         Queue<ITask> lExecutionOrder = new ConcurrentLinkedQueue<>();
 
-        if (processNode.has("invoke")) {
-            if (processNode.path("invoke").isArray()) {
-                for (JsonNode invokeArrayElement : processNode.path("invoke")) {
-                    lExecutionOrder.add(parseInvokeNode(invokeArrayElement));
-                }
-            } else {
-                lExecutionOrder.add(parseInvokeNode(processNode.path("invoke")));
-            }
-        }
+        Consumer<JsonNode> test = jsonNode -> {
+            String lTaskType = jsonNode.path("type").asText();
+            JsonNode lTaskDataNode = jsonNode.path("data");
 
-        if (processNode.has("switch")) {
-            lExecutionOrder.add(parseSwitchNode(processNode.path("switch")));
-        }
+            logger.info(MessageFormat.format("Parsing a [{0}] Task", lTaskType));
 
-        if (processNode.has("assign")) {
-            if (processNode.path("assign").isArray()) {
-                processNode.path("assign").forEach(task -> lExecutionOrder.add(parseAssignNode(task)));
-            } else {
-                lExecutionOrder.add(parseAssignNode(processNode.path("assign")));
+            switch (lTaskType.toUpperCase()) {
+                case "INVOKE":
+                    lExecutionOrder.add(parseInvokeNode(lTaskDataNode));
+                    break;
+
+                case "SWITCH":
+                    lExecutionOrder.add(parseSwitchNode(lTaskDataNode));
+                    break;
+
+                case "ASSIGN":
+                    lExecutionOrder.add(parseAssignNode(lTaskDataNode));
+                    break;
+
+                default:
+                    throw new CWorkflowParseException("Unknown Task Type: " + lTaskType);
             }
+        };
+
+        if (processNode.isArray()) {
+            processNode.elements().forEachRemaining(test);
+        } else {
+            throw new CWorkflowParseException("Workflow Tasks should always be provided in the process array!");
         }
 
         return lExecutionOrder;
     }
 
     /**
-     * Erstellt ein Objekt, welches die Definition für ausführbare ITaskAction-Objekte enthält
+     * Methode zum parsen eines abstrakten Invoke Task Modells
      *
-     * @param invokeNode JsonNode mit allen wichtigen Informationen
-     * @return ITask´-Objekt mit der Definition zur Erstellung von ausführbaren ITaskAction-Objekten
+     * @param invokeNode JsonNode mit dem Modell eines Invoke Tasks
+     * @return ITask-Objekt (Invoke Task)
+     *
+     * @see CInvokeServiceTask
      */
     public ITask parseInvokeNode(JsonNode invokeNode) {
 
-        String lTitle = invokeNode.path("title").asText("No Title");
-
         final Api lApi;
-        try {
-            lApi = ERamlParser.INSTANCE.parseRaml(
-                    this.storageService.loadAsResource(invokeNode.path("raml").asText(), this.workflowTitle));
-        } catch (IOException e) {
-            throw new CWorkflowParseException("Cannot parse RAML-File!", e);
-        }
+
+        lApi = ERamlParser.INSTANCE.parseRaml(
+                this.storageService.loadAsResource(invokeNode.path("raml").asText(), tempWorkflowName));
 
         if (Objects.isNull(lApi)) {
             throw new CWorkflowParseException("Cannot parse RAML-File");
@@ -150,7 +163,7 @@ public enum EWorkflowParser {
             throw new CWorkflowParseException("Resource was not found!");
         }
 
-        CInvokeServiceTask invokeServiceBuilder = new CInvokeServiceTask(lTitle, lResourceIndex, lApi);
+        CInvokeServiceTask invokeServiceBuilder = new CInvokeServiceTask(lApi.title().value(), lResourceIndex, lApi);
 
         if (invokeNode.has("input")) {
             invokeServiceBuilder.setInput(parseInputNode(invokeNode.path("input")));
@@ -164,8 +177,12 @@ public enum EWorkflowParser {
     }
 
     /**
-     * @param switchNode
-     * @return
+     * Methode zum parsen eines abstrakten Switch Task Modells
+     *
+     * @param switchNode JsonNode mit dem Modell eines Switch Tasks
+     * @return ITask Objekt (Switch Task)
+     *
+     * @see CSwitchTask
      */
     public ITask parseSwitchNode(JsonNode switchNode) {
 
@@ -180,34 +197,40 @@ public enum EWorkflowParser {
     }
 
     /**
-     * @param assignNode
-     * @return
+     * Methode zum parsen eines abstrakten Assign Task Modells
+     *
+     * @param assignNode JsonNode mit dem Modell eines Assign Tasks
+     * @return ITask Objekt (Assign-Task)
+     *
+     * @see CAssignTask
      */
     public ITask parseAssignNode(JsonNode assignNode) {
 
-        IParameter lSourceParameter = null;
+        CAssignTask lAssignTask = new CAssignTask();
+
         if (assignNode.has("source")) {
             JsonNode lSourceNode = assignNode.path("source");
-            if (lSourceNode.path("parameter").has("value")) {
-                lSourceParameter = createParameterWithValue(lSourceNode.path("parameter"));
+            if (lSourceNode.isObject()) {
+                lAssignTask.setSource(parseParameterNode(lSourceNode));
             }
         } else {
             throw new CWorkflowParseException("Assign Task has no Source Parameter");
         }
 
-        IVariable lTargetVariable = null;
         if (assignNode.has("target")) {
-            lTargetVariable = CVariableTempStorage.getInstance().apply(assignNode.path("target").asText());
+            lAssignTask.setTarget(EVariableTempStorage.INSTANCE.apply(assignNode.path("target").asText()));
         }
 
-        return new CAssignTask(lSourceParameter, lTargetVariable);
+        return lAssignTask;
     }
 
     /**
-     * Erstellt alle Parameter Objekte anhand der Informationen im Input-Teil!
+     * Wandelt alle Parameter Modelle im Input Abschnitt eines Invoke Tasks Modells in nutzbare Parameter Objekte um
      *
      * @param inputNode JsonNode mit allen wichtigen Informationen
      * @return Map mit allen Parameter-Objekten
+     *
+     * @see CParameter
      */
     public Map<String, IParameter> parseInputNode(JsonNode inputNode) {
 
@@ -216,43 +239,43 @@ public enum EWorkflowParser {
             JsonNode userParameters = inputNode.path("user-parameter");
             if (userParameters.isArray()) {
                 for (JsonNode userParameterNodeElement : userParameters) {
-                    IParameter lTempParameter = createParameter(userParameterNodeElement, true);
-                    lParameters.put(lTempParameter.name(), lTempParameter);
+                    String lParameterName = userParameterNodeElement.path("name").asText();
+                    String lParameterType = userParameterNodeElement.path("type").asText();
+                    lParameters.put(lParameterName,
+                            EParameterFactory.INSTANCE.createParameter(lParameterName, lParameterType, true));
                 }
             } else {
-                IParameter lTempParameter = createParameter(inputNode.path("user-parameter"), true);
-                lParameters.put(lTempParameter.name(), lTempParameter);
+                throw new CWorkflowParseException("Invoke-Input-User Parameters should always be provided in an array!");
             }
         }
 
+        // Used for constant Parameters
         if (inputNode.has("parameter")) {
             JsonNode nonUserParameters = inputNode.path("parameter");
             if (nonUserParameters.isArray()) {
-                for (JsonNode parameterNodeElement : nonUserParameters) {
-                    IParameter lTempParameter = createParameter(parameterNodeElement, false);
-                    lParameters.put(lTempParameter.name(), lTempParameter);
+                for (JsonNode parameterNode : nonUserParameters) {
+                    IParameter lParsedParameter = parseParameterNode(parameterNode);
+
+                    lParameters.put(lParsedParameter.name(), lParsedParameter);
                 }
             } else {
-                IParameter lTempParameter = createParameter(inputNode.path("parameter"), false);
-                lParameters.put(lTempParameter.name(), lTempParameter);
+                throw new CWorkflowParseException("Invoke-Input-Const Parameters should always be provided in an array!");
             }
         }
 
+        // Used for Variable References
         if (inputNode.has("variables")) {
-            JsonNode variables = inputNode.path("variables");
+            Map<String, IVariable> lVariables = EVariableTempStorage.INSTANCE.reference();
 
-            Map<String, IVariable> lVariables = CVariableTempStorage.getInstance().reference();
+            if (inputNode.path("variables").isArray()) {
+                inputNode.path("variables").forEach(variable -> {
+                    String lVariableReference = variable.asText();
 
-            if (variables.isArray()) {
-                for (JsonNode variableNodeElement : variables) {
-                    String lTempVariableName = variableNodeElement.path("variable").textValue();
-                    lParameters.put(lTempVariableName,
-                            createVariableReference(lTempVariableName, lVariables.get(lTempVariableName)));
-                }
+                    lParameters.put(lVariableReference,
+                            new CVariableReference(lVariableReference, lVariables.get(lVariableReference)));
+                });
             } else {
-                String lTempVariableName = variables.path("variable").textValue();
-                lParameters.put(lTempVariableName,
-                        createVariableReference(lTempVariableName, lVariables.get(lTempVariableName)));
+                throw new CWorkflowParseException("Invoke-Input-Variables should always be provided in an array!");
             }
         }
 
@@ -260,55 +283,48 @@ public enum EWorkflowParser {
     }
 
     /**
-     * @param conditionNode
-     * @return
+     * Erstellt aus dem abstrakten Modell einer Condition ein Condition Objekt für die Benutzung innerhalb eines Switch
+     * Tasks.
+     *
+     * @param conditionNode Json Modell einer Condition
+     * @return ICondition Objekt
+     *
+     * @see CCondition
      */
     public ICondition createCondition(JsonNode conditionNode) {
 
         EConditionType lConditionType = EConditionType.INSTANCE.conditionType(conditionNode.path("operator").asText());
 
-        IParameter lValue1;
-        if (!(conditionNode.path("value1").isObject())) {
-            lValue1 = createSwitchParameterReference(conditionNode.path("value1").textValue());
+        IParameter lParameter1;
+        JsonNode conditionParameter1 = conditionNode.path("value1");
+
+        // Falls eine Vergleichsargument eine Variable enthält
+        if (!(conditionParameter1.isObject())) {
+            lParameter1 = createSwitchParameterReference(conditionParameter1.asText());
         } else {
-            lValue1 = createParameterWithValue(conditionNode.path("value1"));
+            lParameter1 = parseParameterNode(conditionParameter1);
         }
 
-        IParameter lValue2;
+        IParameter lParameter2;
+        JsonNode conditionParameter2 = conditionNode.path("value2");
+
         if (!(conditionNode.path("value2").isObject())) {
-            lValue2 = createSwitchParameterReference(conditionNode.path("value1").textValue());
+            lParameter2 = createSwitchParameterReference(conditionParameter2.asText());
         } else {
-            lValue2 = createParameterWithValue(conditionNode.path("value2"));
+            lParameter2 = parseParameterNode(conditionParameter2);
         }
 
-        return new CCondition(lConditionType, lValue1, lValue2);
+        return new CCondition(lConditionType, lParameter1, lParameter2);
     }
 
     /**
-     * Creates a CParameter Generic-Object
+     * Erstellt aus dem Modell einer Variablen ein nutzbares Variablen Objekt
      *
-     * @param parameterNode   the Json-Node which holds the Data
-     * @param isUserParameter
-     * @return finished CParameter Object
-     */
-    public IParameter createParameter(JsonNode parameterNode, boolean isUserParameter) {
-        String lParameterType = parameterNode.path("type").asText();
-        String lParameterName = parameterNode.path("name").asText();
-
-        return EParameterFactory.INSTANCE.createParameter(lParameterType, lParameterName, isUserParameter);
-    }
-
-    public IParameter createParameterWithValue(JsonNode parameterNode) {
-        String lParameterType = parameterNode.path("type").asText();
-        String lParameterValue = parameterNode.path("value").asText();
-
-        return new CParameter(EParameterFactory.INSTANCE.createParameterValue(lParameterType, lParameterValue),
-                parameterNode.path("name").asText(), false);
-    }
-
-    /**
-     * @param variableNode
-     * @return
+     * @param variableNode Abstraktes Json Modell einer Variablen
+     * @return IVariable Objekt
+     *
+     * @see CJsonVariable
+     * @see CStringVariable
      */
     public IVariable createVariable(JsonNode variableNode) {
 
@@ -324,45 +340,64 @@ public enum EWorkflowParser {
     }
 
     /**
+     * Erstellt einen InvokeAssign Task für die Benutzung innerhalb eines Invoke Tasks
      *
-     * @param assignTo
-     * @return
+     * @param targetVariable Name der Ziel Variablen
+     * @return ITask Objekt (InvokeAssign)
+     *
+     * @see CInvokeAssignTask
      */
-    public CInvokeAssignTask buildAssignTask(String assignTo) {
-        String lPrefix = assignTo.split("\\.")[0];
-        String lVariable = assignTo.split("\\.")[1];
+    public CInvokeAssignTask buildAssignTask(String targetVariable) {
+        String lPrefix = targetVariable.split("\\.")[0];
+        String lVariableName = targetVariable.split("\\.")[1];
 
-        Map<String, IVariable> variables = CVariableTempStorage.getInstance().reference();
+        Map<String, IVariable> variables = EVariableTempStorage.INSTANCE.reference();
 
-        if (lPrefix.equals("VARIABLES")) {
-            String variableKey = variables.entrySet().stream()
-                    .filter(variable -> variable.getValue().name().equals(lVariable))
-                    .map(Map.Entry::getKey)
-                    .findFirst()
-                    .orElse("FALSE");
+        if (lPrefix.equals(VARIABLE_PREFIX)) {
+            IVariable lVariable = variables.get(lVariableName);
 
-            if (!variableKey.equals("FALSE")) {
-                return new CInvokeAssignTask(variables.get(variableKey));
+            if (!Objects.isNull(lVariable)) {
+                return new CInvokeAssignTask(lVariable);
             } else {
                 throw new CWorkflowParseException("Variable could not be found. It was probably not created.");
             }
         } else {
-            throw new CWorkflowParseException("Results can only be assigned to variables.");
+            throw new CWorkflowParseException("Results can only be assigned to variables. " +
+                    "Variable References should have the Prefix VARIABLES!");
         }
     }
 
-    public IParameter createVariableReference(String variableName, IVariable variable) {
-        return new CVariableReference(variableName, variable);
-    }
+    /**
+     * Erstellt eine Variablenreferenz für die Benutzung innerhalb eines Switch Tasks
+     *
+     * @param pVariableReference VARIABLES Prefix + Name der Variable
+     * @return Variablen Referenz
+     * @see CVariableReference
+     */
+    public IParameter createSwitchParameterReference(String pVariableReference) {
 
-    public IParameter createSwitchParameterReference(String pParameter) {
+        String lPrefix = pVariableReference.split("\\.")[0];
+        String lVariableName = pVariableReference.split("\\.")[1];
 
-        if (pParameter.contains("VARIABLES")) {
-            String[] segments = pParameter.split(Pattern.quote("."));
-
-            return createVariableReference(segments[1], CVariableTempStorage.getInstance().apply(segments[1]));
+        if (lPrefix.equals(VARIABLE_PREFIX)) {
+            return new CVariableReference(lVariableName, EVariableTempStorage.INSTANCE.apply(lVariableName));
         } else {
-            throw new CWorkflowParseException("Keyword for Variables not found!");
+            throw new CWorkflowParseException("Variable References should have the Prefix VARIABLES!");
         }
+    }
+
+    /**
+     * Wandelt das abstrakte Modell eienes konstanten Parameters in ein nutzbares Parameter Objekt um
+     *
+     * @param parameterNode Modell eines konstanten Parameters
+     * @return IParameter Objekt
+     * @see CParameter
+     */
+    public IParameter parseParameterNode(JsonNode parameterNode) {
+        String lParameterName = parameterNode.path("name").asText();
+        String lParameterType = parameterNode.path("type").asText();
+        String lParameterValue = parameterNode.path("value").asText();
+
+        return EParameterFactory.INSTANCE.createParameterWithValue(lParameterName, lParameterType, lParameterValue);
     }
 }

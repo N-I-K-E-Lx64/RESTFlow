@@ -12,12 +12,12 @@ public enum EParameterFactory {
     /**
      * Creates an object based on given parameters.
      *
-     * @param pParameterType  The Type of the Parameter (String, Int, etc.) used for generify the IParameter Object
-     * @param pParameterName  Name of the Parameter
+     * @param pParameterType The Type of the Parameter (String, Int, etc.) used for generify the IParameter Object
+     * @param pParameterType
      * @param isUserparameter Is true if the parameter value, must be entered by a user.
      * @return an IParameter-Object
      */
-    public IParameter createParameter(String pParameterType, String pParameterName, Boolean isUserparameter) {
+    public IParameter createParameter(String pParameterName, String pParameterType, Boolean isUserparameter) {
         switch (pParameterType.toUpperCase()) {
             case "STRING":
                 return new CParameter<String>(pParameterName, isUserparameter);
@@ -29,23 +29,28 @@ public enum EParameterFactory {
                 return new CParameter<Double>(pParameterName, isUserparameter);
 
             default:
-                throw new CWorkflowParseException(MessageFormat.format("Parameter-Type [{0}] doesn't match known types!", pParameterType));
+                throw new CWorkflowParseException(MessageFormat.format("Parameter-Type [{0}] doesn't match known types!", pParameterName));
         }
     }
 
-    public Object createParameterValue(String pParameterType, String pParameterValue) {
-        switch (pParameterType.toUpperCase()) {
-            case "STRING":
-                return pParameterValue;
+    public IParameter createParameterWithValue(String pParameterName, String pParameterType, String pParameterValue) {
+        return createParameter(pParameterName, pParameterType, false)
+                .setValue(parseParameterValue(pParameterValue, pParameterType));
+    }
 
-            case "INT":
-                return Integer.parseInt(pParameterValue);
+    public Object parseParameterValue(String pParameterValue, String pParameterType) {
+            switch (pParameterType.toUpperCase()) {
+                case "STRING":
+                    return pParameterValue;
 
-            case "DOUBLE":
-                return Double.parseDouble(pParameterValue);
+                case "INTEGER":
+                    return Integer.parseInt(pParameterValue);
 
-            default:
-                throw new RuntimeException(MessageFormat.format("Parameter-Type [{0}] doesn't match known types!", pParameterType));
-        }
+                case "Double":
+                    return Double.parseDouble(pParameterValue);
+
+                default:
+                    throw new CWorkflowParseException(MessageFormat.format("Parameter-Type [{0}] doesn't match known types!", pParameterType));
+            }
     }
 }

@@ -2,9 +2,10 @@ package com.restflow.core.Controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.restflow.core.ERunningWorkflows;
-import com.restflow.core.EWorkflowDefinitons;
+import com.restflow.core.EActiveWorkflows;
+import com.restflow.core.EWorkflowModels;
 import com.restflow.core.Storage.StorageService;
+import com.restflow.core.WorkflowExecution.Objects.IWorkflow;
 import com.restflow.core.WorkflowParser.CWorkflowParseException;
 import com.restflow.core.WorkflowParser.EWorkflowParser;
 import org.apache.commons.io.FilenameUtils;
@@ -14,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -36,22 +38,29 @@ public class WorkflowAdministrationController {
     }
 
     @RequestMapping(value = "/parseWorkflow", method = RequestMethod.POST)
-    public ResponseEntity<?> parseWorkflow(@RequestParam(name = "workflow") String workflow, @RequestParam(name = "filename") String filename) {
+    public ResponseEntity<?> parseWorkflow(@RequestParam(name = "project") String project, @RequestParam(name = "workflowModel") String filename) {
 
-        Resource lWorkflowResource = mStorageService.loadAsResource(filename, workflow);
+        Resource lWorkflowResource = mStorageService.loadAsResource(filename, project);
+        IWorkflow lWorkflowModel = null;
+
         if (Objects.equals(FilenameUtils.getExtension(lWorkflowResource.getFilename()), "json")) {
             try {
-                EWorkflowDefinitons.INSTANCE.add(EWorkflowParser.INSTANCE.parseWorkflow(lWorkflowResource));
+                lWorkflowModel = EWorkflowParser.INSTANCE.parseWorkflow(lWorkflowResource);
+                EWorkflowModels.INSTANCE.add(lWorkflowModel);
             } catch (IOException e) {
                 logger.error(e.getMessage());
-            } catch (CWorkflowParseException e) {
-                logger.error(e);
             }
+        }
+
+        if (Objects.isNull(lWorkflowModel)) {
+            throw new CWorkflowParseException(MessageFormat.format(
+                    "Workflow Model [{0}] could not be successfully parsed", StringUtils.replace(
+                            filename, ".json", "")));
         }
 
         ObjectNode lSuccessNode = mapper.createObjectNode();
         lSuccessNode.put("message", "Workflow was successfully parsed!");
-        lSuccessNode.put("workflow", workflow);
+        lSuccessNode.put("workflow", project);
         lSuccessNode.put("file", filename);
 
         return ResponseEntity.ok(lSuccessNode);
@@ -60,8 +69,8 @@ public class WorkflowAdministrationController {
     @RequestMapping(value = "/deleteWorkflow/{workflow:.+}", method = RequestMethod.GET)
     public ResponseEntity<String> deleteWorkflow(@PathVariable String workflow) {
 
-        ERunningWorkflows.INSTANCE.remove(workflow);
-        EWorkflowDefinitons.INSTANCE.remove(workflow);
+        EActiveWorkflows.INSTANCE.remove(workflow);
+        EWorkflowModels.INSTANCE.remove(workflow);
         mStorageService.deleteFolder(workflow);
 
         return ResponseEntity.ok(

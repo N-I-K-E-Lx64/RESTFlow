@@ -1,8 +1,8 @@
 package com.restflow.core.Controller;
 
+import com.restflow.core.Responses.UploadFileResponse;
 import com.restflow.core.Storage.StorageFileNotFoundException;
 import com.restflow.core.Storage.StorageService;
-import com.restflow.core.Storage.UploadFileResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,27 +34,26 @@ public class FileUploadController {
 
     @RequestMapping(value = "/uploadFile", method = RequestMethod.POST)
     public UploadFileResponse uploadFile(@RequestParam("file") MultipartFile file,
-                                         @RequestParam("workflow") String workflowName) {
+                                         @RequestParam("project") String project) {
 
-        mStorageService.initWorkflowDirectory(workflowName);
+        mStorageService.initWorkflowDirectory(project);
 
-        String fileName = mStorageService.store(file, workflowName);
+        String fileName = mStorageService.store(file, project);
 
         String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
                 .path("/downloadFile/")
                 .path(fileName)
                 .toUriString();
 
-        return new UploadFileResponse(file.getOriginalFilename(), workflowName, fileDownloadUri, file.getContentType(), file.getSize());
+        return new UploadFileResponse(file.getOriginalFilename(), project, fileDownloadUri, file.getContentType(), file.getSize());
     }
 
     @PostMapping("/uploadMultipleFiles")
     public List<UploadFileResponse> uploadMultipleFiles(@RequestParam("files") MultipartFile[] files,
-                                                        @RequestParam("workflow") String workflowName) {
+                                                        @RequestParam("project") String project) {
 
-        return Arrays.asList(files)
-                .stream()
-                .map(file -> uploadFile(file, workflowName))
+        return Arrays.stream(files)
+                .map(file -> uploadFile(file, project))
                 .collect(Collectors.toList());
     }
 

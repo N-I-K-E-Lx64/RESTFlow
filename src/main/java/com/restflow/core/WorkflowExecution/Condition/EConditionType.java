@@ -4,14 +4,15 @@ import com.restflow.core.WorkflowParser.CWorkflowParseException;
 
 import java.text.MessageFormat;
 
+// TODO : Put this into the Object sub-package
 public enum EConditionType {
 
     SMALLER,
     BIGGER,
-    NUMBER_EQUALS,
-    NOT_NUMBER_EQUALS,
-    STRING_EQUALS,
-    NOT_STRING_EQUALS,
+    GREATER_OR_ERQUAL,
+    LESS_OR_EQUAL,
+    EQUALS,
+    NOT_EQUALS,
     STRING_CONTAINS,
     NOT_STRING_CONTAINS,
     INSTANCE;
@@ -25,17 +26,17 @@ public enum EConditionType {
             case "BIGGER":
                 return EConditionType.BIGGER;
 
-            case "NUMBER_EQUALS":
-                return EConditionType.NUMBER_EQUALS;
+            case "GREATER_OR_EQUAL":
+                return GREATER_OR_ERQUAL;
 
-            case "NOT_NUMBER_EQUALS":
-                return EConditionType.NOT_NUMBER_EQUALS;
+            case "LESS_OR_EQUAL":
+                return LESS_OR_EQUAL;
 
             case "EQUALS":
-                return EConditionType.STRING_EQUALS;
+                return EConditionType.EQUALS;
 
             case "NOT_EQUALS":
-                return EConditionType.NOT_STRING_EQUALS;
+                return EConditionType.NOT_EQUALS;
 
             case "CONTAINS":
                 return EConditionType.STRING_CONTAINS;

@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
 import org.springframework.util.StringUtils;
@@ -17,7 +18,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Objects;
-import java.util.stream.Stream;
 
 @Service
 public class FileSystemStorageService implements StorageService {
@@ -56,7 +56,6 @@ public class FileSystemStorageService implements StorageService {
     public void initWorkflowDirectory(String workflowName) {
         try {
             if (!Files.exists(this.rootLocation.resolve(workflowName))) {
-                logger.info(this.rootLocation.resolve(workflowName));
                 Path directoryPath = this.rootLocation.resolve(workflowName);
                 Files.createDirectories(directoryPath);
             }
@@ -65,7 +64,7 @@ public class FileSystemStorageService implements StorageService {
         }
     }
 
-    public String store(MultipartFile file, String workflow) {
+    public String store(@NonNull final MultipartFile file, @NonNull final String workflow) {
 
         String filename = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
 
@@ -90,21 +89,7 @@ public class FileSystemStorageService implements StorageService {
         }
     }
 
-    public Stream<Path> loadAll() {
-        try {
-            return Files.walk(this.rootLocation, 1)
-                    .filter(path -> !path.equals(this.rootLocation))
-                    .map(this.rootLocation::relativize);
-        } catch (IOException e) {
-            throw new StorageExecption("Failed to read stored files", e);
-        }
-    }
-
-    public Path load(String filename) {
-        return rootLocation.resolve(filename).normalize();
-    }
-
-    public Resource loadAsResource(String filename, String workflowName) {
+    public Resource loadAsResource(@NonNull final String filename, @NonNull final String workflowName) {
         try {
             Path workflowLocation = this.rootLocation.resolve(workflowName);
             Path fileLocation = workflowLocation.resolve(filename).normalize();

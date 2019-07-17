@@ -5,32 +5,37 @@ import org.springframework.lang.NonNull;
 public class CParameter<T> implements IParameter {
 
     private T mValue;
-    private String mName;
-    private boolean mIsUserParameter;
+    private String mParameterName;
+    private Boolean mIsUserParameter;
 
-    public CParameter(T pValue, String pName, Boolean pIsUserParameter) {
+    public CParameter(T pValue, String pParameterName, Boolean pIsUserParameter) {
         this.mValue = pValue;
-        this.mName = pName;
+        this.mParameterName = pParameterName;
         this.mIsUserParameter = pIsUserParameter;
     }
 
-    public CParameter(String pName, boolean pIsUserParameter) {
-        this.mName = pName;
+    public CParameter(String pParameterName, boolean pIsUserParameter) {
+        this.mParameterName = pParameterName;
         this.mIsUserParameter = pIsUserParameter;
     }
 
     @NonNull
     @Override
     public String name() {
-        return mName;
+        return mParameterName;
     }
 
     public T value() {
         return mValue;
     }
 
-    public void setValue(@NonNull Object pValue) {
-        mValue = (T) pValue;
+    public Boolean isUserParameter() {
+        return mIsUserParameter;
     }
 
+    public IParameter setValue(Object pValue) {
+        mValue = (T) pValue;
+
+        return this;
+    }
 }

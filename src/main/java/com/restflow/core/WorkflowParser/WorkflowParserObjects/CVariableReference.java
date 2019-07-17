@@ -1,6 +1,5 @@
 package com.restflow.core.WorkflowParser.WorkflowParserObjects;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.lang.NonNull;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -10,8 +9,8 @@ public class CVariableReference implements IParameter {
     private final String mVariableName;
     private AtomicReference<IVariable> mVariable = new AtomicReference<>();
 
-    public CVariableReference(String mVariableName, IVariable pVariable) {
-        this.mVariableName = mVariableName;
+    public CVariableReference(String pVariableName, IVariable pVariable) {
+        this.mVariableName = pVariableName;
         this.mVariable.set(pVariable);
     }
 
@@ -28,7 +27,9 @@ public class CVariableReference implements IParameter {
     }
 
     @Override
-    public void setValue(Object pValue) {
-        mVariable.get().setValue((JsonNode) pValue);
+    public IParameter setValue(Object pValue) {
+        mVariable.get().setValue(pValue);
+
+        return this;
     }
 }

@@ -9,7 +9,7 @@ import java.util.Queue;
 public interface IWorkflowDefinitions {
 
     @NonNull
-    IWorkflowDefinitions add(@NonNull final IWorkflow pWorkflow);
+    void add(IWorkflow pWorkflow);
 
     void remove(String pWorkflow);
 
