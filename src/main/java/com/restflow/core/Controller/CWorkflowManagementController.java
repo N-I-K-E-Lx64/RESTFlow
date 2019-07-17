@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.restflow.core.ERunningWorkflows;
+import com.restflow.core.EActiveWorkflows;
 import com.restflow.core.EWorkflowModels;
 import com.restflow.core.Network.IMessage;
 import com.restflow.core.Responses.VariableResponse;
@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -67,7 +68,8 @@ public class CWorkflowManagementController {
         }
 
         if (Objects.isNull(lWorkflowModel)) {
-            throw new CWorkflowParseException("bla");
+            throw new CWorkflowParseException(MessageFormat.format(
+                    "Workflow Model [{0}] could not be successfully parsed", StringUtils.replace(workflowFile, ".json", "")));
         }
 
         ObjectNode lSuccessNode = mapper.createObjectNode();
@@ -84,7 +86,7 @@ public class CWorkflowManagementController {
 
         IWorkflow lWorkflow = EWorkflowModels.INSTANCE.apply(workflowModel);
 
-        ERunningWorkflows.INSTANCE.add(workflowName, lWorkflow).start();
+        EActiveWorkflows.INSTANCE.add(workflowName, lWorkflow).start();
 
         return ResponseEntity.status(200).contentType(MediaType.TEXT_PLAIN)
                 .body(MessageFormat.format("Successfully started [{0}]", workflowName));
@@ -93,8 +95,8 @@ public class CWorkflowManagementController {
     @RequestMapping(value = "/restart/{workflow:.+}")
     public ResponseEntity<?> restartWorkflow(@PathVariable String workflow) {
 
-        IWorkflow lWorkflow1 = ERunningWorkflows.INSTANCE.apply(workflow);
-        ERunningWorkflows.INSTANCE.remove(workflow);
+        IWorkflow lWorkflow1 = EActiveWorkflows.INSTANCE.apply(workflow);
+        EActiveWorkflows.INSTANCE.remove(workflow);
 
         IWorkflow lWorkflow = EWorkflowModels.INSTANCE.apply(workflow);
 
@@ -102,7 +104,7 @@ public class CWorkflowManagementController {
             logger.error("No deep Copy!");
         }
 
-        ERunningWorkflows.INSTANCE.add(lWorkflow.model(), lWorkflow).start();
+        EActiveWorkflows.INSTANCE.add(lWorkflow.model(), lWorkflow).start();
 
         return ResponseEntity.status(200).contentType(MediaType.TEXT_PLAIN)
                 .body(MessageFormat.format("Successfully restarted [{0}]", workflow));
@@ -112,7 +114,7 @@ public class CWorkflowManagementController {
     @RequestMapping(value = "/setUserParameter", method = RequestMethod.POST)
     public ResponseEntity setUserVariable(@RequestBody CMessage pMessage) {
 
-        final IWorkflow lWorkflow = ERunningWorkflows.INSTANCE.apply(pMessage.workflow());
+        final IWorkflow lWorkflow = EActiveWorkflows.INSTANCE.apply(pMessage.workflow());
 
         lWorkflow.accept(pMessage);
 
@@ -124,7 +126,7 @@ public class CWorkflowManagementController {
     @RequestMapping(value = "/status/{workflow:.+}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> checkStatus(@PathVariable String workflow) {
 
-        final IWorkflow lWorkflow = ERunningWorkflows.INSTANCE.apply(workflow);
+        final IWorkflow lWorkflow = EActiveWorkflows.INSTANCE.apply(workflow);
 
         switch (lWorkflow.status()) {
             case WORKING:
@@ -176,7 +178,7 @@ public class CWorkflowManagementController {
             return new VariableResponse(lVariable.name(), (JsonNode) lVariable.value());
         };
 
-        return ERunningWorkflows.INSTANCE.apply(workflow).variables().entrySet().stream()
+        return EActiveWorkflows.INSTANCE.apply(workflow).variables().entrySet().stream()
                 .map(createResponse)
                 .collect(Collectors.toList());
     }
@@ -191,7 +193,7 @@ public class CWorkflowManagementController {
             return new WorkflowListResponse(entry.getKey(), lModelName, lCurrentTask);
         };
 
-        return ERunningWorkflows.INSTANCE.get().stream()
+        return EActiveWorkflows.INSTANCE.get().stream()
                 .map(createResponse)
                 .collect(Collectors.toList());
     }

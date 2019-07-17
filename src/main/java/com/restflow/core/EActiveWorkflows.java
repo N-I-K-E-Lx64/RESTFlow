@@ -13,11 +13,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public enum ERunningWorkflows implements IRunningWorkflows, Supplier<Set<Map.Entry<String, IWorkflow>>>, Function<String, IWorkflow> {
+public enum EActiveWorkflows implements IRunningWorkflows, Supplier<Set<Map.Entry<String, IWorkflow>>>, Function<String, IWorkflow> {
 
     INSTANCE;
 
-    private static final Logger logger = LogManager.getLogger(ERunningWorkflows.class);
+    private static final Logger logger = LogManager.getLogger(EActiveWorkflows.class);
 
     private final Map<String, IWorkflow> mWorkflows = new ConcurrentHashMap<>();
 
@@ -40,6 +40,8 @@ public enum ERunningWorkflows implements IRunningWorkflows, Supplier<Set<Map.Ent
     public IRunningWorkflows remove(@NonNull final String pWorkflowName) {
 
         mWorkflows.remove(pWorkflowName);
+
+        logger.info("Removed Workflow: " + pWorkflowName);
 
         return this;
     }
