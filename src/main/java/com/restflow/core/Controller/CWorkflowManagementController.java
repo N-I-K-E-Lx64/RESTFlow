@@ -76,7 +76,7 @@ public class CWorkflowManagementController {
         lSuccessNode.put("message", "Workflow Model was successfully parsed!");
         lSuccessNode.put("project", project);
         lSuccessNode.put("file", workflowFile);
-        lSuccessNode.put("model", lWorkflowModel.model());
+        lSuccessNode.put("model", lWorkflowModel.model() + "-MODEL");
 
         return ResponseEntity.ok(lSuccessNode);
     }
@@ -187,7 +187,7 @@ public class CWorkflowManagementController {
     public List<WorkflowListResponse> sendWorkflowList() {
 
         Function<Map.Entry<String, IWorkflow>, WorkflowListResponse> createResponse = entry -> {
-            String lModelName = entry.getValue().model();
+            String lModelName = entry.getValue().model() + "-MODEL";
             String lCurrentTask = entry.getValue().currentTask().title();
 
             return new WorkflowListResponse(entry.getKey(), lModelName, lCurrentTask);

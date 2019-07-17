@@ -46,9 +46,7 @@ public class FileSystemStorageService implements StorageService {
     @Override
     public void initWorkflowDirectory(String workflowName) {
         try {
-            logger.info(Files.exists(this.rootLocation.resolve(workflowName)));
             if (!Files.exists(this.rootLocation.resolve(workflowName))) {
-                logger.info(this.rootLocation.resolve(workflowName));
                 Path directoryPath = this.rootLocation.resolve(workflowName);
                 Files.createDirectories(directoryPath);
             }

@@ -29,7 +29,7 @@ public class CWorkflow implements IWorkflow {
 
     /**
      * Clone Constructor
-     * @param that
+     * @param that The object to copy.
      */
     public CWorkflow(@NonNull final IWorkflow that, @NonNull final Queue<ITask> tasks) {
         this.mModelName = that.model();
@@ -48,6 +48,7 @@ public class CWorkflow implements IWorkflow {
         this.mStatus = EWorkflowStatus.WORKING;
     }
 
+    @NonNull
     @Override
     public String model() {
         return mModelName;
@@ -102,7 +103,7 @@ public class CWorkflow implements IWorkflow {
     }
 
     @Override
-    public void setEmptyVariables(List<String> pEmptyVariables) {
+    public void setEmptyVariables(@NonNull List<String> pEmptyVariables) {
         this.mEmptyVariables = pEmptyVariables;
     }
 
@@ -126,9 +127,7 @@ public class CWorkflow implements IWorkflow {
 
     @Override
     public Map<String, IVariable> resetVariable(@NonNull Map<String, IVariable> pVariables) {
-        pVariables.forEach((key, value) -> {
-            value.setValue(null);
-        });
+        pVariables.forEach((key, value) -> value.setValue(null));
 
         return pVariables;
     }
