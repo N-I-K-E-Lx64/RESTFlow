@@ -19,7 +19,7 @@ public enum ERamlParser {
 
     public Api parseRaml(Resource ramlResource) {
 
-        File ramlFile = null;
+        File ramlFile;
 
         try {
             ramlFile = ramlResource.getFile();
