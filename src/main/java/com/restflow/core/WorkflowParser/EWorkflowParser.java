@@ -2,7 +2,7 @@ package com.restflow.core.WorkflowParser;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.restflow.core.EWorkflowModels;
+import com.restflow.core.EWorkflowDefinitions;
 import com.restflow.core.Storage.StorageService;
 import com.restflow.core.WorkflowExecution.Condition.EConditionType;
 import com.restflow.core.WorkflowExecution.Objects.CWorkflow;
@@ -84,7 +84,7 @@ public enum EWorkflowParser {
         Queue<ITask> lTasks = parseProcessNode(processNode);
         lWorkflow.generateExecutionOrder(lTasks);
 
-        EWorkflowModels.INSTANCE.addExecutionOrder(lTasks, lWorkflowModel);
+        EWorkflowDefinitions.INSTANCE.addExecutionOrder(lTasks, lWorkflowModel);
 
         logger.info("Successfully parsed Workflow-Model: " + lWorkflowModel);
 

@@ -16,13 +16,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public enum EWorkflowModels implements IWorkflowDefinitions, Supplier<Set<String>>, Function<String, IWorkflow> {
+public enum EWorkflowDefinitions implements IWorkflowDefinitions, Supplier<Set<String>>, Function<String, IWorkflow> {
 
     INSTANCE;
 
-    private static final Logger logger = LogManager.getLogger(EWorkflowModels.class);
+    private static final Logger logger = LogManager.getLogger(EWorkflowDefinitions.class);
 
-    private final Map<String, IWorkflow> mModels = new ConcurrentHashMap<>();
+    private final Map<String, IWorkflow> mWorkflowDefinitions = new ConcurrentHashMap<>();
 
     private final Map<String, Queue<ITask>> mTaskDefinitions = new ConcurrentHashMap<>();
 
@@ -30,27 +30,27 @@ public enum EWorkflowModels implements IWorkflowDefinitions, Supplier<Set<String
     @Override
     public void add(@NonNull final IWorkflow pWorkflow) {
 
-        if (mModels.containsKey(pWorkflow.model()))
-            throw new RuntimeException(MessageFormat.format("Workflow [{0}] already exists", pWorkflow.model()));
+        if (mWorkflowDefinitions.containsKey(pWorkflow.definition()))
+            throw new RuntimeException(MessageFormat.format("Workflow Definition [{0}] already exists", pWorkflow.definition()));
 
-        mModels.put(pWorkflow.model() + "-MODEL", pWorkflow);
+        mWorkflowDefinitions.put(pWorkflow.definition() + "-DEFINITION", pWorkflow);
 
-        logger.info("Saved Workflow Model for: " + pWorkflow.model());
+        logger.info("Saved Workflow Model for: " + pWorkflow.definition());
     }
 
     @NonNull
     @Override
     public void remove(@NonNull final String pWorkflow) {
 
-        mModels.remove(pWorkflow);
+        mWorkflowDefinitions.remove(pWorkflow);
 
-        logger.info(MessageFormat.format("The following Workflow Model [{0}] has been deleted1", pWorkflow));
+        logger.info(MessageFormat.format("The following Workflow Definition [{0}] has been deleted1", pWorkflow));
     }
 
     @Override
     public void addExecutionOrder(@NonNull final Queue<ITask> pTasks, @NonNull final String pWorkflow) {
 
-        String lWorkflowModelName = pWorkflow + "-MODEL";
+        String lWorkflowModelName = pWorkflow + "-DEFINITION";
 
         if (mTaskDefinitions.containsKey(lWorkflowModelName))
             throw new RuntimeException(
@@ -64,10 +64,10 @@ public enum EWorkflowModels implements IWorkflowDefinitions, Supplier<Set<String
     @Override
     public IWorkflow apply(final String pWorkflowModel) {
 
-        final IWorkflow lWorkflow = mModels.get(pWorkflowModel);
+        final IWorkflow lWorkflow = mWorkflowDefinitions.get(pWorkflowModel);
         if (Objects.isNull(lWorkflow))
             throw new RuntimeException(
-                    MessageFormat.format("Workflow [{0}] could not be found.", pWorkflowModel));
+                    MessageFormat.format("Workflow Definition [{0}] could not be found.", pWorkflowModel));
 
         final Queue<ITask> lExecutionQueue = mTaskDefinitions.get(pWorkflowModel);
         if (Objects.isNull(lExecutionQueue))
@@ -79,6 +79,6 @@ public enum EWorkflowModels implements IWorkflowDefinitions, Supplier<Set<String
 
     @Override
     public Set<String> get() {
-        return mModels.keySet();
+        return mWorkflowDefinitions.keySet();
     }
 }

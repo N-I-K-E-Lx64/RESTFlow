@@ -17,7 +17,6 @@ public class CJsonVariable implements IVariable {
         mValue = (JsonNode) pValue;
     }
 
-    @NonNull
     @Override
     public JsonNode value() {
         return mValue;

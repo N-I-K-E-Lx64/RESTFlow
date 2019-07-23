@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class CWorkflow implements IWorkflow {
 
-    private final String mModelName;
+    private final String mDefinitionReference;
     private final String mDescription;
 
     private Queue<ITaskAction> mExecution = new ConcurrentLinkedQueue<>();
@@ -32,7 +32,7 @@ public class CWorkflow implements IWorkflow {
      * @param that The object to copy.
      */
     public CWorkflow(@NonNull final IWorkflow that, @NonNull final Queue<ITask> tasks) {
-        this.mModelName = that.model();
+        this.mDefinitionReference = that.definition();
         this.mDescription = that.description();
         this.mVariables = Collections.synchronizedMap(resetVariable(that.variables()));
         generateExecutionOrder(resetInput(tasks));
@@ -41,7 +41,7 @@ public class CWorkflow implements IWorkflow {
     }
 
     public CWorkflow(String pTitle, String pDescription, Map<String, IVariable> pVariables) {
-        this.mModelName = pTitle;
+        this.mDefinitionReference = pTitle;
         this.mDescription = pDescription;
         this.mVariables = Collections.synchronizedMap(pVariables);
 
@@ -50,8 +50,8 @@ public class CWorkflow implements IWorkflow {
 
     @NonNull
     @Override
-    public String model() {
-        return mModelName;
+    public String definition() {
+        return mDefinitionReference;
     }
 
     @NonNull
@@ -137,7 +137,7 @@ public class CWorkflow implements IWorkflow {
     public IWorkflow start() {
 
         if (mExecution.isEmpty()) {
-            throw new CWorkflowExecutionException("Workflow " + this.mModelName + " enthält keine Tasklist!");
+            throw new CWorkflowExecutionException("Workflow " + this.mDefinitionReference + " enthält keine Tasklist!");
         }
 
         this.executeStep();

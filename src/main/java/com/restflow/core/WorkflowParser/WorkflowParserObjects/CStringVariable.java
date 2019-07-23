@@ -17,7 +17,6 @@ public class CStringVariable implements IVariable {
         mValue = (String) pValue;
     }
 
-    @NonNull
     @Override
     public String value() {
         return mValue;

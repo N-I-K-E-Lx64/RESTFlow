@@ -1,7 +1,11 @@
 package com.restflow.core.WorkflowExecution.WorkflowTasks;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.restflow.core.Network.*;
+import com.restflow.core.Network.ERequestSender;
+import com.restflow.core.Network.ERequestTypeBuilder;
+import com.restflow.core.Network.IMessage;
+import com.restflow.core.Network.Objects.CRequest;
+import com.restflow.core.Network.Objects.IRequest;
 import com.restflow.core.WorkflowExecution.Objects.CUserInteractionException;
 import com.restflow.core.WorkflowExecution.Objects.EWorkflowStatus;
 import com.restflow.core.WorkflowExecution.Objects.IWorkflow;

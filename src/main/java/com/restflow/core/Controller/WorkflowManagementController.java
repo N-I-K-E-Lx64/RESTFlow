@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.restflow.core.EActiveWorkflows;
-import com.restflow.core.EWorkflowModels;
+import com.restflow.core.EWorkflowDefinitions;
 import com.restflow.core.Network.IMessage;
 import com.restflow.core.Responses.VariableResponse;
 import com.restflow.core.Responses.WorkflowListResponse;
@@ -35,9 +35,9 @@ public class WorkflowManagementController {
     private static final ObjectMapper mapper = new ObjectMapper();
 
     @RequestMapping(value = "/start", method = RequestMethod.POST)
-    public ResponseEntity<?> startWorkflow(@RequestParam("model") String workflowModel, @RequestParam("name") String workflowName) {
+    public ResponseEntity<?> startWorkflow(@RequestParam("definition") String workflowDefinition, @RequestParam("name") String workflowName) {
 
-        IWorkflow lWorkflow = EWorkflowModels.INSTANCE.apply(workflowModel);
+        IWorkflow lWorkflow = EWorkflowDefinitions.INSTANCE.apply(workflowDefinition);
 
         EActiveWorkflows.INSTANCE.add(workflowName, lWorkflow).start();
 
@@ -51,7 +51,7 @@ public class WorkflowManagementController {
         IWorkflow lWorkflow1 = EActiveWorkflows.INSTANCE.apply(workflow);
         EActiveWorkflows.INSTANCE.remove(workflow);
 
-        IWorkflow lWorkflow = EWorkflowModels.INSTANCE.apply(workflow);
+        IWorkflow lWorkflow = EWorkflowDefinitions.INSTANCE.apply(workflow);
 
         if (lWorkflow1.equals(lWorkflow)) {
             logger.error("No deep Copy!");
@@ -59,7 +59,7 @@ public class WorkflowManagementController {
 
         logger.info("Restart Workflow: " + workflow);
 
-        EActiveWorkflows.INSTANCE.add(lWorkflow.model(), lWorkflow).start();
+        EActiveWorkflows.INSTANCE.add(lWorkflow.definition(), lWorkflow).start();
 
         return ResponseEntity.status(200).contentType(MediaType.TEXT_PLAIN)
                 .body(MessageFormat.format("Successfully restarted [{0}]", workflow));
@@ -151,7 +151,7 @@ public class WorkflowManagementController {
     public List<WorkflowListResponse> sendWorkflowList() {
 
         Function<Map.Entry<String, IWorkflow>, WorkflowListResponse> createResponse = entry -> {
-            String lModelName = entry.getValue().model() + "-MODEL";
+            String lModelName = entry.getValue().definition() + "-MODEL";
             String lCurrentTask = entry.getValue().currentTask().title();
 
             return new WorkflowListResponse(entry.getKey(), lModelName, lCurrentTask);
@@ -169,7 +169,7 @@ public class WorkflowManagementController {
     }
 
     /**
-     * Class for representing the messages!
+     * Class for representing the message!
      */
     public static final class CMessage implements IMessage {
 

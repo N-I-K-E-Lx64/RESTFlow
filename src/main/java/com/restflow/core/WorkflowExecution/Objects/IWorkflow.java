@@ -14,7 +14,7 @@ import java.util.function.Consumer;
 public interface IWorkflow extends Consumer<IMessage> {
 
     @NonNull
-    String model();
+    String definition();
 
     @NonNull
     String description();
