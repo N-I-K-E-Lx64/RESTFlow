@@ -4,12 +4,14 @@ public class WorkflowListResponse {
 
     private final String workflowName;
     private final String modelName;
+    private final String currentStatus;
     private final String currentTask;
 
 
-    public WorkflowListResponse(String workflowName, String modelName, String currentTask) {
+    public WorkflowListResponse(String workflowName, String modelName, String currentStatus, String currentTask) {
         this.workflowName = workflowName;
         this.modelName = modelName;
+        this.currentStatus = currentStatus;
         this.currentTask = currentTask;
     }
 
@@ -19,6 +21,10 @@ public class WorkflowListResponse {
 
     public String getModelName() {
         return modelName;
+    }
+
+    public String getCurrentStatus() {
+        return currentStatus;
     }
 
     public String getCurrentTask() {

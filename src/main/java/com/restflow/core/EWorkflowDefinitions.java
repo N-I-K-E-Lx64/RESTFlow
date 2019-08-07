@@ -26,19 +26,17 @@ public enum EWorkflowDefinitions implements IWorkflowDefinitions, Supplier<Set<S
 
     private final Map<String, Queue<ITask>> mTaskDefinitions = new ConcurrentHashMap<>();
 
-    @NonNull
     @Override
     public void add(@NonNull final IWorkflow pWorkflow) {
 
         if (mWorkflowDefinitions.containsKey(pWorkflow.definition()))
             throw new RuntimeException(MessageFormat.format("Workflow Definition [{0}] already exists", pWorkflow.definition()));
 
-        mWorkflowDefinitions.put(pWorkflow.definition() + "-DEFINITION", pWorkflow);
+        mWorkflowDefinitions.put(pWorkflow.definition(), pWorkflow);
 
         logger.info("Saved Workflow Model for: " + pWorkflow.definition());
     }
 
-    @NonNull
     @Override
     public void remove(@NonNull final String pWorkflow) {
 
@@ -50,15 +48,13 @@ public enum EWorkflowDefinitions implements IWorkflowDefinitions, Supplier<Set<S
     @Override
     public void addExecutionOrder(@NonNull final Queue<ITask> pTasks, @NonNull final String pWorkflow) {
 
-        String lWorkflowModelName = pWorkflow + "-DEFINITION";
-
-        if (mTaskDefinitions.containsKey(lWorkflowModelName))
+        if (mTaskDefinitions.containsKey(pWorkflow))
             throw new RuntimeException(
-                    MessageFormat.format("Task Definition of [{0}] already exists", lWorkflowModelName));
+                    MessageFormat.format("Task Definition of [{0}] already exists", pWorkflow));
 
-        mTaskDefinitions.put(lWorkflowModelName, pTasks);
+        mTaskDefinitions.put(pWorkflow, pTasks);
 
-        logger.info("Saved Task Definition for: " + lWorkflowModelName);
+        logger.info("Saved Task Definition for: " + pWorkflow);
     }
 
     @Override

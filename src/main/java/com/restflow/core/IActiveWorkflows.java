@@ -12,5 +12,7 @@ public interface IActiveWorkflows {
     IWorkflow add(@NonNull final String pWorkflowName, @NonNull final IWorkflow pWorkflow);
 
     @NonNull
+    IWorkflow restart(@NonNull final String pWorkflowInstance);
+
     void remove(@NonNull final String pWorkflow);
 }

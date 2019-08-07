@@ -1,18 +1,16 @@
 package com.restflow.core.Controller;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.restflow.core.EActiveWorkflows;
 import com.restflow.core.EWorkflowDefinitions;
-import com.restflow.core.Network.IMessage;
+import com.restflow.core.Network.Objects.CUserParameterMessage;
 import com.restflow.core.Responses.VariableResponse;
 import com.restflow.core.Responses.WorkflowListResponse;
 import com.restflow.core.WorkflowExecution.Objects.CUserInteractionException;
 import com.restflow.core.WorkflowExecution.Objects.IWorkflow;
-import com.restflow.core.WorkflowParser.EParameterFactory;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.IVariable;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -45,24 +43,15 @@ public class WorkflowManagementController {
                 .body(MessageFormat.format("Successfully started [{0}]", workflowName));
     }
 
-    @RequestMapping(value = "/restart/{workflow:.+}", method = RequestMethod.GET)
-    public ResponseEntity<?> restartWorkflow(@PathVariable String workflow) {
+    @RequestMapping(value = "/restart/{workflowInstance:.+}", method = RequestMethod.GET)
+    public ResponseEntity<?> restartWorkflow(@PathVariable String workflowInstance) {
 
-        IWorkflow lWorkflow1 = EActiveWorkflows.INSTANCE.apply(workflow);
-        EActiveWorkflows.INSTANCE.remove(workflow);
+        EActiveWorkflows.INSTANCE.restart(workflowInstance).start();
 
-        IWorkflow lWorkflow = EWorkflowDefinitions.INSTANCE.apply(workflow);
-
-        if (lWorkflow1.equals(lWorkflow)) {
-            logger.error("No deep Copy!");
-        }
-
-        logger.info("Restart Workflow: " + workflow);
-
-        EActiveWorkflows.INSTANCE.add(lWorkflow.definition(), lWorkflow).start();
+        logger.info("Restart workflow instance: " + workflowInstance);
 
         return ResponseEntity.status(200).contentType(MediaType.TEXT_PLAIN)
-                .body(MessageFormat.format("Successfully restarted [{0}]", workflow));
+                .body(MessageFormat.format("Successfully restarted [{0}]", workflowInstance));
     }
 
     @RequestMapping(value = "/stop/{workflow:.+}", method = RequestMethod.GET)
@@ -77,9 +66,9 @@ public class WorkflowManagementController {
     }
 
     @RequestMapping(value = "/setUserParameter", method = RequestMethod.POST)
-    public ResponseEntity setUserVariable(@RequestBody CMessage pMessage) {
+    public ResponseEntity setUserVariable(@RequestBody CUserParameterMessage pMessage) {
 
-        EActiveWorkflows.INSTANCE.apply(pMessage.workflow()).accept(pMessage);
+        EActiveWorkflows.INSTANCE.apply(pMessage.getWorkflowInstance()).accept(pMessage);
 
         return ResponseEntity.status(200).contentType(MediaType.TEXT_PLAIN)
                 .body(MessageFormat.format("Parameter [{0}] was successfully overwritten with the following value [{1}]!",
@@ -92,34 +81,35 @@ public class WorkflowManagementController {
         final IWorkflow lWorkflow = EActiveWorkflows.INSTANCE.apply(workflow);
 
         switch (lWorkflow.status()) {
-            case WORKING:
+            case ACTIVE:
                 ObjectNode lWorkingNode = mapper.createObjectNode();
-                lWorkingNode.put("type", lWorkflow.status().get());
+                lWorkingNode.put("status", lWorkflow.status().get());
                 lWorkingNode.put("currentTask", lWorkflow.currentTask().title());
 
                 return ResponseEntity.ok(lWorkingNode);
 
-            case FINISHED:
+            case COMPLETE:
                 ArrayNode lVariables = mapper.valueToTree(checkVariableStatus(workflow));
                 ObjectNode lFinishedNode = mapper.createObjectNode();
+                lFinishedNode.put("status", lWorkflow.status().get());
                 lFinishedNode.put("message", MessageFormat.format("Workflow [{0}] is completed", workflow));
                 lFinishedNode.putArray("variables").addAll(lVariables);
 
                 return ResponseEntity.ok(lFinishedNode);
 
-            case WAITING:
+            case SUSPENDED:
                 ArrayNode lEmptyVariables = mapper.valueToTree(lWorkflow.emptyVariables());
                 ObjectNode lWaitingNode = mapper.createObjectNode();
-                lWaitingNode.put("type", lWorkflow.status().get());
-                lWaitingNode.put("title", lWorkflow.currentTask().title());
+                lWaitingNode.put("status", lWorkflow.status().get());
+                lWaitingNode.put("currentTask", lWorkflow.currentTask().title());
                 lWaitingNode.putArray("emptyVariables").addAll(lEmptyVariables);
 
                 return ResponseEntity.ok(lWaitingNode);
 
-            case ERROR:
+            case TERMINATED:
                 ObjectNode lErrorNode = mapper.createObjectNode();
-                lErrorNode.put("type", lWorkflow.status().get());
-
+                lErrorNode.put("status", lWorkflow.status().get());
+                //TODO: Fehlerbeschreibung!
                 return ResponseEntity.status(500).body(lErrorNode);
 
             default:
@@ -147,14 +137,15 @@ public class WorkflowManagementController {
 
     }
 
-    @RequestMapping(value = "/list", method = RequestMethod.GET)
+    @RequestMapping(value = "/workflows", method = RequestMethod.GET)
     public List<WorkflowListResponse> sendWorkflowList() {
 
         Function<Map.Entry<String, IWorkflow>, WorkflowListResponse> createResponse = entry -> {
             String lModelName = entry.getValue().definition() + "-MODEL";
+            String lCurrentStatus = entry.getValue().status().get();
             String lCurrentTask = entry.getValue().currentTask().title();
 
-            return new WorkflowListResponse(entry.getKey(), lModelName, lCurrentTask);
+            return new WorkflowListResponse(entry.getKey(), lModelName, lCurrentStatus, lCurrentTask);
         };
 
         return EActiveWorkflows.INSTANCE.get().stream()
@@ -166,33 +157,5 @@ public class WorkflowManagementController {
     public ResponseEntity handleUserInteractionException(CUserInteractionException ex) {
         logger.error(ex.getMessage());
         return ResponseEntity.status(404).contentType(MediaType.TEXT_PLAIN).body(ex.getMessage());
-    }
-
-    /**
-     * Class for representing the message!
-     */
-    public static final class CMessage implements IMessage {
-
-        @JsonProperty("workflow")
-        private String workflow;
-        @JsonProperty("parameter")
-        private String parameter;
-        @JsonProperty("type")
-        private String parameterType;
-        @JsonProperty("value")
-        private String parameterValue;
-
-        public String workflow() {
-            return workflow;
-        }
-
-        public String parameterName() {
-            return parameter;
-        }
-
-        @Override
-        public Object get() {
-            return EParameterFactory.INSTANCE.parseParameterValue(parameterValue, parameterType);
-        }
     }
 }

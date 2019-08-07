@@ -14,6 +14,11 @@ import java.util.function.Consumer;
 public interface IWorkflow extends Consumer<IMessage> {
 
     @NonNull
+    String instance();
+
+    void setInstanceName(@NonNull final String pInstanceName);
+
+    @NonNull
     String definition();
 
     @NonNull

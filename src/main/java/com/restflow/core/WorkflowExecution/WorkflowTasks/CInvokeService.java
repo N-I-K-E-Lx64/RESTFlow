@@ -5,6 +5,7 @@ import com.restflow.core.Network.ERequestSender;
 import com.restflow.core.Network.ERequestTypeBuilder;
 import com.restflow.core.Network.IMessage;
 import com.restflow.core.Network.Objects.CRequest;
+import com.restflow.core.Network.Objects.CUserParameterMessage;
 import com.restflow.core.Network.Objects.IRequest;
 import com.restflow.core.WorkflowExecution.Objects.CUserInteractionException;
 import com.restflow.core.WorkflowExecution.Objects.EWorkflowStatus;
@@ -43,7 +44,7 @@ public class CInvokeService extends IBaseTaskAction {
 
         //Request kann nur ausgeführt werden, wenn alle Variablen belegt sind!
         if (!emptyVariables.isEmpty()) {
-            mWorkflow.setStatus(EWorkflowStatus.WAITING);
+            mWorkflow.setStatus(EWorkflowStatus.SUSPENDED);
             mWorkflow.setEmptyVariables(emptyVariables);
 
             return true;
@@ -74,21 +75,24 @@ public class CInvokeService extends IBaseTaskAction {
      */
     @Override
     public void accept(IMessage iMessage) {
-        CParameter lParameter = (CParameter) mTask.parameters().get(iMessage.parameterName());
+
+        CUserParameterMessage lMessage = (CUserParameterMessage) iMessage;
+
+        CParameter lParameter = (CParameter) mTask.parameters().get(lMessage.parameterName());
         if (Objects.isNull(lParameter)) {
             throw new CUserInteractionException(
-                    MessageFormat.format("Parameter [{0}] does not exist!", iMessage.parameterName()));
+                    MessageFormat.format("Parameter [{0}] does not exist!", lMessage.parameterName()));
         } else if (!Objects.isNull(lParameter.value())) {
             throw new CUserInteractionException(
-                    MessageFormat.format("Parameter [{0}] already set!", iMessage.parameterName()));
+                    MessageFormat.format("Parameter [{0}] already set!", lMessage.parameterName()));
         }
 
         lParameter.setValue(iMessage.get());
 
-        mWorkflow.emptyVariables().remove(iMessage.parameterName());
+        mWorkflow.emptyVariables().remove(lMessage.parameterName());
 
-        if (!(mWorkflow.emptyVariables().size() > 0)) {
-            mWorkflow.setStatus(EWorkflowStatus.WORKING);
+        if (mWorkflow.emptyVariables().isEmpty()) {
+            mWorkflow.setStatus(EWorkflowStatus.ACTIVE);
         }
     }
 

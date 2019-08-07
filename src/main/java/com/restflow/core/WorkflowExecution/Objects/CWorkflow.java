@@ -1,6 +1,7 @@
 package com.restflow.core.WorkflowExecution.Objects;
 
 import com.restflow.core.Network.IMessage;
+import com.restflow.core.WorkflowExecution.ExecutionLogger;
 import com.restflow.core.WorkflowExecution.WorkflowTasks.EWorkflowTaskFactory;
 import com.restflow.core.WorkflowExecution.WorkflowTasks.ITaskAction;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.ITask;
@@ -14,6 +15,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class CWorkflow implements IWorkflow {
 
+    private String mInstanceName;
     private final String mDefinitionReference;
     private final String mDescription;
 
@@ -32,12 +34,13 @@ public class CWorkflow implements IWorkflow {
      * @param that The object to copy.
      */
     public CWorkflow(@NonNull final IWorkflow that, @NonNull final Queue<ITask> tasks) {
+        this.mInstanceName = that.instance();
         this.mDefinitionReference = that.definition();
         this.mDescription = that.description();
         this.mVariables = Collections.synchronizedMap(resetVariable(that.variables()));
         generateExecutionOrder(resetInput(tasks));
 
-        this.mStatus = EWorkflowStatus.WORKING;
+        this.mStatus = EWorkflowStatus.INITIATED;
     }
 
     public CWorkflow(String pTitle, String pDescription, Map<String, IVariable> pVariables) {
@@ -45,7 +48,18 @@ public class CWorkflow implements IWorkflow {
         this.mDescription = pDescription;
         this.mVariables = Collections.synchronizedMap(pVariables);
 
-        this.mStatus = EWorkflowStatus.WORKING;
+        this.mStatus = EWorkflowStatus.INITIATED;
+    }
+
+    @NonNull
+    @Override
+    public String instance() {
+        return mInstanceName;
+    }
+
+    @Override
+    public void setInstanceName(@NonNull final String pInstanceName) {
+        this.mInstanceName = pInstanceName;
     }
 
     @NonNull
@@ -140,6 +154,9 @@ public class CWorkflow implements IWorkflow {
             throw new CWorkflowExecutionException("Workflow " + this.mDefinitionReference + " enthält keine Tasklist!");
         }
 
+        // Execution has started
+        mStatus = EWorkflowStatus.ACTIVE;
+
         this.executeStep();
         return this;
     }
@@ -150,8 +167,9 @@ public class CWorkflow implements IWorkflow {
     @Override
     public void executeStep() {
 
-        if (mStatus == EWorkflowStatus.WORKING) {
+        if (mStatus == EWorkflowStatus.ACTIVE) {
             mCurrentTask.set(mExecution.element());
+            ExecutionLogger.INSTANCE.info(this.mInstanceName, "Executing: " + mCurrentTask.get().title());
 
             //Den Head der Queue ausführen und wenn true geliefert wird, muss auf eine Nachricht gewartet werden
             if (mExecution.element().apply(mExecution)) {
@@ -178,7 +196,7 @@ public class CWorkflow implements IWorkflow {
             return;
         }
 
-        this.setStatus(EWorkflowStatus.FINISHED);
+        this.setStatus(EWorkflowStatus.COMPLETE);
     }
 
     @Override

@@ -22,7 +22,7 @@ public enum EParameterFactory {
             case "STRING":
                 return new CParameter<String>(pParameterName, isUserparameter);
 
-            case "INT":
+            case "INTEGER":
                 return new CParameter<Integer>(pParameterName, isUserparameter);
 
             case "DOUBLE":

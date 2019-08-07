@@ -23,19 +23,34 @@ public enum EActiveWorkflows implements IActiveWorkflows, Supplier<Set<Map.Entry
 
     @NonNull
     @Override
-    public IWorkflow add(@NonNull final String pWorkflowName, @NonNull final IWorkflow pWorkflow) {
+    public IWorkflow add(@NonNull final String pInstanceName, @NonNull final IWorkflow pWorkflow) {
 
-        if (mWorkflows.containsKey(pWorkflowName))
+        pWorkflow.setInstanceName(pInstanceName);
+
+        if (mWorkflows.containsKey(pInstanceName))
             throw new RuntimeException(MessageFormat.format("Workflow [{0}] existiert schon", pWorkflow));
 
-        mWorkflows.put(pWorkflowName, pWorkflow);
+        mWorkflows.put(pInstanceName, pWorkflow);
 
-        logger.info("Saved Workflow: " + pWorkflowName);
+        logger.info("Saved Workflow: " + pInstanceName);
 
         return pWorkflow;
     }
 
     @NonNull
+    @Override
+    public IWorkflow restart(@NonNull final String pWorkflowInstance) {
+
+        IWorkflow lDeletedWorkflow = mWorkflows.get(pWorkflowInstance);
+        IWorkflow lCopiedWorkflowDefinition = EWorkflowDefinitions.INSTANCE.apply(lDeletedWorkflow.definition());
+
+        lCopiedWorkflowDefinition.setInstanceName(lDeletedWorkflow.instance());
+
+        mWorkflows.replace(pWorkflowInstance, lDeletedWorkflow, lCopiedWorkflowDefinition);
+
+        return lCopiedWorkflowDefinition;
+    }
+
     @Override
     public void remove(@NonNull final String pWorkflowName) {
 
