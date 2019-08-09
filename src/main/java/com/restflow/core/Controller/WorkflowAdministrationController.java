@@ -1,9 +1,9 @@
 package com.restflow.core.Controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.restflow.core.EActiveWorkflows;
-import com.restflow.core.EWorkflowDefinitions;
 import com.restflow.core.Storage.StorageService;
+import com.restflow.core.WorkflowDatabase.EActiveWorkflows;
+import com.restflow.core.WorkflowDatabase.EWorkflowDefinitions;
 import com.restflow.core.WorkflowExecution.Objects.IWorkflow;
 import com.restflow.core.WorkflowParser.CWorkflowParseException;
 import com.restflow.core.WorkflowParser.EWorkflowParser;

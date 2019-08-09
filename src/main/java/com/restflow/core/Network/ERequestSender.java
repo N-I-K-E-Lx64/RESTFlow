@@ -28,7 +28,11 @@ public enum ERequestSender {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
+    private static final String COLLABORATION_CONTROLLER = "/collaboration/sendMessage";
+
     public IRequest doRequestWithWebClient(IRequest pRequest, IWorkflow pWorkflow) throws JsonProcessingException {
+
+        //ExecutionLogger.INSTANCE.info(pWorkflow.instance(), );
 
         WebClient client = WebClient.create(pRequest.baseUrl());
 
@@ -50,6 +54,27 @@ public enum ERequestSender {
         pRequest.setResponse(Objects.requireNonNull(lResponse));
 
         return pRequest;
+    }
+
+    public void sendCollaborationJson(String pRequestUrl, CCollaborationMessage pRequestBody, IWorkflow pWorkflow) {
+
+        WebClient client = WebClient.create();
+
+        pRequestUrl = pRequestUrl + COLLABORATION_CONTROLLER;
+
+        String lResponse = client
+                .method(HttpMethod.POST)
+                .uri(URI.create(pRequestUrl))
+                .body(BodyInserters.fromObject(pRequestBody))
+                .retrieve()
+                .onStatus(HttpStatus::isError, clientResponse ->
+                        Mono.error(new CWebClientResponseException(pWorkflow,
+                                "Response contains an error status code: " + clientResponse.statusCode().value()
+                                        + " " + clientResponse.statusCode().getReasonPhrase())))
+                .bodyToMono(String.class)
+                .block();
+
+        logger.info(MessageFormat.format("Response to the request [{0}] is [{1}]", pRequestUrl, lResponse));
     }
 
     @ExceptionHandler(CWebClientResponseException.class)

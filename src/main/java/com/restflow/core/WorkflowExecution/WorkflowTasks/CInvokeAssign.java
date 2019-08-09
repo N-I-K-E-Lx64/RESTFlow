@@ -2,9 +2,9 @@ package com.restflow.core.WorkflowExecution.WorkflowTasks;
 
 import com.restflow.core.Network.IMessage;
 import com.restflow.core.WorkflowExecution.Objects.IWorkflow;
-import com.restflow.core.WorkflowParser.WorkflowParserObjects.CJsonVariable;
-import com.restflow.core.WorkflowParser.WorkflowParserObjects.CStringVariable;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.Tasks.CInvokeAssignTask;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.Variables.CJsonVariable;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.Variables.CStringVariable;
 import org.springframework.lang.NonNull;
 
 import java.util.Queue;

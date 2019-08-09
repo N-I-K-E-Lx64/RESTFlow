@@ -2,13 +2,17 @@ package com.restflow.core.WorkflowParser;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.restflow.core.EWorkflowDefinitions;
 import com.restflow.core.Storage.StorageService;
+import com.restflow.core.WorkflowDatabase.EWorkflowDefinitions;
 import com.restflow.core.WorkflowExecution.Condition.EConditionType;
 import com.restflow.core.WorkflowExecution.Objects.CWorkflow;
 import com.restflow.core.WorkflowExecution.Objects.IWorkflow;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.*;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.Tasks.*;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.Variables.CIntegerVariable;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.Variables.CJsonVariable;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.Variables.CStringVariable;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.Variables.CVariableReference;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.raml.v2.api.model.v10.api.Api;
@@ -356,8 +360,13 @@ public enum EWorkflowParser {
         switch (variableNode.path("type").asText().toUpperCase()) {
             case "JSON":
                 return new CJsonVariable(lVariableName);
+
             case "STRING":
                 return new CStringVariable(lVariableName);
+
+            case "INTEGER":
+                return new CIntegerVariable(lVariableName);
+
             default:
                 throw new CWorkflowParseException(MessageFormat.format("Variable type [{0}] unknown", variableNode.path("type").asText()));
         }

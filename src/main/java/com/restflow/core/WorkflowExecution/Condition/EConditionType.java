@@ -9,8 +9,8 @@ public enum EConditionType {
 
     SMALLER,
     BIGGER,
-    GREATER_OR_ERQUAL,
-    LESS_OR_EQUAL,
+    GREATER_OR_EQUALS,
+    LESS_OR_EQUALS,
     EQUALS,
     NOT_EQUALS,
     STRING_CONTAINS,
@@ -19,18 +19,18 @@ public enum EConditionType {
 
     public EConditionType conditionType(String pType) {
 
-        switch (pType) {
+        switch (pType.toUpperCase()) {
             case "SMALLER":
                 return EConditionType.SMALLER;
 
             case "BIGGER":
                 return EConditionType.BIGGER;
 
-            case "GREATER_OR_EQUAL":
-                return GREATER_OR_ERQUAL;
+            case "GREATER_OR_EQUALS":
+                return GREATER_OR_EQUALS;
 
-            case "LESS_OR_EQUAL":
-                return LESS_OR_EQUAL;
+            case "LESS_OR_EQUALS":
+                return LESS_OR_EQUALS;
 
             case "EQUALS":
                 return EConditionType.EQUALS;

@@ -5,6 +5,7 @@ public enum EWorkflowTaskType {
     INVOKESERVICE,
     ASSIGN,
     INVOKEASSIGN,
-    SWITCH
-
+    SWITCH,
+    SEND,
+    RECEIVE
 }
