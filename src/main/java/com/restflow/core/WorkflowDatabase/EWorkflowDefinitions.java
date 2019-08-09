@@ -1,4 +1,4 @@
-package com.restflow.core;
+package com.restflow.core.WorkflowDatabase;
 
 import com.restflow.core.WorkflowExecution.Objects.CWorkflow;
 import com.restflow.core.WorkflowExecution.Objects.IWorkflow;
@@ -41,6 +41,7 @@ public enum EWorkflowDefinitions implements IWorkflowDefinitions, Supplier<Set<S
     public void remove(@NonNull final String pWorkflow) {
 
         mWorkflowDefinitions.remove(pWorkflow);
+        mTaskDefinitions.remove(pWorkflow);
 
         logger.info(MessageFormat.format("The following Workflow Definition [{0}] has been deleted1", pWorkflow));
     }

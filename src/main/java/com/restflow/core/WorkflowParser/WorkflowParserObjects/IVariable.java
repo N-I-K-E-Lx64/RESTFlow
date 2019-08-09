@@ -10,4 +10,7 @@ public interface IVariable {
 
     @NonNull
     String name();
+
+    @NonNull
+    EVariableType variableType();
 }

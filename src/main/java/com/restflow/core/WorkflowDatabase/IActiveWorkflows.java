@@ -1,4 +1,4 @@
-package com.restflow.core;
+package com.restflow.core.WorkflowDatabase;
 
 import com.restflow.core.WorkflowExecution.Objects.IWorkflow;
 import org.springframework.lang.NonNull;

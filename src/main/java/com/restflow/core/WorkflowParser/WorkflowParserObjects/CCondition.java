@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.restflow.core.WorkflowExecution.Condition.EConditionType;
 import com.restflow.core.WorkflowExecution.Objects.CConditionException;
 import com.restflow.core.WorkflowExecution.Objects.CWorkflowExecutionException;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.Variables.CJsonVariable;
 import org.springframework.lang.NonNull;
 
 import java.text.MessageFormat;
@@ -51,10 +52,10 @@ public class CCondition implements ICondition {
             case BIGGER:
                 return doubleParameter(lFirstParameter) > doubleParameter(lSecondParameter);
 
-            case GREATER_OR_ERQUAL:
+            case GREATER_OR_EQUALS:
                 return doubleParameter(lFirstParameter) >= doubleParameter(lSecondParameter);
 
-            case LESS_OR_EQUAL:
+            case LESS_OR_EQUALS:
                 return (doubleParameter(lFirstParameter) <= doubleParameter(lSecondParameter));
 
             case EQUALS:
