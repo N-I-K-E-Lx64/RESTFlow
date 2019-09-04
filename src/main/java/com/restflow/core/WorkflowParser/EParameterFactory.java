@@ -46,7 +46,7 @@ public enum EParameterFactory {
                 case "INTEGER":
                     return Integer.parseInt(pParameterValue);
 
-                case "Double":
+                case "DOUBLE":
                     return Double.parseDouble(pParameterValue);
 
                 default:

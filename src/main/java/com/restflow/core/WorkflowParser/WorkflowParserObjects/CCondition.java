@@ -28,21 +28,25 @@ public class CCondition implements ICondition {
     @Override
     public Boolean execute() {
 
-        Object lFirstParameter = mFirstParameter.get().value();
-        Object lSecondParameter = mSecondParameter.get().value();
+        Object lFirstParameter;
+        Object lSecondParameter;
 
-        if (lFirstParameter instanceof IVariable) {
-            lFirstParameter = deserializeVariable((IVariable) lFirstParameter);
+        if (mFirstParameter.get().value() instanceof IVariable) {
+            lFirstParameter = deserializeVariable((IVariable) mFirstParameter.get().value());
+        } else {
+            lFirstParameter = mFirstParameter.get().value();
         }
 
-        if (lSecondParameter instanceof IVariable) {
-            lSecondParameter = deserializeVariable((IVariable) lSecondParameter);
+        if (mSecondParameter.get().value() instanceof IVariable) {
+            lSecondParameter = deserializeVariable((IVariable) mSecondParameter.get().value());
+        } else {
+            lSecondParameter = mSecondParameter.get().value();
         }
 
         if (Objects.isNull(lFirstParameter) || Objects.isNull(lSecondParameter)) {
-
-            throw new CConditionException("No decision with a null value is possible!");
-
+            throw new CConditionException("No decision could be made due to a zero value!" +
+                    " First Parameter: " + mFirstParameter.get().name() + " = " + Objects.isNull(lFirstParameter) +
+                    " Second Parameter: " + mSecondParameter.get().name() + " = " + Objects.isNull(lSecondParameter));
         }
 
         switch (mConditionType) {
@@ -83,6 +87,7 @@ public class CCondition implements ICondition {
         return (String) pString;
     }
 
+    // TODO: Enhance
     private String deserializeVariable(IVariable pVariable) {
 
         if (pVariable instanceof CJsonVariable) {

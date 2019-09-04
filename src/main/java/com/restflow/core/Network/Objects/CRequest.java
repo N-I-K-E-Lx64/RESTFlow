@@ -1,9 +1,12 @@
 package com.restflow.core.Network.Objects;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.IParameter;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.IVariable;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.Variables.CJsonVariable;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.Variables.CVariableReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.lang.NonNull;
@@ -86,9 +89,29 @@ public class CRequest implements IRequest {
 
         Map<String, Object> lSerializedFields = new HashMap<>();
 
+        Map<String, Object> lChildObjectFields = new HashMap<>();
+
+        Consumer<? super Map.Entry<String, JsonNode>> serializeChildObjects = entry -> {
+            lChildObjectFields.put(entry.getKey(), entry.getValue().asText());
+        };
+
+        Consumer<? super Map.Entry<String, JsonNode>> getValues = entry -> {
+            JsonNode lEntryValue = entry.getValue();
+            if (lEntryValue.isObject()) {
+                lEntryValue.fields().forEachRemaining(serializeChildObjects);
+                lSerializedFields.put(entry.getKey(), lChildObjectFields);
+            } else {
+                lSerializedFields.put(entry.getKey(), entry.getValue().asText());
+            }
+        };
+
         Consumer<Map.Entry<String, IParameter>> serialize = parameter -> {
-            if (parameter instanceof IVariable) {
-                lSerializedFields.put(parameter.getKey(), ((IVariable) parameter.getValue().value()).value().toString());
+            if (parameter.getValue() instanceof CVariableReference) {
+                IVariable lVariable = (IVariable) parameter.getValue().value();
+                if (lVariable instanceof CJsonVariable) {
+                    JsonNode lJsonVariableValue = ((CJsonVariable) lVariable).value();
+                    lJsonVariableValue.fields().forEachRemaining(getValues);
+                }
             } else {
                 lSerializedFields.put(parameter.getKey(), parameter.getValue().value());
             }

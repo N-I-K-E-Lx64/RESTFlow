@@ -22,6 +22,6 @@ public class CollaborationController {
         EActiveWorkflows.INSTANCE.apply(pMessage.getWorkflowInstance()).accept(pMessage);
         logger.info(pMessage);
 
-        return ResponseEntity.ok().body("test");
+        return ResponseEntity.ok().body("Message successfully received!");
     }
 }
