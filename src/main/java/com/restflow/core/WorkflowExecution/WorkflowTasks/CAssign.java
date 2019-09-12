@@ -20,14 +20,16 @@ public class CAssign extends IBaseTaskAction {
         mTask = pTask;
     }
 
-    @Override
-    public void accept(IMessage iMessage) {
-
-    }
-
+    /**
+     * Stores a constant parameter in a variable
+     * @param iTaskActions Execution queue
+     * @return Boolean value that represents the need to pause execution of this workflow instance until a particular
+     * message is received (always false)
+     */
     @Override
     public Boolean apply(Queue<ITaskAction> iTaskActions) {
 
+        // Jeder Variablen-Typ muss auf eine unterschiedliche Art und Weise gespeichert werden
         if (mTask.target() instanceof CJsonVariable) {
             ObjectMapper mapper = new ObjectMapper();
 
@@ -38,7 +40,13 @@ public class CAssign extends IBaseTaskAction {
             mTask.target().setValue(mTask.source().value());
         }
 
+        // No User Interaction needed
         return false;
+    }
+
+    @Override
+    public void accept(IMessage iMessage) {
+
     }
 
     @NonNull

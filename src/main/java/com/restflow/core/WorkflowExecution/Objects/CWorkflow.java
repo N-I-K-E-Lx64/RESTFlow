@@ -106,8 +106,11 @@ public class CWorkflow implements IWorkflow {
 
     @Override
     public void setQueue(@NonNull Queue<ITask> pExecution) {
+        // Queue leeren
         mExecution.clear();
+        // ITask Objekte in ITaskAction Objekte umwandeln
         generateExecutionOrder(pExecution);
+        // Ausführung starten
         start();
     }
 

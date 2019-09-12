@@ -10,6 +10,13 @@ public enum EWorkflowTaskFactory {
 
     INSTANCE;
 
+    /**
+     * Converts task models into executable task objects
+     * @param pWorkflow Corresponding workflow instance
+     * @param pTask task model
+     * @return Executable task object (ITaskAction)
+     * @see ITaskAction
+     */
     public ITaskAction factory(@NonNull IWorkflow pWorkflow, @NonNull ITask pTask) {
         switch (pTask.taskType()) {
             case INVOKESERVICE:

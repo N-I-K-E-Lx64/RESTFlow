@@ -24,6 +24,9 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * This controller class contains functions for controlling the system.
+ */
 @RestController
 @RequestMapping("/workflow")
 public class WorkflowManagementController {
@@ -32,17 +35,28 @@ public class WorkflowManagementController {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
+    /**
+     * Function for starting / creating a workflow instance
+     * @param definition Name of the definition on which the new workflow instance is to be based.
+     * @param name Name of the new instance
+     * @return suitable response
+     */
     @RequestMapping(value = "/start", method = RequestMethod.POST)
-    public ResponseEntity<?> startWorkflow(@RequestParam("definition") String workflowDefinition, @RequestParam("name") String workflowName) {
+    public ResponseEntity<?> startWorkflow(@RequestParam("definition") String definition, @RequestParam("name") String name) {
 
-        IWorkflow lWorkflow = EWorkflowDefinitions.INSTANCE.apply(workflowDefinition);
+        IWorkflow lWorkflow = EWorkflowDefinitions.INSTANCE.apply(definition);
 
-        EActiveWorkflows.INSTANCE.add(workflowName, lWorkflow).start();
+        EActiveWorkflows.INSTANCE.add(name, lWorkflow).start();
 
         return ResponseEntity.status(200).contentType(MediaType.TEXT_PLAIN)
-                .body(MessageFormat.format("Successfully started [{0}]", workflowName));
+                .body(MessageFormat.format("Successfully started [{0}]", name));
     }
 
+    /**
+     * Function for restarting a workflow instance in case of an error
+     * @param workflowInstance Name of the instance
+     * @return suitable response
+     */
     @RequestMapping(value = "/restart/{workflowInstance:.+}", method = RequestMethod.GET)
     public ResponseEntity<?> restartWorkflow(@PathVariable String workflowInstance) {
 
@@ -54,17 +68,28 @@ public class WorkflowManagementController {
                 .body(MessageFormat.format("Successfully restarted [{0}]", workflowInstance));
     }
 
-    @RequestMapping(value = "/stop/{workflow:.+}", method = RequestMethod.GET)
-    public ResponseEntity<String> stopWorkflow(@PathVariable String workflow) {
+    /**
+     * Function for stopping the execution of a specific workflow instance
+     * @param workflowInstance Name of the instance
+     * @return suitable response
+     */
+    @RequestMapping(value = "/stop/{workflowInstance:.+}", method = RequestMethod.GET)
+    public ResponseEntity<String> stopWorkflow(@PathVariable String workflowInstance) {
 
-        EActiveWorkflows.INSTANCE.remove(workflow);
+        EActiveWorkflows.INSTANCE.remove(workflowInstance);
 
-        logger.info(MessageFormat.format("Stopped execution of [{0}]", workflow));
+        logger.info(MessageFormat.format("Stopped execution of [{0}]", workflowInstance));
 
         return ResponseEntity.status(200).contentType(MediaType.TEXT_PLAIN)
-                .body(MessageFormat.format("Successfully stopped [{0}]", workflow));
+                .body(MessageFormat.format("Successfully stopped [{0}]", workflowInstance));
     }
 
+    /**
+     * Function to submit a user parameter
+     * @param pMessage UserParameter object
+     * @return suitable response
+     * @see CUserParameterMessage
+     */
     @RequestMapping(value = "/setUserParameter", method = RequestMethod.POST)
     public ResponseEntity setUserVariable(@RequestBody CUserParameterMessage pMessage) {
 
@@ -75,6 +100,11 @@ public class WorkflowManagementController {
                         pMessage.parameterName(), pMessage.get()));
     }
 
+    /**
+     * This monitoring allows to describe the status of a specific workflow instance in detail
+     * @param workflow Name of the instance
+     * @return A report that describes the current state of the instance
+     */
     @RequestMapping(value = "/status/{workflow:.+}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> checkStatus(@PathVariable String workflow) {
 
@@ -117,6 +147,12 @@ public class WorkflowManagementController {
         }
     }
 
+    /**
+     * Monitoring function that returns the contents of all variables of a specific instance
+     * @param workflow Name of the instance
+     * @return List containing the contents of all variables
+     * @see VariableResponse
+     */
     @RequestMapping(value = "/variables/{workflow:.+}", method = RequestMethod.GET)
     public List<VariableResponse> checkVariableStatus(@PathVariable String workflow) {
 
@@ -137,6 +173,10 @@ public class WorkflowManagementController {
 
     }
 
+    /**
+     * Monitoring function that returns a short description of all active workflow instances
+     * @return Short description of all active workflow instances
+     */
     @RequestMapping(value = "/workflows", method = RequestMethod.GET)
     public List<WorkflowListResponse> sendWorkflowList() {
 

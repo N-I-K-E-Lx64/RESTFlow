@@ -20,6 +20,9 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Objects;
 
+/**
+ * This controller class contains functions for managing the set of workflow definitions
+ */
 @RestController
 @RequestMapping("/workflow/administration")
 public class WorkflowAdministrationController {
@@ -35,8 +38,15 @@ public class WorkflowAdministrationController {
         EWorkflowParser.INSTANCE.init(storageService);
     }
 
+    /**
+     * Function for creating a parent workflow definition
+     * @param project folder containing all required files
+     * @param filename filename of the file to be converted
+     * @return suitable response with the name of the parent workflow definition
+     */
     @RequestMapping(value = "/createWorkflowDefinition", method = RequestMethod.POST)
-    public ResponseEntity<?> parseWorkflow(@RequestParam(name = "project") String project, @RequestParam(name = "workflowModel") String filename) {
+    public ResponseEntity<?> parseWorkflow(@RequestParam(name = "project") String project,
+                                           @RequestParam(name = "workflowModel") String filename) {
 
         Resource lWorkflowResource = mStorageService.loadAsResource(filename, project);
         IWorkflow lWorkflowModel = null;
@@ -60,15 +70,20 @@ public class WorkflowAdministrationController {
                         " following name: {2}", project, filename, lWorkflowModel.definition()));
     }
 
-    @RequestMapping(value = "/deleteWorkflowDefinition/{workflow:.+}", method = RequestMethod.GET)
-    public ResponseEntity<String> deleteWorkflow(@PathVariable String workflow) {
+    /**
+     * Function for deleting a parent workflow definition
+     * @param workflowDefinition name of the definition to be deleted
+     * @return suitable response
+     */
+    @RequestMapping(value = "/deleteWorkflowDefinition/{workflowDefinition:.+}", method = RequestMethod.GET)
+    public ResponseEntity<String> deleteWorkflow(@PathVariable String workflowDefinition) {
 
-        EActiveWorkflows.INSTANCE.remove(workflow);
-        EWorkflowDefinitions.INSTANCE.remove(workflow);
-        mStorageService.deleteFolder(workflow);
+        EActiveWorkflows.INSTANCE.remove(workflowDefinition);
+        EWorkflowDefinitions.INSTANCE.remove(workflowDefinition);
+        mStorageService.deleteFolder(workflowDefinition);
 
         return ResponseEntity.ok(
-                MessageFormat.format("Workflow Definition [{0}] was deleted along with all relevant files", workflow));
+                MessageFormat.format("Workflow Definition [{0}] was deleted along with all relevant files", workflowDefinition));
     }
 
     @ExceptionHandler(CWorkflowParseException.class)

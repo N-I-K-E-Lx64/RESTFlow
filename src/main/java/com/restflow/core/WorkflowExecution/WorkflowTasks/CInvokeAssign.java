@@ -18,11 +18,12 @@ public class CInvokeAssign extends IBaseTaskAction {
         mTask = pTask;
     }
 
-    @Override
-    public void accept(IMessage iMessage) {
-
-    }
-
+    /**
+     * Saves the result of a Web service call in a variable
+     * @param iTaskActions Execution queue
+     * @return Boolean value that represents the need to pause execution of this workflow instance until a particular
+     * message is received (always false)
+     */
     @Override
     public Boolean apply(Queue<ITaskAction> iTaskActions) {
 
@@ -32,7 +33,13 @@ public class CInvokeAssign extends IBaseTaskAction {
             mTask.target().setValue(mTask.stringSource());
         }
 
+        // No User Interaction needed
         return false;
+    }
+
+    @Override
+    public void accept(IMessage iMessage) {
+
     }
 
     @NonNull

@@ -33,16 +33,22 @@ public class CInvokeService extends IBaseTaskAction {
         mTask = pTask;
     }
 
+    /**
+     * This function generates and executes a request
+     * @param iTaskActions Execution queue
+     * @return Boolean value that represents the need to pause execution of this workflow instance until a particular
+     * message is received
+     */
     @Override
     public Boolean apply(Queue<ITaskAction> iTaskActions) {
 
-        //TODO : Better empty Check for Variables
+        // Fasst alle leeren Variablen in einer Liste zusammen
         List<String> emptyVariables = mTask.parameters().values().stream()
                 .filter(iParameter -> Objects.isNull(iParameter.value()))
                 .map(IParameter::name)
                 .collect(Collectors.toList());
 
-        //Request kann nur ausgeführt werden, wenn alle Variablen belegt sind!
+        // Request kann nur ausgeführt werden, wenn alle Variablen belegt sind!
         if (!emptyVariables.isEmpty()) {
             mWorkflow.setStatus(EWorkflowStatus.SUSPENDED);
             mWorkflow.setEmptyVariables(emptyVariables);
@@ -58,9 +64,11 @@ public class CInvokeService extends IBaseTaskAction {
         MediaType lResponseMediaType =
                 MediaType.parseMediaType(mTask.api().resources().get(mTask.resourceIndex()).methods().get(0).responses().get(0).body().get(0).name());
 
+        // Erstellt aus den extrahierten Informationen ein IRequest Objekt
         IRequest lRequest = new CRequest(lBaseUrl, lResourceUrl,
                 ERequestTypeBuilder.INSTANCE.createHttpMethodFromString(lRequestType), lRequestMediaType, lResponseMediaType, mTask.parameters());
 
+        // Führt die Anfrage aus
         try {
             processSuccess(Objects.requireNonNull(ERequestSender.INSTANCE.doRequestWithWebClient(lRequest, mWorkflow)));
         } catch (IOException e) {
@@ -71,7 +79,9 @@ public class CInvokeService extends IBaseTaskAction {
     }
 
     /**
-     * @param iMessage
+     * Processes an incoming message
+     * @param iMessage Incoming message
+     * @see CUserParameterMessage
      */
     @Override
     public void accept(IMessage iMessage) {
@@ -96,8 +106,14 @@ public class CInvokeService extends IBaseTaskAction {
         }
     }
 
+    /**
+     * Processes the result of a web service call
+     * @param pRequest IRequest object containing the results
+     * @throws IOException Is thrown if the result cannot be stored in a variable
+     */
     private void processSuccess(IRequest pRequest) throws IOException {
 
+        // Jeder Media Type muss auf eine unterschiedliche Art und Weise gespeichert werden
         if (pRequest.responseMediaType().equals(MediaType.APPLICATION_JSON)) {
             if (!(Objects.isNull(mTask.assignTask()))) {
                 mTask.assignTask().setJsonSource(mapper.readTree(pRequest.response()));

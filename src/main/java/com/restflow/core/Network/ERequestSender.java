@@ -26,13 +26,18 @@ public enum ERequestSender {
 
     private static final Logger logger = LogManager.getLogger(ERequestSender.class);
 
-    private static final ObjectMapper mapper = new ObjectMapper();
-
     private static final String COLLABORATION_CONTROLLER = "/collaboration/sendMessage";
 
+    /**
+     * Function for sending a request to a specified Web service.
+     *
+     * @param pRequest IRequest Object
+     * @param pWorkflow Corresponding workflow Definition
+     * @return IRequest object with the results of the request
+     * @throws JsonProcessingException Will be thrown if the request body could not be created
+     * @see com.restflow.core.Network.Objects.CRequest
+     */
     public IRequest doRequestWithWebClient(IRequest pRequest, IWorkflow pWorkflow) throws JsonProcessingException {
-
-        //ExecutionLogger.INSTANCE.info(pWorkflow.instance(), );
 
         WebClient client = WebClient.create(pRequest.baseUrl());
 
@@ -56,15 +61,21 @@ public enum ERequestSender {
         return pRequest;
     }
 
+    /**
+     * Function for sending a collaboration message to specific system instance.
+     *
+     * @param pRequestUrl URL of the target system instance
+     * @param pRequestBody Collaboration message
+     * @param pWorkflow Corresponding workflow Definition
+     * @see CCollaborationMessage
+     */
     public void sendCollaborationJson(String pRequestUrl, CCollaborationMessage pRequestBody, IWorkflow pWorkflow) {
 
         WebClient client = WebClient.create();
 
-        pRequestUrl = pRequestUrl + COLLABORATION_CONTROLLER;
-
         String lResponse = client
                 .method(HttpMethod.POST)
-                .uri(URI.create(pRequestUrl))
+                .uri(URI.create(pRequestUrl + COLLABORATION_CONTROLLER))
                 .body(BodyInserters.fromObject(pRequestBody))
                 .retrieve()
                 .onStatus(HttpStatus::isError, clientResponse ->

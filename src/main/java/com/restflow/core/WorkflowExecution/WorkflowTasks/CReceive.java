@@ -22,6 +22,13 @@ public class CReceive extends IBaseTaskAction {
         mTask = pTask;
     }
 
+    /**
+     * Checks if the specified variable is empty (or null)
+     *
+     * @param iTaskActions Execution queue
+     * @return Boolean value that represents the need to pause execution of this workflow instance until a particular
+     * message is received (if variable is empty = true; else = false)
+     */
     @Override
     public Boolean apply(Queue<ITaskAction> iTaskActions) {
 
@@ -34,11 +41,16 @@ public class CReceive extends IBaseTaskAction {
         }
     }
 
+    /**
+     * Processes a collaboration message
+     * @param iMessage Collaboration message object
+     */
     @Override
     public void accept(IMessage iMessage) {
 
         CCollaborationMessage lMessage = (CCollaborationMessage) iMessage;
 
+        // Überprüft, ob die ActivityIds gleich sind
         if (lMessage.getActivityId().equals(mTask.activityId())) {
 
             switch (mTask.targetVariable().variableType()) {
@@ -60,6 +72,7 @@ public class CReceive extends IBaseTaskAction {
                     break;
             }
 
+            // Ausführung kann fortgesetzt werden
             mWorkflow.setStatus(EWorkflowStatus.ACTIVE);
         }
     }

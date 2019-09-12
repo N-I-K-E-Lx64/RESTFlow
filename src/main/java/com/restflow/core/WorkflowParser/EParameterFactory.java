@@ -10,12 +10,13 @@ public enum EParameterFactory {
     INSTANCE;
 
     /**
-     * Creates an object based on given parameters.
+     * Creates an IParameter object based on given information.
      *
-     * @param pParameterType The Type of the Parameter (String, Int, etc.) used for generify the IParameter Object
-     * @param pParameterType
+     * @param pParameterName Name of the resulting parameter
+     * @param pParameterType The Type of the parameter (String, Int, etc.) used for generify the IParameter Object
      * @param isUserparameter Is true if the parameter value, must be entered by a user.
-     * @return an IParameter-Object
+     * @return IParameter
+     * @see IParameter
      */
     public IParameter createParameter(String pParameterName, String pParameterType, Boolean isUserparameter) {
         switch (pParameterType.toUpperCase()) {
@@ -33,6 +34,15 @@ public enum EParameterFactory {
         }
     }
 
+    /**
+     * Creates a constant IParameter object based on given information.
+     *
+     * @param pParameterName Name of the resulting parameter
+     * @param pParameterType The Type of the parameter (String, Int, etc.) used for generify the IParameter Object
+     * @param pParameterValue Value of the parameter
+     * @return IParameter
+     * @see IParameter
+     */
     public IParameter createParameterWithValue(String pParameterName, String pParameterType, String pParameterValue) {
         return createParameter(pParameterName, pParameterType, false)
                 .setValue(parseParameterValue(pParameterValue, pParameterType));

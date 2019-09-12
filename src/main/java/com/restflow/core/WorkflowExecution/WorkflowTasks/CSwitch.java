@@ -11,11 +11,17 @@ public class CSwitch extends IBaseTaskAction {
 
     private final CSwitchTask mTask;
 
-    protected CSwitch(IWorkflow pWorkflow, CSwitchTask pTask) {
+    CSwitch(IWorkflow pWorkflow, CSwitchTask pTask) {
         super(pWorkflow);
         mTask = pTask;
     }
 
+    /**
+     * Executes the branch condition and changes the execution queue accordingly.
+     * @param iTaskActions Execution queue
+     * @return Boolean value that represents the need to pause execution of this workflow instance until a particular
+     * message is received
+     */
     @Override
     public Boolean apply(Queue<ITaskAction> iTaskActions) {
 
@@ -26,6 +32,7 @@ public class CSwitch extends IBaseTaskAction {
             mWorkflow.setQueue(mTask.elseExecution());
         }
 
+        // No User Interaction needed
         return false;
     }
 
