@@ -1,0 +1,30 @@
+#%RAML 1.0
+title: Order
+version: v1
+baseUri: http://localhost:8082
+
+uses:
+  OrderLibrary: OrderLibrary.raml
+
+types:
+  OrderConfirmation:
+    properties:
+      message: string
+
+/placeOrder:
+  post:
+    description:
+    body:
+      application/json:
+        type: OrderLibrary.Order
+    responses:
+      404:
+        body:
+          text/plain:
+            type: OrderConfirmation
+            example: {"message": "ERROR: You can only order part TRFR2004 here. You ordered [TRFR2003]"}
+      200:
+        body:
+          text/plain:
+            type: OrderConfirmation
+            example: {"message": "SUCCESS: Order number [0]"}

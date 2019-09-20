@@ -1,0 +1,88 @@
+{
+  "workflow": {
+    "name": "basicExample",
+    "description": "Example to demonstrate the basic functionality of the system.",
+    "variables": [{
+        "name": "order",
+        "type": "JSON"
+      },
+      {
+        "name": "order_confirmation",
+        "type": "STRING"
+      },
+      {
+        "name": "RESULT",
+        "type": "STRING"
+      }
+    ],
+    "process": [{
+        "type": "INVOKE",
+        "data": {
+          "raml": "Market.raml",
+          "resource": "/getBestOffer",
+          "input": {
+            "user-parameter": [{
+                "name": "partNumber",
+                "type": "STRING"
+              },
+              {
+                "name": "budget",
+                "type": "DOUBLE"
+              }
+            ]
+          },
+          "assignTo": "VARIABLES.order"
+        }
+      },
+      {
+        "type": "INVOKE",
+        "data": {
+          "raml": "Order.raml",
+          "resource": "/placeOrder",
+          "input": {
+            "variables": [
+              "order"
+            ]
+          },
+          "assignTo": "VARIABLES.order_confirmation"
+        }
+      },
+      {
+        "type": "SWITCH",
+        "data": {
+          "condition": {
+            "operator": "CONTAINS",
+            "value1": "VARIABLES.order_confirmation",
+            "value2": {
+              "type": "STRING",
+              "name": "checkResult",
+              "value": "SUCCESS"
+            }
+          },
+          "case": [{
+            "type": "ASSIGN",
+            "data": {
+              "source": {
+                "name": "SuccessResult",
+                "type": "STRING",
+                "value": "Success"
+              },
+              "target": "VARIABLES.RESULT"
+            }
+          }],
+          "otherwise": [{
+            "type": "ASSIGN",
+            "data": {
+              "source": {
+                "name": "ErrorResult",
+                "type": "STRING",
+                "value": "Error"
+              },
+              "target": "VARIABLES.RESULT"
+            }
+          }]
+        }
+      }
+    ]
+  }
+}
