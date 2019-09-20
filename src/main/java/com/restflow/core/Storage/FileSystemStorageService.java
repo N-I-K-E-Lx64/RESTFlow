@@ -17,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.text.MessageFormat;
 import java.util.Objects;
 
 @Service
@@ -98,6 +99,10 @@ public class FileSystemStorageService implements StorageService {
             if (resource.exists() || resource.isReadable()) {
                 return resource;
             } else {
+                logger.error(MessageFormat.format(
+                        "File {0} on location {3} exists: {1}; isReadable: {2}",
+                        filename, resource.exists(), resource.isReadable(), fileLocation.toUri()));
+
                 throw new StorageFileNotFoundException("Could not read file: " + filename);
             }
         } catch (MalformedURLException e) {

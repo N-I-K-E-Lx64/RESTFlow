@@ -10,12 +10,12 @@ import java.util.Queue;
 public class CSwitchTask implements ITask {
 
     private final String mTitle;
-    private final EWorkflowTaskType mTaskType;
 
     private ICondition mCondition;
     private Queue<ITask> mCaseExecution;
     private Queue<ITask> mElseExecution;
 
+    private final EWorkflowTaskType mTaskType;
     //TODO : Title erstellen
     public CSwitchTask(@NonNull final ICondition pCondition, @NonNull final Queue<ITask> pCase, @NonNull final Queue<ITask> pElse) {
         this.mTitle = "Switch Task";

@@ -2,10 +2,11 @@ package com.restflow.core.WorkflowExecution.Objects;
 
 public enum EWorkflowStatus {
 
-    WORKING,
-    WAITING,
-    FINISHED,
-    ERROR;
+    INITIATED,
+    ACTIVE,
+    SUSPENDED,
+    COMPLETE,
+    TERMINATED;
 
     /**
      * Liefert einen passenden String zum gegebenen Status
@@ -14,16 +15,20 @@ public enum EWorkflowStatus {
      */
     public String get() {
         switch (this) {
-            case WORKING:
+            //TODO: Better decsriptions!
+            case INITIATED:
+                return "Initiated";
+
+            case ACTIVE:
                 return "Working";
 
-            case WAITING:
+            case SUSPENDED:
                 return "Waiting";
 
-            case FINISHED:
+            case COMPLETE:
                 return "Finished";
 
-            case ERROR:
+            case TERMINATED:
                 return "Failure";
 
             default:

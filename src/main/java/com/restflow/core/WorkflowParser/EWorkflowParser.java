@@ -2,16 +2,17 @@ package com.restflow.core.WorkflowParser;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.restflow.core.EWorkflowModels;
 import com.restflow.core.Storage.StorageService;
+import com.restflow.core.WorkflowDatabase.EWorkflowDefinitions;
 import com.restflow.core.WorkflowExecution.Condition.EConditionType;
 import com.restflow.core.WorkflowExecution.Objects.CWorkflow;
 import com.restflow.core.WorkflowExecution.Objects.IWorkflow;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.*;
-import com.restflow.core.WorkflowParser.WorkflowParserObjects.Tasks.CAssignTask;
-import com.restflow.core.WorkflowParser.WorkflowParserObjects.Tasks.CInvokeAssignTask;
-import com.restflow.core.WorkflowParser.WorkflowParserObjects.Tasks.CInvokeServiceTask;
-import com.restflow.core.WorkflowParser.WorkflowParserObjects.Tasks.CSwitchTask;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.Tasks.*;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.Variables.CIntegerVariable;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.Variables.CJsonVariable;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.Variables.CStringVariable;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.Variables.CVariableReference;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.raml.v2.api.model.v10.api.Api;
@@ -33,6 +34,7 @@ public enum EWorkflowParser {
     private static final Logger logger = LogManager.getLogger(EWorkflowParser.class);
 
     private static final String VARIABLE_PREFIX = "VARIABLES";
+    private static final String HTTP_PREFIX = "http://";
 
     private StorageService storageService;
 
@@ -84,7 +86,7 @@ public enum EWorkflowParser {
         Queue<ITask> lTasks = parseProcessNode(processNode);
         lWorkflow.generateExecutionOrder(lTasks);
 
-        EWorkflowModels.INSTANCE.addExecutionOrder(lTasks, lWorkflowModel);
+        EWorkflowDefinitions.INSTANCE.addExecutionOrder(lTasks, lWorkflowModel);
 
         logger.info("Successfully parsed Workflow-Model: " + lWorkflowModel);
 
@@ -119,6 +121,14 @@ public enum EWorkflowParser {
 
                 case "ASSIGN":
                     lExecutionOrder.add(parseAssignNode(lTaskDataNode));
+                    break;
+
+                case "SEND":
+                    lExecutionOrder.add(parseSendNode(lTaskDataNode));
+                    break;
+
+                case "RECEIVE":
+                    lExecutionOrder.add(parseReceiveNode(lTaskDataNode));
                     break;
 
                 default:
@@ -222,6 +232,24 @@ public enum EWorkflowParser {
         }
 
         return lAssignTask;
+    }
+
+    public ITask parseSendNode(JsonNode sendNode) {
+
+        String lTargetSystemUrl = HTTP_PREFIX + sendNode.path("target").asText();
+        String lWorkflowInstance = sendNode.path("workflow").asText();
+        IVariable lSourceVariable = EVariableTempStorage.INSTANCE.apply(sendNode.path("variable").asText());
+        int lActivityId = sendNode.path("activityId").asInt();
+
+        return new CSendTask(lTargetSystemUrl, lWorkflowInstance, lSourceVariable, lActivityId);
+    }
+
+    public ITask parseReceiveNode(JsonNode receiveNode) {
+
+        int lActivityId = receiveNode.path("activityId").asInt();
+        IVariable lTargetVariable = EVariableTempStorage.INSTANCE.apply(receiveNode.path("assignTo").asText());
+
+        return new CReceiveTask(lActivityId, lTargetVariable);
     }
 
     /**
@@ -332,8 +360,13 @@ public enum EWorkflowParser {
         switch (variableNode.path("type").asText().toUpperCase()) {
             case "JSON":
                 return new CJsonVariable(lVariableName);
+
             case "STRING":
                 return new CStringVariable(lVariableName);
+
+            case "INTEGER":
+                return new CIntegerVariable(lVariableName);
+
             default:
                 throw new CWorkflowParseException(MessageFormat.format("Variable type [{0}] unknown", variableNode.path("type").asText()));
         }

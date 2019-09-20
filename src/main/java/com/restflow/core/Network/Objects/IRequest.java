@@ -1,4 +1,4 @@
-package com.restflow.core.Network;
+package com.restflow.core.Network.Objects;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.IParameter;

@@ -1,10 +1,9 @@
 package com.restflow.core.Controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.restflow.core.EActiveWorkflows;
-import com.restflow.core.EWorkflowModels;
 import com.restflow.core.Storage.StorageService;
+import com.restflow.core.WorkflowDatabase.EActiveWorkflows;
+import com.restflow.core.WorkflowDatabase.EWorkflowDefinitions;
 import com.restflow.core.WorkflowExecution.Objects.IWorkflow;
 import com.restflow.core.WorkflowParser.CWorkflowParseException;
 import com.restflow.core.WorkflowParser.EWorkflowParser;
@@ -15,13 +14,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Objects;
 
+/**
+ * This controller class contains functions for managing the set of workflow definitions
+ */
 @RestController
 @RequestMapping("/workflow/administration")
 public class WorkflowAdministrationController {
@@ -37,8 +38,15 @@ public class WorkflowAdministrationController {
         EWorkflowParser.INSTANCE.init(storageService);
     }
 
-    @RequestMapping(value = "/parseWorkflow", method = RequestMethod.POST)
-    public ResponseEntity<?> parseWorkflow(@RequestParam(name = "project") String project, @RequestParam(name = "workflowModel") String filename) {
+    /**
+     * Function for creating a parent workflow definition
+     * @param project folder containing all required files
+     * @param filename filename of the file to be converted
+     * @return suitable response with the name of the parent workflow definition
+     */
+    @RequestMapping(value = "/createWorkflowDefinition", method = RequestMethod.POST)
+    public ResponseEntity<?> parseWorkflow(@RequestParam(name = "project") String project,
+                                           @RequestParam(name = "workflowModel") String filename) {
 
         Resource lWorkflowResource = mStorageService.loadAsResource(filename, project);
         IWorkflow lWorkflowModel = null;
@@ -46,7 +54,7 @@ public class WorkflowAdministrationController {
         if (Objects.equals(FilenameUtils.getExtension(lWorkflowResource.getFilename()), "json")) {
             try {
                 lWorkflowModel = EWorkflowParser.INSTANCE.parseWorkflow(lWorkflowResource);
-                EWorkflowModels.INSTANCE.add(lWorkflowModel);
+                EWorkflowDefinitions.INSTANCE.add(lWorkflowModel);
             } catch (IOException e) {
                 logger.error(e.getMessage());
             }
@@ -54,27 +62,28 @@ public class WorkflowAdministrationController {
 
         if (Objects.isNull(lWorkflowModel)) {
             throw new CWorkflowParseException(MessageFormat.format(
-                    "Workflow Model [{0}] could not be successfully parsed", StringUtils.replace(
-                            filename, ".json", "")));
+                    "Workflow Definition [{0}] of [{1}] could not be created!", project, filename));
         }
 
-        ObjectNode lSuccessNode = mapper.createObjectNode();
-        lSuccessNode.put("message", "Workflow was successfully parsed!");
-        lSuccessNode.put("workflow", project);
-        lSuccessNode.put("file", filename);
-
-        return ResponseEntity.ok(lSuccessNode);
+        return ResponseEntity.ok(MessageFormat.format(
+                "Workflow Definition [{0}] of [{1}] was successfully created! You will find it under the" +
+                        " following name: {2}", project, filename, lWorkflowModel.definition()));
     }
 
-    @RequestMapping(value = "/deleteWorkflow/{workflow:.+}", method = RequestMethod.GET)
-    public ResponseEntity<String> deleteWorkflow(@PathVariable String workflow) {
+    /**
+     * Function for deleting a parent workflow definition
+     * @param workflowDefinition name of the definition to be deleted
+     * @return suitable response
+     */
+    @RequestMapping(value = "/deleteWorkflowDefinition/{workflowDefinition:.+}", method = RequestMethod.GET)
+    public ResponseEntity<String> deleteWorkflow(@PathVariable String workflowDefinition) {
 
-        EActiveWorkflows.INSTANCE.remove(workflow);
-        EWorkflowModels.INSTANCE.remove(workflow);
-        mStorageService.deleteFolder(workflow);
+        EActiveWorkflows.INSTANCE.remove(workflowDefinition);
+        EWorkflowDefinitions.INSTANCE.remove(workflowDefinition);
+        mStorageService.deleteFolder(workflowDefinition);
 
         return ResponseEntity.ok(
-                MessageFormat.format("Workflow [{0}] was deleted along with all relevant files", workflow));
+                MessageFormat.format("Workflow Definition [{0}] was deleted along with all relevant files", workflowDefinition));
     }
 
     @ExceptionHandler(CWorkflowParseException.class)

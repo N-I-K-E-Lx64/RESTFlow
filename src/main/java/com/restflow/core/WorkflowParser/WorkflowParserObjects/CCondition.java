@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.restflow.core.WorkflowExecution.Condition.EConditionType;
 import com.restflow.core.WorkflowExecution.Objects.CConditionException;
 import com.restflow.core.WorkflowExecution.Objects.CWorkflowExecutionException;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.Variables.CJsonVariable;
 import org.springframework.lang.NonNull;
 
 import java.text.MessageFormat;
@@ -27,21 +28,25 @@ public class CCondition implements ICondition {
     @Override
     public Boolean execute() {
 
-        Object lFirstParameter = mFirstParameter.get().value();
-        Object lSecondParameter = mSecondParameter.get().value();
+        Object lFirstParameter;
+        Object lSecondParameter;
 
-        if (lFirstParameter instanceof IVariable) {
-            lFirstParameter = deserializeVariable((IVariable) lFirstParameter);
+        if (mFirstParameter.get().value() instanceof IVariable) {
+            lFirstParameter = deserializeVariable((IVariable) mFirstParameter.get().value());
+        } else {
+            lFirstParameter = mFirstParameter.get().value();
         }
 
-        if (lSecondParameter instanceof IVariable) {
-            lSecondParameter = deserializeVariable((IVariable) lSecondParameter);
+        if (mSecondParameter.get().value() instanceof IVariable) {
+            lSecondParameter = deserializeVariable((IVariable) mSecondParameter.get().value());
+        } else {
+            lSecondParameter = mSecondParameter.get().value();
         }
 
         if (Objects.isNull(lFirstParameter) || Objects.isNull(lSecondParameter)) {
-
-            throw new CConditionException("No decision with a null value is possible!");
-
+            throw new CConditionException("No decision could be made due to a zero value!" +
+                    " First Parameter: " + mFirstParameter.get().name() + " = " + Objects.isNull(lFirstParameter) +
+                    " Second Parameter: " + mSecondParameter.get().name() + " = " + Objects.isNull(lSecondParameter));
         }
 
         switch (mConditionType) {
@@ -51,10 +56,10 @@ public class CCondition implements ICondition {
             case BIGGER:
                 return doubleParameter(lFirstParameter) > doubleParameter(lSecondParameter);
 
-            case GREATER_OR_ERQUAL:
+            case GREATER_OR_EQUALS:
                 return doubleParameter(lFirstParameter) >= doubleParameter(lSecondParameter);
 
-            case LESS_OR_EQUAL:
+            case LESS_OR_EQUALS:
                 return (doubleParameter(lFirstParameter) <= doubleParameter(lSecondParameter));
 
             case EQUALS:
@@ -82,6 +87,7 @@ public class CCondition implements ICondition {
         return (String) pString;
     }
 
+    // TODO: Enhance
     private String deserializeVariable(IVariable pVariable) {
 
         if (pVariable instanceof CJsonVariable) {

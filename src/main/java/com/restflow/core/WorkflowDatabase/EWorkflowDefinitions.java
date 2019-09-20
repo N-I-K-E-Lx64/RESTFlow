@@ -1,4 +1,4 @@
-package com.restflow.core;
+package com.restflow.core.WorkflowDatabase;
 
 import com.restflow.core.WorkflowExecution.Objects.CWorkflow;
 import com.restflow.core.WorkflowExecution.Objects.IWorkflow;
@@ -16,58 +16,55 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public enum EWorkflowModels implements IWorkflowDefinitions, Supplier<Set<String>>, Function<String, IWorkflow> {
+public enum EWorkflowDefinitions implements IWorkflowDefinitions, Supplier<Set<String>>, Function<String, IWorkflow> {
 
     INSTANCE;
 
-    private static final Logger logger = LogManager.getLogger(EWorkflowModels.class);
+    private static final Logger logger = LogManager.getLogger(EWorkflowDefinitions.class);
 
-    private final Map<String, IWorkflow> mModels = new ConcurrentHashMap<>();
+    private final Map<String, IWorkflow> mWorkflowDefinitions = new ConcurrentHashMap<>();
 
     private final Map<String, Queue<ITask>> mTaskDefinitions = new ConcurrentHashMap<>();
 
-    @NonNull
     @Override
     public void add(@NonNull final IWorkflow pWorkflow) {
 
-        if (mModels.containsKey(pWorkflow.model()))
-            throw new RuntimeException(MessageFormat.format("Workflow [{0}] already exists", pWorkflow.model()));
+        if (mWorkflowDefinitions.containsKey(pWorkflow.definition()))
+            throw new RuntimeException(MessageFormat.format("Workflow Definition [{0}] already exists", pWorkflow.definition()));
 
-        mModels.put(pWorkflow.model() + "-MODEL", pWorkflow);
+        mWorkflowDefinitions.put(pWorkflow.definition(), pWorkflow);
 
-        logger.info("Saved Workflow Model for: " + pWorkflow.model());
+        logger.info("Saved Workflow Model for: " + pWorkflow.definition());
     }
 
-    @NonNull
     @Override
     public void remove(@NonNull final String pWorkflow) {
 
-        mModels.remove(pWorkflow);
+        mWorkflowDefinitions.remove(pWorkflow);
+        mTaskDefinitions.remove(pWorkflow);
 
-        logger.info(MessageFormat.format("The following Workflow Model [{0}] has been deleted1", pWorkflow));
+        logger.info(MessageFormat.format("The following Workflow Definition [{0}] has been deleted1", pWorkflow));
     }
 
     @Override
     public void addExecutionOrder(@NonNull final Queue<ITask> pTasks, @NonNull final String pWorkflow) {
 
-        String lWorkflowModelName = pWorkflow + "-MODEL";
-
-        if (mTaskDefinitions.containsKey(lWorkflowModelName))
+        if (mTaskDefinitions.containsKey(pWorkflow))
             throw new RuntimeException(
-                    MessageFormat.format("Task Definition of [{0}] already exists", lWorkflowModelName));
+                    MessageFormat.format("Task Definition of [{0}] already exists", pWorkflow));
 
-        mTaskDefinitions.put(lWorkflowModelName, pTasks);
+        mTaskDefinitions.put(pWorkflow, pTasks);
 
-        logger.info("Saved Task Definition for: " + lWorkflowModelName);
+        logger.info("Saved Task Definition for: " + pWorkflow);
     }
 
     @Override
     public IWorkflow apply(final String pWorkflowModel) {
 
-        final IWorkflow lWorkflow = mModels.get(pWorkflowModel);
+        final IWorkflow lWorkflow = mWorkflowDefinitions.get(pWorkflowModel);
         if (Objects.isNull(lWorkflow))
             throw new RuntimeException(
-                    MessageFormat.format("Workflow [{0}] could not be found.", pWorkflowModel));
+                    MessageFormat.format("Workflow Definition [{0}] could not be found.", pWorkflowModel));
 
         final Queue<ITask> lExecutionQueue = mTaskDefinitions.get(pWorkflowModel);
         if (Objects.isNull(lExecutionQueue))
@@ -79,6 +76,6 @@ public enum EWorkflowModels implements IWorkflowDefinitions, Supplier<Set<String
 
     @Override
     public Set<String> get() {
-        return mModels.keySet();
+        return mWorkflowDefinitions.keySet();
     }
 }
