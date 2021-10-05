@@ -38,7 +38,9 @@ public class RESTflowApplication {
      * global context
      */
     public static final class CGlobal {
+        // Global instance
         private static final AtomicReference<CGlobal> instance = new AtomicReference<>();
+        // Spring application context
         private final ApplicationContext context;
 
         private CGlobal(@NonNull final ApplicationContext pContext) {
@@ -63,7 +65,7 @@ public class RESTflowApplication {
          *
          * @return ApplicationContext
          */
-        public final ApplicationContext context() {
+        public ApplicationContext context() {
             return context;
         }
     }
