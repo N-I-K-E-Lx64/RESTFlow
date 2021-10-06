@@ -10,6 +10,8 @@ public class ABroadcastMessage extends ASocketMessage {
 
 	private static final Logger logger = LoggerFactory.getLogger(ABroadcastMessage.class);
 
+	private static final String BROADCAST_MESSAGE_ENDPOINT = "/topic";
+
 	/**
 	 * Constructor of a broadcast message
 	 *
@@ -17,7 +19,7 @@ public class ABroadcastMessage extends ASocketMessage {
 	 * @param endpoint Websocket endpoint over which this message is distributed
 	 */
 	protected ABroadcastMessage(Object[] data, String endpoint) {
-		super(data, endpoint);
+		super(data, BROADCAST_MESSAGE_ENDPOINT + endpoint);
 	}
 
 	/**

@@ -11,7 +11,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
 	private static final String APP_DESTINATION_PREFIX = "/app";
-	private static final String ENDPOINT = "/Restflow";
+	private static final String ENDPOINT = "restflow";
 
 	@Override
 	public void configureMessageBroker(MessageBrokerRegistry config) {
