@@ -1,7 +1,6 @@
 package com.restflow.core.Network;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.restflow.core.Network.Objects.CCollaborationMessage;
 import com.restflow.core.Network.Objects.IRequest;
 import com.restflow.core.WorkflowExecution.Objects.EWorkflowStatus;

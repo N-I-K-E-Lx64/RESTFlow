@@ -6,6 +6,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.lang.NonNull;
 
 import java.text.MessageFormat;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -13,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public enum EActiveWorkflows implements IActiveWorkflows, Supplier<Set<Map.Entry<String, IWorkflow>>>, Function<String, IWorkflow> {
+public enum EActiveWorkflows implements IActiveWorkflows, Supplier<Set<IWorkflow>>, Function<String, IWorkflow> {
 
     INSTANCE;
 
@@ -70,7 +71,7 @@ public enum EActiveWorkflows implements IActiveWorkflows, Supplier<Set<Map.Entry
     }
 
     @Override
-    public Set<Map.Entry<String, IWorkflow>> get() {
-        return mWorkflows.entrySet();
+    public Set<IWorkflow> get() {
+        return new HashSet<IWorkflow>(mWorkflows.values());
     }
 }

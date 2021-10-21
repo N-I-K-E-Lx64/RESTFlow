@@ -5,12 +5,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.restflow.core.Network.Objects.CUserParameterMessage;
-import com.restflow.core.Responses.VariableResponse;
-import com.restflow.core.Responses.WorkflowListResponse;
+import com.restflow.core.Network.Responses.UserParamResponse;
+import com.restflow.core.Network.Responses.VariableResponse;
 import com.restflow.core.WorkflowDatabase.EActiveWorkflows;
 import com.restflow.core.WorkflowDatabase.EWorkflowDefinitions;
 import com.restflow.core.WorkflowExecution.Objects.CUserInteractionException;
+import com.restflow.core.WorkflowExecution.Objects.EWorkflowStatus;
 import com.restflow.core.WorkflowExecution.Objects.IWorkflow;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.IParameter;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.IVariable;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -27,6 +29,7 @@ import java.util.stream.Collectors;
 /**
  * This controller class contains functions for controlling the system.
  */
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/workflow")
 public class WorkflowManagementController {
@@ -90,14 +93,64 @@ public class WorkflowManagementController {
      * @return suitable response
      * @see CUserParameterMessage
      */
-    @RequestMapping(value = "/setUserParameter", method = RequestMethod.POST)
-    public ResponseEntity setUserVariable(@RequestBody CUserParameterMessage pMessage) {
-
-        EActiveWorkflows.INSTANCE.apply(pMessage.getWorkflowInstance()).accept(pMessage);
+    @RequestMapping(value = "/setUserParameter/{instanceId:.+}", method = RequestMethod.PATCH)
+    public ResponseEntity<String> setUserVariable(@RequestBody CUserParameterMessage pMessage, @PathVariable String instanceId) {
+        EActiveWorkflows.INSTANCE.apply(instanceId).accept(pMessage);
 
         return ResponseEntity.status(200).contentType(MediaType.TEXT_PLAIN)
                 .body(MessageFormat.format("Parameter [{0}] was successfully overwritten with the following value [{1}]!",
                         pMessage.parameterName(), pMessage.get()));
+    }
+
+    /**
+     * Monitoring function that returns the contents of all variables of a specific instance
+     * @param workflow Name of the instance
+     * @return List containing the contents of all variables
+     * @see VariableResponse
+     */
+    @RequestMapping(value = "/variables/{workflow:.+}", method = RequestMethod.GET)
+    public List<VariableResponse> checkVariableStatus(@PathVariable String workflow) {
+
+        Function<Map.Entry<String, IVariable>, VariableResponse> createResponse = entry -> {
+            IVariable lVariable = entry.getValue();
+            if (lVariable.value() instanceof String) {
+                ObjectNode lStringNode = mapper.createObjectNode();
+                lStringNode.put("String Value", (String) lVariable.value());
+
+                return new VariableResponse(lVariable.name(), lStringNode);
+            }
+            return new VariableResponse(lVariable.name(), (JsonNode) lVariable.value());
+        };
+
+        return EActiveWorkflows.INSTANCE.apply(workflow).variables().entrySet().stream()
+                            .map(createResponse)
+                            .collect(Collectors.toList());
+    }
+
+    /**
+     * Searches the workflow database for suspended workflows and returns their names in a list
+     * @return List containing all suspended workflow names
+     */
+    @RequestMapping(value = "/suspendedWorkflows", method = RequestMethod.GET)
+    public List<String> getSuspendedWorkflows() {
+        return EActiveWorkflows.INSTANCE.get().stream()
+                .filter(entry -> entry.status() == EWorkflowStatus.SUSPENDED)
+                .map(IWorkflow::instance)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Monitoring function that returns a description for each currently empty user variable
+     * @param workflow Name of the instance
+     * @return List containing a CUserParameterMessage for each empty variable
+     * @see CUserParameterMessage
+     */
+    @RequestMapping(value = "/userParams/{workflow:.+}", method = RequestMethod.GET)
+    public ResponseEntity<List<CUserParameterMessage>> getUserParams(@PathVariable String workflow) {
+        // Creates a UserParameterMessage with an empty string as value
+        return ResponseEntity.ok(EActiveWorkflows.INSTANCE.apply(workflow).emptyVariables().stream()
+                .map(param -> new CUserParameterMessage(workflow, param.id(), ""))
+                .collect(Collectors.toList()));
     }
 
     /**
@@ -147,37 +200,12 @@ public class WorkflowManagementController {
         }
     }
 
-    /**
-     * Monitoring function that returns the contents of all variables of a specific instance
-     * @param workflow Name of the instance
-     * @return List containing the contents of all variables
-     * @see VariableResponse
-     */
-    @RequestMapping(value = "/variables/{workflow:.+}", method = RequestMethod.GET)
-    public List<VariableResponse> checkVariableStatus(@PathVariable String workflow) {
-
-        Function<Map.Entry<String, IVariable>, VariableResponse> createResponse = entry -> {
-            IVariable lVariable = entry.getValue();
-            if (lVariable.value() instanceof String) {
-                ObjectNode lStringNode = mapper.createObjectNode();
-                lStringNode.put("String Value", (String) lVariable.value());
-
-                return new VariableResponse(lVariable.name(), lStringNode);
-            }
-            return new VariableResponse(lVariable.name(), (JsonNode) lVariable.value());
-        };
-
-        return EActiveWorkflows.INSTANCE.apply(workflow).variables().entrySet().stream()
-                            .map(createResponse)
-                            .collect(Collectors.toList());
-
-    }
-
+    // TODO : Delete this
     /**
      * Monitoring function that returns a short description of all active workflow instances
      * @return Short description of all active workflow instances
      */
-    @RequestMapping(value = "/workflows", method = RequestMethod.GET)
+    /*@RequestMapping(value = "/workflows", method = RequestMethod.GET)
     public List<WorkflowListResponse> sendWorkflowList() {
 
         Function<Map.Entry<String, IWorkflow>, WorkflowListResponse> createResponse = entry -> {
@@ -191,8 +219,9 @@ public class WorkflowManagementController {
         return EActiveWorkflows.INSTANCE.get().stream()
                 .map(createResponse)
                 .collect(Collectors.toList());
-    }
+    }*/
 
+    // TODO : Generic!
     @ExceptionHandler(CUserInteractionException.class)
     public ResponseEntity handleUserInteractionException(CUserInteractionException ex) {
         logger.error(ex.getMessage());

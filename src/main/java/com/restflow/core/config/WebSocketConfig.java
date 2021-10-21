@@ -13,6 +13,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 	private static final String APP_DESTINATION_PREFIX = "/app";
 	private static final String ENDPOINT = "restflow";
 
+	// TODO : OnConnect Listener -> send the monitoring information of every existing workflow
+
 	@Override
 	public void configureMessageBroker(MessageBrokerRegistry config) {
 		config.enableSimpleBroker("/topic");

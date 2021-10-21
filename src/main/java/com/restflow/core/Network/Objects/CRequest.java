@@ -22,13 +22,13 @@ public class CRequest implements IRequest {
     private final HttpMethod mRequestType;
     private final MediaType mRequestMediaType;
     private final MediaType mResponseMediaType;
-    private final Map<String, IParameter> mFields;
+    private final Map<String, IParameter<?>> mFields;
 
     private String mResponse;
 
     public CRequest(@NonNull final String pUrl, @NonNull final String pResourceUrl,
                     @NonNull HttpMethod pRequestType, @NonNull MediaType pRequestMediaType,
-                    @NonNull MediaType mResponseMediaType, @NonNull Map<String, IParameter> pFields) {
+                    @NonNull MediaType mResponseMediaType, @NonNull Map<String, IParameter<?>> pFields) {
 
         this.mBaseUrl = pUrl;
         this.mResourceUrl = pResourceUrl;
@@ -73,7 +73,7 @@ public class CRequest implements IRequest {
 
     @NonNull
     @Override
-    public Map<String, IParameter> fields() {
+    public Map<String, IParameter<?>> fields() {
         return mFields;
     }
 
@@ -105,7 +105,7 @@ public class CRequest implements IRequest {
             }
         };
 
-        Consumer<Map.Entry<String, IParameter>> serialize = parameter -> {
+        Consumer<Map.Entry<String, IParameter<?>>> serialize = parameter -> {
             if (parameter.getValue() instanceof CVariableReference) {
                 IVariable lVariable = (IVariable) parameter.getValue().value();
                 if (lVariable instanceof CJsonVariable) {

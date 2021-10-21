@@ -1,4 +1,4 @@
-package com.restflow.core.Responses;
+package com.restflow.core.Network.Responses;
 
 import com.fasterxml.jackson.databind.JsonNode;
 

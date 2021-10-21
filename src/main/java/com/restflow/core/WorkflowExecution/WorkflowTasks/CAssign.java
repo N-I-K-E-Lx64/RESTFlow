@@ -34,7 +34,7 @@ public class CAssign extends IBaseTaskAction {
             ObjectMapper mapper = new ObjectMapper();
 
             ObjectNode lParameterNode = mapper.createObjectNode();
-            lParameterNode.putPOJO(mTask.source().name(), mTask.source().value());
+            lParameterNode.putPOJO(mTask.source().id(), mTask.source().value());
             mTask.target().setValue(lParameterNode);
         } else if (mTask.target() instanceof CStringVariable) {
             mTask.target().setValue(mTask.source().value());

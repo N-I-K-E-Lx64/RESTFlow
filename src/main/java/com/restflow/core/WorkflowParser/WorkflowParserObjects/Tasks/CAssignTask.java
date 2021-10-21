@@ -29,7 +29,7 @@ public class CAssignTask implements ITask {
     @NonNull
     @Override
     public String title() {
-        return MessageFormat.format("Assign {0} to {1}", mSourceParameter.name(), mTargetReference.get().name());
+        return MessageFormat.format("Assign {0} to {1}", mSourceParameter.id(), mTargetReference.get().name());
     }
 
     @NonNull

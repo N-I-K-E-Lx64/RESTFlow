@@ -28,7 +28,7 @@ public class CollaborationController {
     @RequestMapping(value = "/sendMessage", method = RequestMethod.POST)
     public ResponseEntity<?> retrieveCollaboration(@RequestBody CCollaborationMessage pMessage) {
 
-        EActiveWorkflows.INSTANCE.apply(pMessage.getWorkflowInstance()).accept(pMessage);
+        EActiveWorkflows.INSTANCE.apply(pMessage.getInstanceId()).accept(pMessage);
         logger.info(pMessage);
 
         return ResponseEntity.ok().body("Message successfully received!");

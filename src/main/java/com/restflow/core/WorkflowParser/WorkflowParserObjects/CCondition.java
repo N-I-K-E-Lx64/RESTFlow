@@ -45,8 +45,8 @@ public class CCondition implements ICondition {
 
         if (Objects.isNull(lFirstParameter) || Objects.isNull(lSecondParameter)) {
             throw new CConditionException("No decision could be made due to a zero value!" +
-                    " First Parameter: " + mFirstParameter.get().name() + " = " + Objects.isNull(lFirstParameter) +
-                    " Second Parameter: " + mSecondParameter.get().name() + " = " + Objects.isNull(lSecondParameter));
+                    " First Parameter: " + mFirstParameter.get().id() + " = " + Objects.isNull(lFirstParameter) +
+                    " Second Parameter: " + mSecondParameter.get().id() + " = " + Objects.isNull(lSecondParameter));
         }
 
         switch (mConditionType) {
