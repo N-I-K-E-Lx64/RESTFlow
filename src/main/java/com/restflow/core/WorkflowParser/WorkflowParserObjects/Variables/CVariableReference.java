@@ -18,7 +18,7 @@ public class CVariableReference implements IParameter {
 
     @NonNull
     @Override
-    public String name() {
+    public String id() {
         return mVariableName;
     }
 

@@ -70,7 +70,7 @@ public enum EWorkflowParser {
 
         tempWorkflowName = lWorkflowModel;
 
-        Map<String, IVariable> lVariables = new HashMap<>();
+        Map<String, IVariable> lVariables = new LinkedHashMap<>();
 
         if (workflowNode.has("variables")) {
             for (Iterator<JsonNode> variableIterator = workflowNode.path("variables").elements(); variableIterator.hasNext(); ) {
@@ -260,17 +260,18 @@ public enum EWorkflowParser {
      *
      * @see CParameter
      */
-    public Map<String, IParameter> parseInputNode(JsonNode inputNode) {
+    public Map<String, IParameter<?>> parseInputNode(JsonNode inputNode) {
 
-        Map<String, IParameter> lParameters = new HashMap<>();
+        Map<String, IParameter<?>> lParameters = new HashMap<>();
         if (inputNode.has("user-parameter")) {
             JsonNode userParameters = inputNode.path("user-parameter");
             if (userParameters.isArray()) {
                 for (JsonNode userParameterNodeElement : userParameters) {
-                    String lParameterName = userParameterNodeElement.path("name").asText();
+                    String lParameterId = userParameterNodeElement.path("name").asText();
                     String lParameterType = userParameterNodeElement.path("type").asText();
-                    lParameters.put(lParameterName,
-                            EParameterFactory.INSTANCE.createParameter(lParameterName, lParameterType, true));
+                    Class<?> test = EParameterFactory.INSTANCE.determineClass(lParameterType);
+                    lParameters.put(lParameterId,
+                            EParameterFactory.INSTANCE.createParameter(lParameterId, true, test));
                 }
             } else {
                 throw new CWorkflowParseException("Invoke-Input-User Parameters should always be provided in an array!");
@@ -284,7 +285,7 @@ public enum EWorkflowParser {
                 for (JsonNode parameterNode : nonUserParameters) {
                     IParameter lParsedParameter = parseParameterNode(parameterNode);
 
-                    lParameters.put(lParsedParameter.name(), lParsedParameter);
+                    lParameters.put(lParsedParameter.id(), lParsedParameter);
                 }
             } else {
                 throw new CWorkflowParseException("Invoke-Input-Const Parameters should always be provided in an array!");

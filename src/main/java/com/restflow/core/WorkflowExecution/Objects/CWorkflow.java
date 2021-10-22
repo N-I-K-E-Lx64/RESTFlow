@@ -4,6 +4,7 @@ import com.restflow.core.Network.IMessage;
 import com.restflow.core.WorkflowExecution.ExecutionLogger;
 import com.restflow.core.WorkflowExecution.WorkflowTasks.EWorkflowTaskFactory;
 import com.restflow.core.WorkflowExecution.WorkflowTasks.ITaskAction;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.IParameter;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.ITask;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.IVariable;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.Tasks.CInvokeServiceTask;
@@ -26,7 +27,7 @@ public class CWorkflow implements IWorkflow {
 
     private final Map<String, IVariable> mVariables;
 
-    private List<String> mEmptyVariables = new LinkedList<>();
+    private List<IParameter<?>> mEmptyVariables = new LinkedList<>();
 
     private EWorkflowStatus mStatus;
 
@@ -99,7 +100,7 @@ public class CWorkflow implements IWorkflow {
 
     @NonNull
     @Override
-    public List<String> emptyVariables() {
+    public List<IParameter<?>> emptyVariables() {
         return mEmptyVariables;
     }
 
@@ -126,7 +127,7 @@ public class CWorkflow implements IWorkflow {
     }
 
     @Override
-    public void setEmptyVariables(@NonNull List<String> pEmptyVariables) {
+    public void setEmptyVariables(@NonNull List<IParameter<?>> pEmptyVariables) {
         this.mEmptyVariables = pEmptyVariables;
     }
 
@@ -224,6 +225,7 @@ public class CWorkflow implements IWorkflow {
     public void accept(IMessage pMessage) {
 
         //Kopf der Queue holen und Nachricht mit aktueller Ausführungsqueue weitergeben
+        assert mExecution.peek() != null;
         mExecution.peek().accept(pMessage);
         this.postAction();
     }

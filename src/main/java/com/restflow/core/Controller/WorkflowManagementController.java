@@ -1,18 +1,17 @@
 package com.restflow.core.Controller;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.restflow.core.Network.Objects.CUserParameterMessage;
-import com.restflow.core.Network.Responses.UserParamResponse;
 import com.restflow.core.Network.Responses.VariableResponse;
 import com.restflow.core.WorkflowDatabase.EActiveWorkflows;
 import com.restflow.core.WorkflowDatabase.EWorkflowDefinitions;
 import com.restflow.core.WorkflowExecution.Objects.CUserInteractionException;
 import com.restflow.core.WorkflowExecution.Objects.EWorkflowStatus;
 import com.restflow.core.WorkflowExecution.Objects.IWorkflow;
-import com.restflow.core.WorkflowParser.WorkflowParserObjects.IParameter;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.EVariableType;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.IVariable;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -40,8 +39,9 @@ public class WorkflowManagementController {
 
     /**
      * Function for starting / creating a workflow instance
+     *
      * @param definition Name of the definition on which the new workflow instance is to be based.
-     * @param name Name of the new instance
+     * @param name       Name of the new instance
      * @return suitable response
      */
     @RequestMapping(value = "/start", method = RequestMethod.POST)
@@ -57,6 +57,7 @@ public class WorkflowManagementController {
 
     /**
      * Function for restarting a workflow instance in case of an error
+     *
      * @param workflowInstance Name of the instance
      * @return suitable response
      */
@@ -73,6 +74,7 @@ public class WorkflowManagementController {
 
     /**
      * Function for stopping the execution of a specific workflow instance
+     *
      * @param workflowInstance Name of the instance
      * @return suitable response
      */
@@ -89,6 +91,7 @@ public class WorkflowManagementController {
 
     /**
      * Function to submit a user parameter
+     *
      * @param pMessage UserParameter object
      * @return suitable response
      * @see CUserParameterMessage
@@ -104,6 +107,7 @@ public class WorkflowManagementController {
 
     /**
      * Monitoring function that returns the contents of all variables of a specific instance
+     *
      * @param workflow Name of the instance
      * @return List containing the contents of all variables
      * @see VariableResponse
@@ -113,22 +117,27 @@ public class WorkflowManagementController {
 
         Function<Map.Entry<String, IVariable>, VariableResponse> createResponse = entry -> {
             IVariable lVariable = entry.getValue();
-            if (lVariable.value() instanceof String) {
-                ObjectNode lStringNode = mapper.createObjectNode();
-                lStringNode.put("String Value", (String) lVariable.value());
-
-                return new VariableResponse(lVariable.name(), lStringNode);
+            if (lVariable.variableType() == EVariableType.JSON) {
+                try {
+                    String prettyJSON = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(lVariable.value());
+                    return new VariableResponse(lVariable.name(), lVariable.variableType().name(), prettyJSON);
+                } catch (JsonProcessingException e) {
+                    // TODO : Correct exception!
+                    e.printStackTrace();
+                }
             }
-            return new VariableResponse(lVariable.name(), (JsonNode) lVariable.value());
+
+            return new VariableResponse(lVariable.name(), lVariable.variableType().name(), String.valueOf(lVariable.value()));
         };
 
         return EActiveWorkflows.INSTANCE.apply(workflow).variables().entrySet().stream()
-                            .map(createResponse)
-                            .collect(Collectors.toList());
+                .map(createResponse)
+                .collect(Collectors.toList());
     }
 
     /**
      * Searches the workflow database for suspended workflows and returns their names in a list
+     *
      * @return List containing all suspended workflow names
      */
     @RequestMapping(value = "/suspendedWorkflows", method = RequestMethod.GET)
@@ -141,6 +150,7 @@ public class WorkflowManagementController {
 
     /**
      * Monitoring function that returns a description for each currently empty user variable
+     *
      * @param workflow Name of the instance
      * @return List containing a CUserParameterMessage for each empty variable
      * @see CUserParameterMessage
@@ -155,6 +165,7 @@ public class WorkflowManagementController {
 
     /**
      * This monitoring allows to describe the status of a specific workflow instance in detail
+     *
      * @param workflow Name of the instance
      * @return A report that describes the current state of the instance
      */
@@ -201,8 +212,10 @@ public class WorkflowManagementController {
     }
 
     // TODO : Delete this
+
     /**
      * Monitoring function that returns a short description of all active workflow instances
+     *
      * @return Short description of all active workflow instances
      */
     /*@RequestMapping(value = "/workflows", method = RequestMethod.GET)
@@ -223,7 +236,7 @@ public class WorkflowManagementController {
 
     // TODO : Generic!
     @ExceptionHandler(CUserInteractionException.class)
-    public ResponseEntity handleUserInteractionException(CUserInteractionException ex) {
+    public ResponseEntity<?> handleUserInteractionException(CUserInteractionException ex) {
         logger.error(ex.getMessage());
         return ResponseEntity.status(404).contentType(MediaType.TEXT_PLAIN).body(ex.getMessage());
     }

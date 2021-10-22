@@ -1,15 +1,21 @@
 package com.restflow.core.Network.Responses;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.springframework.lang.NonNull;
 
 public class VariableResponse {
 
     private final String name;
-    private final JsonNode value;
+    private final String value;
+    @JsonProperty("type")
+    private final String variableType;
 
-
-    public VariableResponse(String pName, JsonNode pValue) {
+    public VariableResponse(@NonNull final String pName,
+                            @NonNull final String pVariableType,
+                            @NonNull final String pValue) {
         this.name = pName;
+        this.variableType = pVariableType;
         this.value = pValue;
     }
 
@@ -17,7 +23,12 @@ public class VariableResponse {
         return name;
     }
 
-    public JsonNode getValue() {
+    @JsonGetter("type")
+    public String getVariableType() {
+        return variableType;
+    }
+
+    public String getValue() {
         return value;
     }
 }
