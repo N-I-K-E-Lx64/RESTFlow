@@ -87,7 +87,7 @@ public class WorkflowAdministrationController {
     }
 
     @ExceptionHandler(CWorkflowParseException.class)
-    public ResponseEntity handleWorkflowParseException(CWorkflowParseException ex) {
+    public ResponseEntity<String> handleWorkflowParseException(CWorkflowParseException ex) {
         logger.error(ex.getMessage());
         return ResponseEntity.status(500).contentType(MediaType.TEXT_PLAIN).body(ex.getMessage());
     }

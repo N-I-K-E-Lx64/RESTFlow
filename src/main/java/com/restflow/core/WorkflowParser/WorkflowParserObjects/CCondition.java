@@ -15,13 +15,13 @@ import java.util.concurrent.atomic.AtomicReference;
 public class CCondition implements ICondition {
 
     private final EConditionType mConditionType;
-    private AtomicReference<IParameter> mFirstParameter = new AtomicReference<>();
-    private AtomicReference<IParameter> mSecondParameter = new AtomicReference<>();
+    private final AtomicReference<IParameter<?>> mFirstParameter = new AtomicReference<>();
+    private final AtomicReference<IParameter<?>> mSecondParameter = new AtomicReference<>();
 
-    public CCondition(@NonNull final EConditionType pConditionType, IParameter pFirstParameter, IParameter pSecondParaeter) {
+    public CCondition(@NonNull final EConditionType pConditionType, IParameter<?> pFirstParameter, IParameter<?> pSecondParameter) {
         this.mConditionType = pConditionType;
         this.mFirstParameter.set(pFirstParameter);
-        this.mSecondParameter.set(pSecondParaeter);
+        this.mSecondParameter.set(pSecondParameter);
     }
 
     @NonNull

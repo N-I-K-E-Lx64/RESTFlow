@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class CAssignTask implements ITask {
 
-    private IParameter mSourceParameter;
+    private IParameter<?> mSourceParameter;
     private AtomicReference<IVariable> mTargetReference;
 
     private final EWorkflowTaskType mTaskType;
@@ -38,11 +38,11 @@ public class CAssignTask implements ITask {
         return mTaskType;
     }
 
-    public IParameter source() {
+    public IParameter<?> source() {
         return mSourceParameter;
     }
 
-    public void setSource(IParameter pSourceParameter) {
+    public void setSource(IParameter<?> pSourceParameter) {
         this.mSourceParameter = pSourceParameter;
     }
 

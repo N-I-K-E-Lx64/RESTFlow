@@ -3,10 +3,10 @@ package com.restflow.core.WorkflowParser.WorkflowParserObjects;
 import com.restflow.core.WorkflowExecution.WorkflowTasks.EWorkflowTaskType;
 import org.springframework.lang.NonNull;
 
-public interface ITask<T> {
+public interface ITask {
 
     @NonNull
-    T raw();
+    Object raw();
 
     @NonNull
     String title();

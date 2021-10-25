@@ -12,10 +12,11 @@ public class CSwitchTask implements ITask {
     private final String mTitle;
 
     private ICondition mCondition;
-    private Queue<ITask> mCaseExecution;
-    private Queue<ITask> mElseExecution;
+    private final Queue<ITask> mCaseExecution;
+    private final Queue<ITask> mElseExecution;
 
     private final EWorkflowTaskType mTaskType;
+
     //TODO : Title erstellen
     public CSwitchTask(@NonNull final ICondition pCondition, @NonNull final Queue<ITask> pCase, @NonNull final Queue<ITask> pElse) {
         this.mTitle = "Switch Task";

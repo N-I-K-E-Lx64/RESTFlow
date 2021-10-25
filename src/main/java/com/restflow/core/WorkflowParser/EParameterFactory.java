@@ -2,6 +2,7 @@ package com.restflow.core.WorkflowParser;
 
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.CParameter;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.IParameter;
+import org.springframework.lang.NonNull;
 
 import java.text.MessageFormat;
 
@@ -10,57 +11,37 @@ public enum EParameterFactory {
     INSTANCE;
 
     /**
-     * Creates an IParameter object based on given information.
+     * Creates a generic parameter based on the provided type.
      *
-     * @param pParameterName Name of the resulting parameter
-     * @param pParameterType The Type of the parameter (String, Int, etc.) used for generify the IParameter Object
-     * @param isUserparameter Is true if the parameter value, must be entered by a user.
-     * @return IParameter
-     * @see IParameter
+     * @param pParameterId     ID to identify the parameter
+     * @param pIsUserParameter Boolean that describes whether the value of this parameter must be set by a user.
+     * @param pType            Representation of the parameter type
+     * @param <T>              Generic
+     * @return A generic Parameter
      */
-    public IParameter createParameter(String pParameterName, String pParameterType, Boolean isUserparameter) {
-        switch (pParameterType.toUpperCase()) {
-            case "STRING":
-                return new CParameter<String>(pParameterName, isUserparameter);
-
-            case "INTEGER":
-                return new CParameter<Integer>(pParameterName, isUserparameter);
-
-            case "DOUBLE":
-                return new CParameter<Double>(pParameterName, isUserparameter);
-
-            default:
-                throw new CWorkflowParseException(MessageFormat.format("Parameter-Type [{0}] doesn't match known types!", pParameterName));
-        }
+    public <T> IParameter<T> createParameter(@NonNull final String pParameterId,
+                                             @NonNull final Boolean pIsUserParameter,
+                                             Class<T> pType) {
+        return new CParameter<>(pParameterId, pIsUserParameter, pType);
     }
 
     /**
-     * Creates a constant IParameter object based on given information.
+     * Determines the correct java class for the respective parameter
      *
-     * @param pParameterName Name of the resulting parameter
-     * @param pParameterType The Type of the parameter (String, Int, etc.) used for generify the IParameter Object
-     * @param pParameterValue Value of the parameter
-     * @return IParameter
-     * @see IParameter
+     * @param pType String representation of the parameter Type
+     * @param <T>   Generic
+     * @return The class of all the supported parameter types
      */
-    public IParameter createParameterWithValue(String pParameterName, String pParameterType, String pParameterValue) {
-        return createParameter(pParameterName, pParameterType, false)
-                .setValue(parseParameterValue(pParameterValue, pParameterType));
-    }
+    public <T> Class<?> determineClass(@NonNull final String pType) {
+        switch (pType.toUpperCase()) {
+            case "STRING":
+                return String.class;
 
-    public Object parseParameterValue(String pParameterValue, String pParameterType) {
-            switch (pParameterType.toUpperCase()) {
-                case "STRING":
-                    return pParameterValue;
+            case "DOUBLE":
+                return Double.class;
 
-                case "INTEGER":
-                    return Integer.parseInt(pParameterValue);
-
-                case "DOUBLE":
-                    return Double.parseDouble(pParameterValue);
-
-                default:
-                    throw new CWorkflowParseException(MessageFormat.format("Parameter-Type [{0}] doesn't match known types!", pParameterType));
-            }
+            default:
+                throw new CWorkflowParseException(MessageFormat.format("Parameter-Type [{0}] does not match any known type!", pType));
+        }
     }
 }

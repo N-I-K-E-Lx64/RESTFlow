@@ -74,6 +74,7 @@ public class RESTflowApplication {
 
     @ComponentScan
     @EnableSpringConfigured
-    public class AspectJConfig { }
+    public static class AspectJConfig {
+    }
 }
 

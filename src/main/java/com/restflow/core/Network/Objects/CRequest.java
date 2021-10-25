@@ -66,6 +66,7 @@ public class CRequest implements IRequest {
         return mRequestMediaType;
     }
 
+    @NonNull
     @Override
     public MediaType responseMediaType() {
         return mResponseMediaType;
@@ -91,9 +92,8 @@ public class CRequest implements IRequest {
 
         Map<String, Object> lChildObjectFields = new HashMap<>();
 
-        Consumer<? super Map.Entry<String, JsonNode>> serializeChildObjects = entry -> {
-            lChildObjectFields.put(entry.getKey(), entry.getValue().asText());
-        };
+        Consumer<? super Map.Entry<String, JsonNode>> serializeChildObjects = entry ->
+                lChildObjectFields.put(entry.getKey(), entry.getValue().asText());
 
         Consumer<? super Map.Entry<String, JsonNode>> getValues = entry -> {
             JsonNode lEntryValue = entry.getValue();

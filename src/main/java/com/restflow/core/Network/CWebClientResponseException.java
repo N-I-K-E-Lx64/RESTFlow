@@ -4,7 +4,7 @@ import com.restflow.core.WorkflowExecution.Objects.IWorkflow;
 
 public class CWebClientResponseException extends Exception {
 
-    private IWorkflow workflow;
+    private final IWorkflow workflow;
 
     public CWebClientResponseException(IWorkflow workflow, String message) {
         super(message);

@@ -40,7 +40,7 @@ public enum EWorkflowParser {
 
     private String tempWorkflowName;
 
-    private ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper();
 
     //TODO : Dirty Workaround
     public void init(StorageService storageService) {
@@ -257,7 +257,6 @@ public enum EWorkflowParser {
      *
      * @param inputNode JsonNode mit allen wichtigen Informationen
      * @return Map mit allen Parameter-Objekten
-     *
      * @see CParameter
      */
     public Map<String, IParameter<?>> parseInputNode(JsonNode inputNode) {
@@ -283,7 +282,7 @@ public enum EWorkflowParser {
             JsonNode nonUserParameters = inputNode.path("parameter");
             if (nonUserParameters.isArray()) {
                 for (JsonNode parameterNode : nonUserParameters) {
-                    IParameter lParsedParameter = parseParameterNode(parameterNode);
+                    IParameter<?> lParsedParameter = parseParameterNode(parameterNode);
 
                     lParameters.put(lParsedParameter.id(), lParsedParameter);
                 }
@@ -324,7 +323,7 @@ public enum EWorkflowParser {
 
         EConditionType lConditionType = EConditionType.INSTANCE.conditionType(conditionNode.path("operator").asText());
 
-        IParameter lParameter1;
+        IParameter<?> lParameter1;
         JsonNode conditionParameter1 = conditionNode.path("value1");
 
         // Falls eine Vergleichsargument eine Variable enthält
@@ -334,7 +333,7 @@ public enum EWorkflowParser {
             lParameter1 = parseParameterNode(conditionParameter1);
         }
 
-        IParameter lParameter2;
+        IParameter<?> lParameter2;
         JsonNode conditionParameter2 = conditionNode.path("value2");
 
         if (!(conditionNode.path("value2").isObject())) {
@@ -408,7 +407,7 @@ public enum EWorkflowParser {
      * @return Variablen Referenz
      * @see CVariableReference
      */
-    public IParameter createSwitchParameterReference(String pVariableReference) {
+    public IParameter<?> createSwitchParameterReference(String pVariableReference) {
 
         String lPrefix = pVariableReference.split("\\.")[0];
         String lVariableName = pVariableReference.split("\\.")[1];
@@ -427,11 +426,13 @@ public enum EWorkflowParser {
      * @return IParameter Objekt
      * @see CParameter
      */
-    public IParameter parseParameterNode(JsonNode parameterNode) {
+    public IParameter<?> parseParameterNode(JsonNode parameterNode) {
         String lParameterName = parameterNode.path("name").asText();
         String lParameterType = parameterNode.path("type").asText();
         String lParameterValue = parameterNode.path("value").asText();
 
-        return EParameterFactory.INSTANCE.createParameterWithValue(lParameterName, lParameterType, lParameterValue);
+        Class<?> lType = EParameterFactory.INSTANCE.determineClass(lParameterType);
+
+        return EParameterFactory.INSTANCE.createParameter(lParameterName, false, lType).setValue(lParameterValue);
     }
 }

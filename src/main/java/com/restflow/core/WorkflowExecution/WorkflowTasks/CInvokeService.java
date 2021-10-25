@@ -93,7 +93,7 @@ public class CInvokeService extends IBaseTaskAction {
             throw new CUserInteractionException(
                     MessageFormat.format("Parameter [{0}] does not exist!", lMessage.parameterName()));
             // TODO: Fix this!
-        } else if (!Objects.isNull(lParameter.value())) {
+        } else if (Objects.nonNull(lParameter.value())) {
             throw new CUserInteractionException(
                     MessageFormat.format("Parameter [{0}] already set!", lMessage.parameterName()));
         }

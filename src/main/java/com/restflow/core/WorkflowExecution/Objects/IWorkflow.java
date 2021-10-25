@@ -2,6 +2,7 @@ package com.restflow.core.WorkflowExecution.Objects;
 
 import com.restflow.core.Network.IMessage;
 import com.restflow.core.WorkflowExecution.WorkflowTasks.ITaskAction;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.IParameter;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.ITask;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.IVariable;
 import org.springframework.lang.NonNull;
@@ -34,7 +35,7 @@ public interface IWorkflow extends Consumer<IMessage> {
     Map<String, IVariable> variables();
 
     @NonNull
-    List<String> emptyVariables();
+    List<IParameter<?>> emptyVariables();
 
     @NonNull
     Queue<ITaskAction> execution();
@@ -43,7 +44,7 @@ public interface IWorkflow extends Consumer<IMessage> {
 
     void setStatus(@NonNull EWorkflowStatus pStatus);
 
-    void setEmptyVariables(@NonNull List<String> pEmptyVariables);
+    void setEmptyVariables(@NonNull List<IParameter<?>> pEmptyVariables);
 
     void generateExecutionOrder(@NonNull Queue<ITask> pTasks);
 

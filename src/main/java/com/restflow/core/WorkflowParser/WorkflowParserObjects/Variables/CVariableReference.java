@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class CVariableReference implements IParameter {
 
     private final String mVariableName;
-    private AtomicReference<IVariable> mVariable = new AtomicReference<>();
+    private final AtomicReference<IVariable> mVariable = new AtomicReference<>();
 
     public CVariableReference(String pVariableName, IVariable pVariable) {
         this.mVariableName = pVariableName;
@@ -29,7 +29,7 @@ public class CVariableReference implements IParameter {
     }
 
     @Override
-    public IParameter setValue(Object pValue) {
+    public IParameter<?> setValue(String pValue) {
         mVariable.get().setValue(pValue);
 
         return this;

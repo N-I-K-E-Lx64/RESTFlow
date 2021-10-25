@@ -14,7 +14,7 @@ public enum EVariableTempStorage implements Function<String, IVariable> {
 
     INSTANCE;
 
-    private AtomicReference<Map<String, IVariable>> mVariableReference = new AtomicReference<>();
+    private final AtomicReference<Map<String, IVariable>> mVariableReference = new AtomicReference<>();
 
     EVariableTempStorage() {
     }

@@ -14,7 +14,7 @@ public class CInvokeServiceTask implements ITask {
     private final String mTitle;
     private final EWorkflowTaskType mTaskType;
     private final int mResourceIndex;
-    private Map<String, IParameter> mInput;
+    private Map<String, IParameter<?>> mInput;
     private final Api mApi;
 
     private CInvokeAssignTask mAssignTask;
@@ -26,7 +26,7 @@ public class CInvokeServiceTask implements ITask {
         this.mTaskType = EWorkflowTaskType.INVOKESERVICE;
     }
 
-    public void setInput(Map<String, IParameter> pInput) {
+    public void setInput(Map<String, IParameter<?>> pInput) {
         this.mInput = pInput;
     }
 
@@ -53,7 +53,7 @@ public class CInvokeServiceTask implements ITask {
     }
 
     @NonNull
-    public Map<String, IParameter> parameters() {
+    public Map<String, IParameter<?>> parameters() {
         return mInput;
     }
 
@@ -71,6 +71,7 @@ public class CInvokeServiceTask implements ITask {
     }
 
     public void resetInput() {
-        mInput.forEach((key, value) -> value.setValue(null));
+        System.out.println("Reset");
+        // mInput.forEach((key, value) -> value.setValue(null));
     }
 }
