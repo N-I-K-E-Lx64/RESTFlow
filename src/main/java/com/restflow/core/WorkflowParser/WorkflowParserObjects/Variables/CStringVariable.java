@@ -1,40 +1,23 @@
 package com.restflow.core.WorkflowParser.WorkflowParserObjects.Variables;
 
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.EVariableType;
-import com.restflow.core.WorkflowParser.WorkflowParserObjects.IVariable;
 import org.springframework.lang.NonNull;
 
-public class CStringVariable implements IVariable {
+public class CStringVariable extends AVariable {
 
-    private final String mName;
     private String mValue;
 
-    private final EVariableType mVariableType;
-
-    public CStringVariable(@NonNull final String mName) {
-        this.mName = mName;
-        this.mVariableType = EVariableType.STRING;
+    public CStringVariable(@NonNull final String name) {
+        super(name, EVariableType.STRING);
     }
 
     @Override
-    public void setValue(@NonNull final Object pValue) {
-        mValue = (String) pValue;
+    public void setValue(String value) {
+        this.mValue = value;
     }
 
     @Override
-    public String value() {
+    public Object value() {
         return mValue;
-    }
-
-    @NonNull
-    @Override
-    public String name() {
-        return mName;
-    }
-
-    @NonNull
-    @Override
-    public EVariableType variableType() {
-        return mVariableType;
     }
 }

@@ -1,17 +1,19 @@
 package com.restflow.core.WorkflowParser.WorkflowParserObjects;
 
-import com.restflow.core.WorkflowExecution.WorkflowTasks.EWorkflowTaskType;
+import com.restflow.core.WorkflowExecution.WorkflowTasks.ETaskType;
 import org.springframework.lang.NonNull;
 
 public interface ITask {
 
-    @NonNull
     Object raw();
 
     @NonNull
-    String title();
+    String id();
 
     @NonNull
-    EWorkflowTaskType taskType();
+    String description();
+
+    @NonNull
+    ETaskType taskType();
 
 }

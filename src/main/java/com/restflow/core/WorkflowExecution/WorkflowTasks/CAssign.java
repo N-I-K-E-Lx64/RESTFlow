@@ -1,12 +1,8 @@
 package com.restflow.core.WorkflowExecution.WorkflowTasks;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.restflow.core.Network.IMessage;
 import com.restflow.core.WorkflowExecution.Objects.IWorkflow;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.Tasks.CAssignTask;
-import com.restflow.core.WorkflowParser.WorkflowParserObjects.Variables.CJsonVariable;
-import com.restflow.core.WorkflowParser.WorkflowParserObjects.Variables.CStringVariable;
 import org.springframework.lang.NonNull;
 
 import java.util.Queue;
@@ -28,17 +24,7 @@ public class CAssign extends IBaseTaskAction {
      */
     @Override
     public Boolean apply(Queue<ITaskAction> iTaskActions) {
-
-        // Jeder Variablen-Typ muss auf eine unterschiedliche Art und Weise gespeichert werden
-        if (mTask.target() instanceof CJsonVariable) {
-            ObjectMapper mapper = new ObjectMapper();
-
-            ObjectNode lParameterNode = mapper.createObjectNode();
-            lParameterNode.putPOJO(mTask.source().id(), mTask.source().value());
-            mTask.target().setValue(lParameterNode);
-        } else if (mTask.target() instanceof CStringVariable) {
-            mTask.target().setValue(mTask.source().value());
-        }
+        mTask.target().setValue(mTask.source().value().toString());
 
         // No User Interaction needed
         return false;
@@ -51,7 +37,7 @@ public class CAssign extends IBaseTaskAction {
 
     @NonNull
     @Override
-    public String title() {
-        return mTask.title();
+    public String id() {
+        return mTask.id();
     }
 }

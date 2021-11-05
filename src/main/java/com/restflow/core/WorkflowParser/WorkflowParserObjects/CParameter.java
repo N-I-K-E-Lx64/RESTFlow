@@ -38,7 +38,6 @@ public class CParameter<T> implements IParameter<T> {
         return mParameterId;
     }
 
-    @NonNull
     @Override
     public T value() {
         return mValue;

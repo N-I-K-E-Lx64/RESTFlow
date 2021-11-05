@@ -92,7 +92,6 @@ public class CInvokeService extends IBaseTaskAction {
         if (Objects.isNull(lParameter)) {
             throw new CUserInteractionException(
                     MessageFormat.format("Parameter [{0}] does not exist!", lMessage.parameterName()));
-            // TODO: Fix this!
         } else if (Objects.nonNull(lParameter.value())) {
             throw new CUserInteractionException(
                     MessageFormat.format("Parameter [{0}] already set!", lMessage.parameterName()));
@@ -113,24 +112,12 @@ public class CInvokeService extends IBaseTaskAction {
      * @throws IOException Is thrown if the result cannot be stored in a variable
      */
     private void processSuccess(IRequest pRequest) throws IOException {
-
-        // Jeder Media Type muss auf eine unterschiedliche Art und Weise gespeichert werden
-        if (pRequest.responseMediaType().equals(MediaType.APPLICATION_JSON)) {
-            if (!(Objects.isNull(mTask.assignTask()))) {
-                mTask.assignTask().setJsonSource(mapper.readTree(pRequest.response()));
-
-                EWorkflowTaskFactory.INSTANCE.factory(mWorkflow, mTask.assignTask()).apply(mWorkflow.execution());
-            }
-        } else if (pRequest.responseMediaType().equals(MediaType.TEXT_PLAIN)) {
-            mTask.assignTask().setStringSource(pRequest.response());
-
-            EWorkflowTaskFactory.INSTANCE.factory(mWorkflow, mTask.assignTask()).apply(mWorkflow.execution());
-        }
+        mTask.target().setValue(pRequest.response());
     }
 
     @NonNull
     @Override
-    public String title() {
-        return mTask.title();
+    public String id() {
+        return mTask.id();
     }
 }

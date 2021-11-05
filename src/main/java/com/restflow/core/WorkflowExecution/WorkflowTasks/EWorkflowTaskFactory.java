@@ -19,7 +19,7 @@ public enum EWorkflowTaskFactory {
      */
     public ITaskAction factory(@NonNull IWorkflow pWorkflow, @NonNull ITask pTask) {
         switch (pTask.taskType()) {
-            case INVOKESERVICE:
+            case INVOKE:
                 return new CInvokeService(pWorkflow, (CInvokeServiceTask) pTask.raw());
 
             case SWITCH:
@@ -27,9 +27,6 @@ public enum EWorkflowTaskFactory {
 
             case ASSIGN:
                 return new CAssign(pWorkflow, (CAssignTask) pTask.raw());
-
-            case INVOKEASSIGN:
-                return new CInvokeAssign(pWorkflow, (CInvokeAssignTask) pTask.raw());
 
             case SEND:
                 return new CSend(pWorkflow, (CSendTask) pTask.raw());
