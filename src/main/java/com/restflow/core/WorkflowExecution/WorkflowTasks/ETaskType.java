@@ -1,10 +1,10 @@
 package com.restflow.core.WorkflowExecution.WorkflowTasks;
 
-public enum EWorkflowTaskType {
+public enum ETaskType {
 
-    INVOKESERVICE,
+    INVOKE,
     ASSIGN,
-    INVOKEASSIGN,
+    TRANSFER,
     SWITCH,
     SEND,
     RECEIVE

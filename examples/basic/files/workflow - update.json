@@ -1,0 +1,115 @@
+{
+  "workflow": {
+    "name": "basicExample",
+    "description": "Example to demonstrate the basic functionality of the system.",
+    "variables": [
+      {
+        "name": "order",
+        "type": "JSON"
+      },
+      {
+        "name": "order_confirmation",
+        "type": "STRING"
+      },
+      {
+        "name": "condition_param",
+        "type": "STRING"
+      },
+      {
+        "name": "RESULT",
+        "type": "STRING"
+      }
+    ],
+    "flow": [
+      "Invoke1",
+      "Invoke2",
+      "Switch1"
+    ],
+    "tasks": [
+      {
+        "id": "Invoke1",
+        "description": "Invoke MarketWS",
+        "type": "INVOKE",
+        "params": {
+          "raml": "Market.raml",
+          "resource": "/getBestOffer",
+          "user-params": [
+            {
+              "id": "partNumber",
+              "type": "STRING"
+            },
+            {
+              "id": "budget",
+              "type": "DOUBLE"
+            }
+          ],
+          "variable": "VARIABLES.order"
+        }
+      },
+      {
+        "id": "Invoke2",
+        "description": "Invoke OrderWS with order object",
+        "type": "INVOKE",
+        "params": {
+          "raml": "Order.raml",
+          "resource": "/placeOrder",
+          "variables": [
+            "VARIABLES.order"
+          ],
+          "variable": "VARIABLES.order_confirmation"
+        }
+      },
+      {
+        "id": "AssignConditionParam",
+        "description": "Assigning the condition parameter",
+        "type": "ASSIGN",
+        "params": {
+          "id": "SuccessResult",
+          "value": "Success",
+          "type": "STRING",
+          "variable": "VARIABLES.condition_param"
+        }
+      },
+      {
+        "id": "Transfer1",
+        "description": "Transfering",
+        "type": "TRANSFER",
+        "params": {
+          "source": "VARIABLES.condition_param",
+          "target": "VARIABLES.RESULT"
+        }
+      },
+      {
+        "id": "Assign1",
+        "description": "Assigning error",
+        "type": "ASSIGN",
+        "params": {
+          "id": "ErrorResult",
+          "value": "Error",
+          "type": "STRING",
+          "variable": "VARIABLES.RESULT"
+        }
+      },
+      {
+        "id": "Switch1",
+        "description": "Check result of last invokation",
+        "type": "SWITCH",
+        "params": {
+          "operator": "CONTAINS",
+          "param1": "VARIABLES.order_confirmation",
+          "param2": {
+            "id": "ErrorMessage",
+            "value": "Error",
+            "type": "STRING"
+          },
+          "true-flow": [
+            "Transfer1"
+          ],
+          "false-flow": [
+            "Assign1"
+          ]
+        }
+      }
+    ]
+  }
+}

@@ -17,6 +17,7 @@ public enum ERamlParser {
 
     private static final Logger logger = LogManager.getLogger(ERamlParser.class);
 
+    // TODO: Change this to a service!
     public Api parseRaml(Resource ramlResource) {
 
         File ramlFile;
