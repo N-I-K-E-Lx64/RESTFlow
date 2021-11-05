@@ -1,7 +1,5 @@
-package com.restflow.core.WorkflowParser.WorkflowParserObjects.Variables;
+package com.restflow.core.WorkflowParser.WorkflowParserObjects;
 
-import com.restflow.core.WorkflowParser.WorkflowParserObjects.IParameter;
-import com.restflow.core.WorkflowParser.WorkflowParserObjects.IVariable;
 import org.springframework.lang.NonNull;
 
 import java.util.concurrent.atomic.AtomicReference;

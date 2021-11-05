@@ -13,10 +13,6 @@ import com.restflow.core.WorkflowParser.WorkflowParserObjects.Tasks.CAssignTask;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.Tasks.CInvokeServiceTask;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.Tasks.CSwitchTask;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.Tasks.CTransferTask;
-import com.restflow.core.WorkflowParser.WorkflowParserObjects.Variables.CIntegerVariable;
-import com.restflow.core.WorkflowParser.WorkflowParserObjects.Variables.CJsonVariable;
-import com.restflow.core.WorkflowParser.WorkflowParserObjects.Variables.CStringVariable;
-import com.restflow.core.WorkflowParser.WorkflowParserObjects.Variables.CVariableReference;
 import org.raml.v2.api.model.v10.api.Api;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -324,13 +320,10 @@ public class WorkflowParserService {
     }
 
     /**
-     * Creates a specific variable object
+     * Creates a variable generic that has exactly the modeled type
      *
      * @param variableNode JSON object of the variable
-     * @return IVariable object
-     * @see CJsonVariable
-     * @see CStringVariable
-     * @see CIntegerVariable
+     * @return IVariable generic
      */
     private Map<String, IVariable<?>> parseVariables(@NonNull final JsonNode variableNode) {
         Map<String, IVariable<?>> lVariables = new LinkedHashMap<>();
