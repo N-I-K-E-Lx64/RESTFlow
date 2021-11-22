@@ -154,8 +154,8 @@ public class CWorkflow implements IWorkflow {
     }
 
     @Override
-    public Map<String, IVariable<?>> resetVariable(Map<String, IVariable<?>> pVariables) {
-        pVariables.forEach((key, value) -> value.setValue(null));
+    public Map<String, IVariable<?>> resetVariable(@NonNull Map<String, IVariable<?>> pVariables) {
+        // pVariables.forEach((key, value) -> value.setValue(null));
 
         return pVariables;
     }
