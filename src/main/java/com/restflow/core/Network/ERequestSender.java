@@ -45,7 +45,7 @@ public enum ERequestSender {
                 .uri(pRequest.resourceUrl())
                 .header(HttpHeaders.CONTENT_TYPE, String.valueOf(pRequest.requestMediaType()))
                 .accept(pRequest.requestMediaType())
-                .body(BodyInserters.fromObject(pRequest.fieldsAsJson()))
+                .body(BodyInserters.fromValue(pRequest.fieldsAsJson()))
                 .retrieve()
                 .onStatus(HttpStatus::isError, clientResponse ->
                         Mono.error(new CWebClientResponseException(pWorkflow,
@@ -75,7 +75,7 @@ public enum ERequestSender {
         String lResponse = client
                 .method(HttpMethod.POST)
                 .uri(URI.create(pRequestUrl + COLLABORATION_CONTROLLER))
-                .body(BodyInserters.fromObject(pRequestBody))
+                .body(BodyInserters.fromValue(pRequestBody))
                 .retrieve()
                 .onStatus(HttpStatus::isError, clientResponse ->
                         Mono.error(new CWebClientResponseException(pWorkflow,

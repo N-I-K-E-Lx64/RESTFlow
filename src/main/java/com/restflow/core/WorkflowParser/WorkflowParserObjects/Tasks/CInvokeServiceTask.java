@@ -1,37 +1,31 @@
 package com.restflow.core.WorkflowParser.WorkflowParserObjects.Tasks;
 
-import com.restflow.core.WorkflowExecution.WorkflowTasks.EWorkflowTaskType;
+import com.restflow.core.WorkflowExecution.WorkflowTasks.ETaskType;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.IParameter;
-import com.restflow.core.WorkflowParser.WorkflowParserObjects.ITask;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.IVariable;
 import org.raml.v2.api.model.v10.api.Api;
 import org.springframework.lang.NonNull;
 
-import java.text.MessageFormat;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
-public class CInvokeServiceTask implements ITask {
+public class CInvokeServiceTask extends ATask {
 
-    private final String mTitle;
-    private final EWorkflowTaskType mTaskType;
     private final int mResourceIndex;
-    private Map<String, IParameter<?>> mInput;
+    private final Map<String, IParameter<?>> mInput;
     private final Api mApi;
+    private final AtomicReference<IVariable<?>> mTargetReference = new AtomicReference<>();
 
-    private CInvokeAssignTask mAssignTask;
+    public CInvokeServiceTask(@NonNull final String id,
+                              @NonNull final String description,
+                              @NonNull final int resourceIndex,
+                              @NonNull final Api api,
+                              @NonNull final Map<String, IParameter<?>> parameters) {
+        super(id, description, ETaskType.INVOKE);
 
-    public CInvokeServiceTask(String pTitle, int pMethodIndex, Api pApi) {
-        this.mTitle = MessageFormat.format("Invoking Webservice {0}", pTitle);
-        this.mResourceIndex = pMethodIndex;
-        this.mApi = pApi;
-        this.mTaskType = EWorkflowTaskType.INVOKESERVICE;
-    }
-
-    public void setInput(Map<String, IParameter<?>> pInput) {
-        this.mInput = pInput;
-    }
-
-    public void setAssignTask(CInvokeAssignTask pAssignTask) {
-        this.mAssignTask = pAssignTask;
+        this.mResourceIndex = resourceIndex;
+        this.mApi = api;
+        this.mInput = parameters;
     }
 
     @NonNull
@@ -40,16 +34,18 @@ public class CInvokeServiceTask implements ITask {
         return this;
     }
 
-    @NonNull
-    @Override
-    public String title() {
-        return mTitle;
+    public void setTargetVariable(@NonNull final IVariable<?> targetVariable) {
+        mTargetReference.set(targetVariable);
     }
 
     @NonNull
-    @Override
-    public EWorkflowTaskType taskType() {
-        return mTaskType;
+    public int resourceIndex() {
+        return mResourceIndex;
+    }
+
+    @NonNull
+    public Api api() {
+        return mApi;
     }
 
     @NonNull
@@ -58,16 +54,8 @@ public class CInvokeServiceTask implements ITask {
     }
 
     @NonNull
-    public int resourceIndex() {
-        return mResourceIndex;
-    }
-
-    public Api api() {
-        return mApi;
-    }
-
-    public CInvokeAssignTask assignTask() {
-        return mAssignTask;
+    public IVariable<?> target() {
+        return mTargetReference.get();
     }
 
     public void resetInput() {

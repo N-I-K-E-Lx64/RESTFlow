@@ -25,7 +25,7 @@ public class CWorkflow implements IWorkflow {
 
     private final AtomicReference<ITaskAction> mCurrentTask = new AtomicReference<>();
 
-    private final Map<String, IVariable> mVariables;
+    private Map<String, IVariable<?>> mVariables;
 
     private List<IParameter<?>> mEmptyVariables = new LinkedList<>();
 
@@ -49,10 +49,9 @@ public class CWorkflow implements IWorkflow {
         this.mStatus = EWorkflowStatus.INITIATED;
     }
 
-    public CWorkflow(String pTitle, String pDescription, Map<String, IVariable> pVariables) {
+    public CWorkflow(String pTitle, String pDescription) {
         this.mDefinitionReference = pTitle;
         this.mDescription = pDescription;
-        this.mVariables = Collections.synchronizedMap(pVariables);
 
         this.mStatus = EWorkflowStatus.INITIATED;
     }
@@ -94,7 +93,7 @@ public class CWorkflow implements IWorkflow {
 
     @NonNull
     @Override
-    public Map<String, IVariable> variables() {
+    public Map<String, IVariable<?>> variables() {
         return mVariables;
     }
 
@@ -118,6 +117,11 @@ public class CWorkflow implements IWorkflow {
         generateExecutionOrder(pExecution);
         // Ausführung starten
         start();
+    }
+
+    @Override
+    public void setVariables(@NonNull Map<String, IVariable<?>> pVariables) {
+        this.mVariables = Collections.synchronizedMap(pVariables);
     }
 
     @Override
@@ -150,8 +154,8 @@ public class CWorkflow implements IWorkflow {
     }
 
     @Override
-    public Map<String, IVariable> resetVariable(@NonNull Map<String, IVariable> pVariables) {
-        pVariables.forEach((key, value) -> value.setValue(null));
+    public Map<String, IVariable<?>> resetVariable(@NonNull Map<String, IVariable<?>> pVariables) {
+        // pVariables.forEach((key, value) -> value.setValue(null));
 
         return pVariables;
     }
@@ -184,10 +188,10 @@ public class CWorkflow implements IWorkflow {
             ITaskAction lCurrentTask = mExecution.element();
             // Update the current Task reference
             mCurrentTask.set(lCurrentTask);
-            ExecutionLogger.INSTANCE.info(this.mInstanceName, "Executing: " + lCurrentTask.title());
+            ExecutionLogger.INSTANCE.info(this.mInstanceName, "Executing: " + lCurrentTask);
 
             // Update the monitoring object with the new current task
-            mMonitoringInfo.get().setCurrentActivity(lCurrentTask.title()).sendMessage();
+            mMonitoringInfo.get().setCurrentActivity(lCurrentTask.id()).sendMessage();
 
             // Den Head der Queue ausführen und wenn true geliefert wird, muss auf eine Nachricht gewartet werden
             if (mExecution.element().apply(mExecution)) {

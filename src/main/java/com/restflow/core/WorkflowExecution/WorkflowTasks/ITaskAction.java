@@ -10,5 +10,5 @@ import java.util.function.Function;
 public interface ITaskAction extends Function<Queue<ITaskAction>, Boolean>, Consumer<IMessage> {
 
     @NonNull
-    String title();
+    String id();
 }

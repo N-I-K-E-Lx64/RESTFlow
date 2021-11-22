@@ -1,7 +1,5 @@
-package com.restflow.core.WorkflowParser.WorkflowParserObjects.Variables;
+package com.restflow.core.WorkflowParser.WorkflowParserObjects;
 
-import com.restflow.core.WorkflowParser.WorkflowParserObjects.IParameter;
-import com.restflow.core.WorkflowParser.WorkflowParserObjects.IVariable;
 import org.springframework.lang.NonNull;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -9,9 +7,9 @@ import java.util.concurrent.atomic.AtomicReference;
 public class CVariableReference implements IParameter {
 
     private final String mVariableName;
-    private final AtomicReference<IVariable> mVariable = new AtomicReference<>();
+    private final AtomicReference<IVariable<?>> mVariable = new AtomicReference<>();
 
-    public CVariableReference(String pVariableName, IVariable pVariable) {
+    public CVariableReference(String pVariableName, IVariable<?> pVariable) {
         this.mVariableName = pVariableName;
         this.mVariable.set(pVariable);
     }
@@ -24,7 +22,7 @@ public class CVariableReference implements IParameter {
 
     @NonNull
     @Override
-    public IVariable value() {
+    public IVariable<?> value() {
         return mVariable.get();
     }
 

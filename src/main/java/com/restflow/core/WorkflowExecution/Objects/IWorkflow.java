@@ -32,7 +32,7 @@ public interface IWorkflow extends Consumer<IMessage> {
     ITaskAction currentTask();
 
     @NonNull
-    Map<String, IVariable> variables();
+    Map<String, IVariable<?>> variables();
 
     @NonNull
     List<IParameter<?>> emptyVariables();
@@ -42,6 +42,8 @@ public interface IWorkflow extends Consumer<IMessage> {
 
     void setQueue(@NonNull Queue<ITask> pExecution);
 
+    void setVariables(@NonNull Map<String, IVariable<?>> pVariables);
+
     void setStatus(@NonNull EWorkflowStatus pStatus);
 
     void setEmptyVariables(@NonNull List<IParameter<?>> pEmptyVariables);
@@ -50,7 +52,7 @@ public interface IWorkflow extends Consumer<IMessage> {
 
     Queue<ITask> resetInput(@NonNull Queue<ITask> pTasks);
 
-    Map<String, IVariable> resetVariable(@NonNull Map<String, IVariable> pVariables);
+    Map<String, IVariable<?>> resetVariable(@NonNull Map<String, IVariable<?>> pVariables);
 
     @NonNull
     IWorkflow start();

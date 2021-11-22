@@ -1,11 +1,11 @@
 package com.restflow.core.WorkflowParser.WorkflowParserObjects;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.restflow.core.WorkflowExecution.Condition.EConditionType;
 import com.restflow.core.WorkflowExecution.Objects.CConditionException;
 import com.restflow.core.WorkflowExecution.Objects.CWorkflowExecutionException;
-import com.restflow.core.WorkflowParser.WorkflowParserObjects.Variables.CJsonVariable;
 import org.springframework.lang.NonNull;
 
 import java.text.MessageFormat;
@@ -31,14 +31,14 @@ public class CCondition implements ICondition {
         Object lFirstParameter;
         Object lSecondParameter;
 
-        if (mFirstParameter.get().value() instanceof IVariable) {
-            lFirstParameter = deserializeVariable((IVariable) mFirstParameter.get().value());
+        if (mFirstParameter.get().value() instanceof IVariable<?>) {
+            lFirstParameter = deserializeVariable((IVariable<?>) mFirstParameter.get().value());
         } else {
             lFirstParameter = mFirstParameter.get().value();
         }
 
-        if (mSecondParameter.get().value() instanceof IVariable) {
-            lSecondParameter = deserializeVariable((IVariable) mSecondParameter.get().value());
+        if (mSecondParameter.get().value() instanceof IVariable<?>) {
+            lSecondParameter = deserializeVariable((IVariable<?>) mSecondParameter.get().value());
         } else {
             lSecondParameter = mSecondParameter.get().value();
         }
@@ -60,7 +60,7 @@ public class CCondition implements ICondition {
                 return doubleParameter(lFirstParameter) >= doubleParameter(lSecondParameter);
 
             case LESS_OR_EQUALS:
-                return (doubleParameter(lFirstParameter) <= doubleParameter(lSecondParameter));
+                return doubleParameter(lFirstParameter) <= doubleParameter(lSecondParameter);
 
             case EQUALS:
                 return lFirstParameter.equals(lSecondParameter);
@@ -79,6 +79,7 @@ public class CCondition implements ICondition {
         }
     }
 
+    // TODO: Use the conversion service for this!
     private Double doubleParameter(Object pNumber) {
         return (Double) pNumber;
     }
@@ -87,15 +88,13 @@ public class CCondition implements ICondition {
         return (String) pString;
     }
 
-    // TODO: Enhance
-    private String deserializeVariable(IVariable pVariable) {
-
-        if (pVariable instanceof CJsonVariable) {
-            ObjectMapper mapper = new ObjectMapper();
+    private String deserializeVariable(IVariable<?> pVariable) {
+        if (pVariable.type() == JsonNode.class) {
             try {
+                ObjectMapper mapper = new ObjectMapper();
                 return mapper.writeValueAsString(pVariable.value());
-            } catch (JsonProcessingException ex) {
-                throw new CWorkflowExecutionException("Variable cannot be parsed to string!", ex);
+            } catch (JsonProcessingException e) {
+                throw new CWorkflowExecutionException("Variable cannot be parsed to string!", e);
             }
         } else {
             return (String) pVariable.value();

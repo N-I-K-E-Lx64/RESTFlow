@@ -1,15 +1,12 @@
 package com.restflow.core.WorkflowExecution.WorkflowTasks;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.restflow.core.Network.IMessage;
 import com.restflow.core.Network.Objects.CCollaborationMessage;
-import com.restflow.core.WorkflowExecution.Objects.CWorkflowExecutionException;
 import com.restflow.core.WorkflowExecution.Objects.EWorkflowStatus;
 import com.restflow.core.WorkflowExecution.Objects.IWorkflow;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.Tasks.CReceiveTask;
 import org.springframework.lang.NonNull;
 
-import java.io.IOException;
 import java.util.Objects;
 import java.util.Queue;
 
@@ -52,25 +49,7 @@ public class CReceive extends IBaseTaskAction {
 
         // Überprüft, ob die ActivityIds gleich sind
         if (lMessage.getActivityId().equals(mTask.activityId())) {
-
-            switch (mTask.targetVariable().variableType()) {
-                case JSON:
-                    ObjectMapper mapper = new ObjectMapper();
-                    try {
-                        mTask.targetVariable().setValue(mapper.readTree(lMessage.get()));
-                    } catch (IOException e) {
-                        throw new CWorkflowExecutionException("Conversion of the payload JSON String into a JSON Node failed!");
-                    }
-                    break;
-
-                case STRING:
-                    mTask.targetVariable().setValue(lMessage.get());
-                    break;
-
-                case INTEGER:
-                    mTask.targetVariable().setValue(Integer.parseInt(lMessage.get()));
-                    break;
-            }
+            mTask.targetVariable().setValue(lMessage.get());
 
             // Ausführung kann fortgesetzt werden
             mWorkflow.setStatus(EWorkflowStatus.ACTIVE);
@@ -79,7 +58,7 @@ public class CReceive extends IBaseTaskAction {
 
     @NonNull
     @Override
-    public String title() {
-        return mTask.title();
+    public String id() {
+        return mTask.id();
     }
 }

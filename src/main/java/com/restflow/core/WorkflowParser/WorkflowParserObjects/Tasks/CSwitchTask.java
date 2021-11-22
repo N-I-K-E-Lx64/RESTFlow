@@ -1,30 +1,28 @@
 package com.restflow.core.WorkflowParser.WorkflowParserObjects.Tasks;
 
-import com.restflow.core.WorkflowExecution.WorkflowTasks.EWorkflowTaskType;
+import com.restflow.core.WorkflowExecution.WorkflowTasks.ETaskType;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.ICondition;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.ITask;
 import org.springframework.lang.NonNull;
 
 import java.util.Queue;
 
-public class CSwitchTask implements ITask {
+public class CSwitchTask extends ATask {
 
-    private final String mTitle;
+    private final ICondition mCondition;
+    private final Queue<ITask> mTrueFlow;
+    private final Queue<ITask> mFalseFlow;
 
-    private ICondition mCondition;
-    private final Queue<ITask> mCaseExecution;
-    private final Queue<ITask> mElseExecution;
+    public CSwitchTask(@NonNull final String taskId,
+                       @NonNull final String description,
+                       @NonNull final ICondition condition,
+                       @NonNull final Queue<ITask> trueFlow,
+                       @NonNull final Queue<ITask> falseFlow) {
+        super(taskId, description, ETaskType.SWITCH);
 
-    private final EWorkflowTaskType mTaskType;
-
-    //TODO : Title erstellen
-    public CSwitchTask(@NonNull final ICondition pCondition, @NonNull final Queue<ITask> pCase, @NonNull final Queue<ITask> pElse) {
-        this.mTitle = "Switch Task";
-        this.mCondition = pCondition;
-        this.mCaseExecution = pCase;
-        this.mElseExecution = pElse;
-
-        this.mTaskType = EWorkflowTaskType.SWITCH;
+        this.mCondition = condition;
+        this.mTrueFlow = trueFlow;
+        this.mFalseFlow = falseFlow;
     }
 
     @NonNull
@@ -34,33 +32,17 @@ public class CSwitchTask implements ITask {
     }
 
     @NonNull
-    @Override
-    public String title() {
-        return mTitle;
-    }
-
-    @NonNull
-    @Override
-    public EWorkflowTaskType taskType() {
-        return mTaskType;
-    }
-
-    public void setCondition(@NonNull final ICondition pCondition) {
-        this.mCondition = pCondition;
-    }
-
-    @NonNull
     public ICondition condition() {
         return mCondition;
     }
 
     @NonNull
-    public Queue<ITask> caseExecution() {
-        return mCaseExecution;
+    public Queue<ITask> trueFlow() {
+        return mTrueFlow;
     }
 
     @NonNull
-    public Queue<ITask> elseExecution() {
-        return mElseExecution;
+    public Queue<ITask> falseFlow() {
+        return mFalseFlow;
     }
 }
