@@ -1,5 +1,6 @@
 package com.restflow.core.WorkflowExecution.Objects;
 
+import com.restflow.core.Network.websocket.UserIdentifier;
 import org.springframework.lang.NonNull;
 
 public interface IMonitoringInfo {
@@ -17,4 +18,6 @@ public interface IMonitoringInfo {
 	IMonitoringInfo setWorkflowStatus(@NonNull final EWorkflowStatus workflowStatus);
 
 	void sendMessage();
+
+	void sendDirectMessage(UserIdentifier recipient);
 }

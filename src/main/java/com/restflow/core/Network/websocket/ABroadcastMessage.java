@@ -30,6 +30,10 @@ public class ABroadcastMessage extends ASocketMessage {
 		Arrays.stream(data).forEach(this::sendSingleMessage);
 	}
 
+	/**
+	 * Sends a single element of the payload array
+	 * @param i Object to be sent
+	 */
 	private void sendSingleMessage(Object i) {
 		try {
 			logger.info("Sending message: " + JSON_MAPPER.writeValueAsString(i) + " to Endpoint: " + endpoint);

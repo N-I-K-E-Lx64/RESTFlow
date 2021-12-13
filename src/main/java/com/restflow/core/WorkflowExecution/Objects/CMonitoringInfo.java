@@ -2,7 +2,9 @@ package com.restflow.core.WorkflowExecution.Objects;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.restflow.core.Network.Objects.CDirectMonitoringMessage;
 import com.restflow.core.Network.Objects.CMonitoringMessage;
+import com.restflow.core.Network.websocket.UserIdentifier;
 import org.springframework.lang.NonNull;
 
 import java.time.LocalDateTime;
@@ -58,12 +60,21 @@ public class CMonitoringInfo implements IMonitoringInfo {
 	}
 
 	/**
-	 * Creates a broadcast message based on the actual state and send it via websocket
-	 *
+	 * Creates a broadcast message containing the workflow state
 	 * @see CMonitoringMessage
 	 */
+	@Override
 	public void sendMessage() {
 		CMonitoringMessage monitoringMessage = new CMonitoringMessage(this);
+		monitoringMessage.sendMessage();
+	}
+
+	/**
+	 * Creates a direct message containing the workflow state and sends it to a specific user
+	 * @see CDirectMonitoringMessage
+	 */
+	public void sendDirectMessage(UserIdentifier recipient) {
+		CDirectMonitoringMessage monitoringMessage = new CDirectMonitoringMessage(this, recipient);
 		monitoringMessage.sendMessage();
 	}
 }

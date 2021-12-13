@@ -109,6 +109,12 @@ public class CWorkflow implements IWorkflow {
         return mExecution;
     }
 
+    @NonNull
+    @Override
+    public CMonitoringInfo monitoringInfo() {
+        return mMonitoringInfo.get();
+    }
+
     @Override
     public void setQueue(@NonNull Queue<ITask> pExecution) {
         // Queue leeren
@@ -173,6 +179,8 @@ public class CWorkflow implements IWorkflow {
 
         // Create initial monitoring object
         mMonitoringInfo.set(new CMonitoringInfo(mInstanceName, LocalDateTime.now()));
+        // Send this initial message
+        mMonitoringInfo.get().sendMessage();
 
         this.executeStep();
         return this;

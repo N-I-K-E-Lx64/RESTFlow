@@ -5,15 +5,15 @@ import com.restflow.core.WorkflowExecution.Objects.CMonitoringInfo;
 
 public class CMonitoringMessage extends ABroadcastMessage {
 
-	private static final String MONITORING_ENDPOINT = "/monitoring";
+	private static final String ENDPOINT = "/monitoring";
 
 	/**
-	 * Create a MonitoringMessage
+	 * Creates a monitoring message that is being broadcasted to all users
 	 *
-	 * @param monitoringInfo Object that contains all relevant parameters that are displayed in the overview
+	 * @param update     Payload that will be serialized and send
 	 */
-	public CMonitoringMessage(CMonitoringInfo monitoringInfo) {
-		super(new Object[]{monitoringInfo}, MONITORING_ENDPOINT);
+	public CMonitoringMessage(CMonitoringInfo update) {
+		super(new Object[]{update}, ENDPOINT);
 	}
 
 	@Override

@@ -40,14 +40,17 @@ public enum EActiveWorkflows implements IActiveWorkflows, Supplier<Set<IWorkflow
 
     @NonNull
     @Override
-    public IWorkflow restart(@NonNull final String pWorkflowInstance) {
+    public IWorkflow restart(@NonNull final String pInstanceName) {
+        if (!mWorkflows.containsKey(pInstanceName)) {
+            throw new RuntimeException(MessageFormat.format("Workflow [{0}] is not part of the active workflows!", pInstanceName));
+        }
 
-        IWorkflow lDeletedWorkflow = mWorkflows.get(pWorkflowInstance);
+        IWorkflow lDeletedWorkflow = mWorkflows.get(pInstanceName);
         IWorkflow lCopiedWorkflowDefinition = EWorkflowDefinitions.INSTANCE.apply(lDeletedWorkflow.definition());
 
         lCopiedWorkflowDefinition.setInstanceName(lDeletedWorkflow.instance());
 
-        mWorkflows.replace(pWorkflowInstance, lDeletedWorkflow, lCopiedWorkflowDefinition);
+        mWorkflows.replace(pInstanceName, lDeletedWorkflow, lCopiedWorkflowDefinition);
 
         return lCopiedWorkflowDefinition;
     }
@@ -72,6 +75,6 @@ public enum EActiveWorkflows implements IActiveWorkflows, Supplier<Set<IWorkflow
 
     @Override
     public Set<IWorkflow> get() {
-        return new HashSet<IWorkflow>(mWorkflows.values());
+        return new HashSet<>(mWorkflows.values());
     }
 }

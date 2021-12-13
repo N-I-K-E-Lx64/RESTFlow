@@ -40,6 +40,9 @@ public interface IWorkflow extends Consumer<IMessage> {
     @NonNull
     Queue<ITaskAction> execution();
 
+    @NonNull
+    CMonitoringInfo monitoringInfo();
+
     void setQueue(@NonNull Queue<ITask> pExecution);
 
     void setVariables(@NonNull Map<String, IVariable<?>> pVariables);

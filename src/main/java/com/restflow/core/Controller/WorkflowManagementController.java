@@ -120,7 +120,7 @@ public class WorkflowManagementController {
             if (lVariable.type() == JsonNode.class) {
                 try {
                     String prettyJSON = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(lVariable.value());
-                    return new VariableResponse(lVariable.id(), lVariable.type().getName(), prettyJSON);
+                    return new VariableResponse(lVariable.id(), lVariable.type().getSimpleName(), prettyJSON);
                 } catch (JsonProcessingException e) {
                     // TODO : Correct exception!
                     e.printStackTrace();
