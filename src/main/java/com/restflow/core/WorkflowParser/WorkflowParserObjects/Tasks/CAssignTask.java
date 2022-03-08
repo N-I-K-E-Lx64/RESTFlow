@@ -1,23 +1,25 @@
 package com.restflow.core.WorkflowParser.WorkflowParserObjects.Tasks;
 
-import com.restflow.core.WorkflowExecution.WorkflowTasks.EWorkflowTaskType;
+import com.restflow.core.WorkflowExecution.WorkflowTasks.ETaskType;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.IParameter;
-import com.restflow.core.WorkflowParser.WorkflowParserObjects.ITask;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.IVariable;
 import org.springframework.lang.NonNull;
 
-import java.text.MessageFormat;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class CAssignTask implements ITask {
+public class CAssignTask extends ATask {
 
-    private IParameter mSourceParameter;
-    private AtomicReference<IVariable> mTargetReference;
+    private final IParameter<?> mSourceParameter;
+    private final AtomicReference<IVariable<?>> mTargetReference = new AtomicReference<>();
 
-    private final EWorkflowTaskType mTaskType;
+    public CAssignTask(@NonNull final String pId,
+                       @NonNull final String pDescription,
+                       @NonNull final IParameter<?> pSourceParameter,
+                       @NonNull final IVariable<?> pTargetVariable) {
+        super(pId, pDescription, ETaskType.ASSIGN);
 
-    public CAssignTask() {
-        mTaskType = EWorkflowTaskType.ASSIGN;
+        this.mSourceParameter = pSourceParameter;
+        this.mTargetReference.set(pTargetVariable);
     }
 
     @NonNull
@@ -26,31 +28,11 @@ public class CAssignTask implements ITask {
         return this;
     }
 
-    @NonNull
-    @Override
-    public String title() {
-        return MessageFormat.format("Assign {0} to {1}", mSourceParameter.name(), mTargetReference.get().name());
-    }
-
-    @NonNull
-    @Override
-    public EWorkflowTaskType taskType() {
-        return mTaskType;
-    }
-
-    public IParameter source() {
+    public IParameter<?> source() {
         return mSourceParameter;
     }
 
-    public void setSource(IParameter pSourceParameter) {
-        this.mSourceParameter = pSourceParameter;
-    }
-
-    public void setTarget(IVariable pTargetReference) {
-        this.mTargetReference = new AtomicReference<>(pTargetReference);
-    }
-
-    public IVariable target() {
+    public IVariable<?> target() {
         return mTargetReference.get();
     }
 }

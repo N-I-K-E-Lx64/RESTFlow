@@ -43,9 +43,9 @@ public class CInvokeService extends IBaseTaskAction {
     public Boolean apply(Queue<ITaskAction> iTaskActions) {
 
         // Fasst alle leeren Variablen in einer Liste zusammen
-        List<String> emptyVariables = mTask.parameters().values().stream()
+        List<IParameter<?>> emptyVariables = mTask.parameters().values().stream()
                 .filter(iParameter -> Objects.isNull(iParameter.value()))
-                .map(IParameter::name)
+                //.map(IParameter::name)
                 .collect(Collectors.toList());
 
         // Request kann nur ausgeführt werden, wenn alle Variablen belegt sind!
@@ -88,18 +88,18 @@ public class CInvokeService extends IBaseTaskAction {
 
         CUserParameterMessage lMessage = (CUserParameterMessage) iMessage;
 
-        CParameter lParameter = (CParameter) mTask.parameters().get(lMessage.parameterName());
+        CParameter<?> lParameter = (CParameter<?>) mTask.parameters().get(lMessage.parameterName());
         if (Objects.isNull(lParameter)) {
             throw new CUserInteractionException(
                     MessageFormat.format("Parameter [{0}] does not exist!", lMessage.parameterName()));
-        } else if (!Objects.isNull(lParameter.value())) {
+        } else if (Objects.nonNull(lParameter.value())) {
             throw new CUserInteractionException(
                     MessageFormat.format("Parameter [{0}] already set!", lMessage.parameterName()));
         }
 
-        lParameter.setValue(iMessage.get());
+        lParameter.setValue(lMessage.get());
 
-        mWorkflow.emptyVariables().remove(lMessage.parameterName());
+        mWorkflow.emptyVariables().remove(lParameter);
 
         if (mWorkflow.emptyVariables().isEmpty()) {
             mWorkflow.setStatus(EWorkflowStatus.ACTIVE);
@@ -112,24 +112,12 @@ public class CInvokeService extends IBaseTaskAction {
      * @throws IOException Is thrown if the result cannot be stored in a variable
      */
     private void processSuccess(IRequest pRequest) throws IOException {
-
-        // Jeder Media Type muss auf eine unterschiedliche Art und Weise gespeichert werden
-        if (pRequest.responseMediaType().equals(MediaType.APPLICATION_JSON)) {
-            if (!(Objects.isNull(mTask.assignTask()))) {
-                mTask.assignTask().setJsonSource(mapper.readTree(pRequest.response()));
-
-                EWorkflowTaskFactory.INSTANCE.factory(mWorkflow, mTask.assignTask()).apply(mWorkflow.execution());
-            }
-        } else if (pRequest.responseMediaType().equals(MediaType.TEXT_PLAIN)) {
-            mTask.assignTask().setStringSource(pRequest.response());
-
-            EWorkflowTaskFactory.INSTANCE.factory(mWorkflow, mTask.assignTask()).apply(mWorkflow.execution());
-        }
+        mTask.target().setValue(pRequest.response());
     }
 
     @NonNull
     @Override
-    public String title() {
-        return mTask.title();
+    public String id() {
+        return mTask.id();
     }
 }

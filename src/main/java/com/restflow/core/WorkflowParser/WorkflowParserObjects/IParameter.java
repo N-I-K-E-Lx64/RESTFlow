@@ -5,9 +5,9 @@ import org.springframework.lang.NonNull;
 public interface IParameter<T> {
 
     @NonNull
-    String name();
+    String id();
 
     T value();
 
-    IParameter setValue(T pValue);
+    IParameter<T> setValue(String pValue);
 }

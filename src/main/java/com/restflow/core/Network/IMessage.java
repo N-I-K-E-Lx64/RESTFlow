@@ -4,5 +4,5 @@ import java.util.function.Supplier;
 
 public interface IMessage extends Supplier<Object> {
 
-    String getWorkflowInstance();
+    String getInstanceId();
 }

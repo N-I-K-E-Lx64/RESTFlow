@@ -27,9 +27,9 @@ public class CSwitch extends IBaseTaskAction {
 
         // Set Execution to Case
         if (mTask.condition().execute()) {
-            mWorkflow.setQueue(mTask.caseExecution());
+            mWorkflow.setQueue(mTask.trueFlow());
         } else {
-            mWorkflow.setQueue(mTask.elseExecution());
+            mWorkflow.setQueue(mTask.falseFlow());
         }
 
         // No User Interaction needed
@@ -43,7 +43,7 @@ public class CSwitch extends IBaseTaskAction {
 
     @NonNull
     @Override
-    public String title() {
-        return mTask.title();
+    public String id() {
+        return mTask.id();
     }
 }

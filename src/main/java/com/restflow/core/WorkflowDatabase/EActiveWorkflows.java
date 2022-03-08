@@ -6,6 +6,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.lang.NonNull;
 
 import java.text.MessageFormat;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -13,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public enum EActiveWorkflows implements IActiveWorkflows, Supplier<Set<Map.Entry<String, IWorkflow>>>, Function<String, IWorkflow> {
+public enum EActiveWorkflows implements IActiveWorkflows, Supplier<Set<IWorkflow>>, Function<String, IWorkflow> {
 
     INSTANCE;
 
@@ -39,14 +40,17 @@ public enum EActiveWorkflows implements IActiveWorkflows, Supplier<Set<Map.Entry
 
     @NonNull
     @Override
-    public IWorkflow restart(@NonNull final String pWorkflowInstance) {
+    public IWorkflow restart(@NonNull final String pInstanceName) {
+        if (!mWorkflows.containsKey(pInstanceName)) {
+            throw new RuntimeException(MessageFormat.format("Workflow [{0}] is not part of the active workflows!", pInstanceName));
+        }
 
-        IWorkflow lDeletedWorkflow = mWorkflows.get(pWorkflowInstance);
+        IWorkflow lDeletedWorkflow = mWorkflows.get(pInstanceName);
         IWorkflow lCopiedWorkflowDefinition = EWorkflowDefinitions.INSTANCE.apply(lDeletedWorkflow.definition());
 
         lCopiedWorkflowDefinition.setInstanceName(lDeletedWorkflow.instance());
 
-        mWorkflows.replace(pWorkflowInstance, lDeletedWorkflow, lCopiedWorkflowDefinition);
+        mWorkflows.replace(pInstanceName, lDeletedWorkflow, lCopiedWorkflowDefinition);
 
         return lCopiedWorkflowDefinition;
     }
@@ -70,7 +74,7 @@ public enum EActiveWorkflows implements IActiveWorkflows, Supplier<Set<Map.Entry
     }
 
     @Override
-    public Set<Map.Entry<String, IWorkflow>> get() {
-        return mWorkflows.entrySet();
+    public Set<IWorkflow> get() {
+        return new HashSet<>(mWorkflows.values());
     }
 }

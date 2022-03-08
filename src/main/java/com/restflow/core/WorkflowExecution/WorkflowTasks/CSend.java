@@ -33,7 +33,7 @@ public class CSend extends IBaseTaskAction {
             ERequestSender.INSTANCE.sendCollaborationJson(mTask.targetSystemUrl(), mTask.createCollaboration(), mWorkflow);
         } catch (JsonProcessingException e) {
             throw new CWorkflowExecutionException(MessageFormat.format(
-                    "Cannot parse Json Variable [{0]}]", mTask.sourceVariable().name()));
+                    "Cannot parse Json Variable [{0]}]", mTask.sourceVariable().id()));
         }
 
         // No User Interaction needed
@@ -47,7 +47,7 @@ public class CSend extends IBaseTaskAction {
 
     @NonNull
     @Override
-    public String title() {
-        return mTask.title();
+    public String id() {
+        return mTask.id();
     }
 }

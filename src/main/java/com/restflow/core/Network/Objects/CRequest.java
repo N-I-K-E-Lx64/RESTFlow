@@ -3,10 +3,9 @@ package com.restflow.core.Network.Objects;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.CVariableReference;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.IParameter;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.IVariable;
-import com.restflow.core.WorkflowParser.WorkflowParserObjects.Variables.CJsonVariable;
-import com.restflow.core.WorkflowParser.WorkflowParserObjects.Variables.CVariableReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.lang.NonNull;
@@ -22,13 +21,13 @@ public class CRequest implements IRequest {
     private final HttpMethod mRequestType;
     private final MediaType mRequestMediaType;
     private final MediaType mResponseMediaType;
-    private final Map<String, IParameter> mFields;
+    private final Map<String, IParameter<?>> mFields;
 
     private String mResponse;
 
     public CRequest(@NonNull final String pUrl, @NonNull final String pResourceUrl,
                     @NonNull HttpMethod pRequestType, @NonNull MediaType pRequestMediaType,
-                    @NonNull MediaType mResponseMediaType, @NonNull Map<String, IParameter> pFields) {
+                    @NonNull MediaType mResponseMediaType, @NonNull Map<String, IParameter<?>> pFields) {
 
         this.mBaseUrl = pUrl;
         this.mResourceUrl = pResourceUrl;
@@ -66,6 +65,7 @@ public class CRequest implements IRequest {
         return mRequestMediaType;
     }
 
+    @NonNull
     @Override
     public MediaType responseMediaType() {
         return mResponseMediaType;
@@ -73,7 +73,7 @@ public class CRequest implements IRequest {
 
     @NonNull
     @Override
-    public Map<String, IParameter> fields() {
+    public Map<String, IParameter<?>> fields() {
         return mFields;
     }
 
@@ -83,6 +83,7 @@ public class CRequest implements IRequest {
         return mResponse;
     }
 
+    // TODO : This can possibly be simplified
     @NonNull
     public String fieldsAsJson() throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
@@ -91,9 +92,8 @@ public class CRequest implements IRequest {
 
         Map<String, Object> lChildObjectFields = new HashMap<>();
 
-        Consumer<? super Map.Entry<String, JsonNode>> serializeChildObjects = entry -> {
-            lChildObjectFields.put(entry.getKey(), entry.getValue().asText());
-        };
+        Consumer<? super Map.Entry<String, JsonNode>> serializeChildObjects = entry ->
+                lChildObjectFields.put(entry.getKey(), entry.getValue().asText());
 
         Consumer<? super Map.Entry<String, JsonNode>> getValues = entry -> {
             JsonNode lEntryValue = entry.getValue();
@@ -105,11 +105,11 @@ public class CRequest implements IRequest {
             }
         };
 
-        Consumer<Map.Entry<String, IParameter>> serialize = parameter -> {
+        Consumer<Map.Entry<String, IParameter<?>>> serialize = parameter -> {
             if (parameter.getValue() instanceof CVariableReference) {
-                IVariable lVariable = (IVariable) parameter.getValue().value();
-                if (lVariable instanceof CJsonVariable) {
-                    JsonNode lJsonVariableValue = ((CJsonVariable) lVariable).value();
+                IVariable<?> lVariable = (IVariable<?>) parameter.getValue().value();
+                if (lVariable.type() == JsonNode.class) {
+                    JsonNode lJsonVariableValue = (JsonNode) lVariable.value();
                     lJsonVariableValue.fields().forEachRemaining(getValues);
                 }
             } else {

@@ -2,15 +2,15 @@ package com.restflow.core.WorkflowParser.WorkflowParserObjects;
 
 import org.springframework.lang.NonNull;
 
-public interface IVariable {
-
-    void setValue(final Object pValue);
-
-    Object value();
+public interface IVariable<T> {
 
     @NonNull
-    String name();
+    String id();
 
     @NonNull
-    EVariableType variableType();
+    Class<T> type();
+
+    T value();
+
+    void setValue(String value);
 }

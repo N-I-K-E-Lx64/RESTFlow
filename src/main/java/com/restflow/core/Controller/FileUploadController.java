@@ -1,6 +1,6 @@
 package com.restflow.core.Controller;
 
-import com.restflow.core.Responses.UploadFileResponse;
+import com.restflow.core.Network.Responses.UploadFileResponse;
 import com.restflow.core.Storage.StorageFileNotFoundException;
 import com.restflow.core.Storage.StorageService;
 import org.apache.logging.log4j.LogManager;

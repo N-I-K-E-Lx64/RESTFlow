@@ -19,7 +19,7 @@ public class CCollaborationMessage implements IMessage {
     }
 
     @Override
-    public String getWorkflowInstance() {
+    public String getInstanceId() {
         return workflowInstance;
     }
 

@@ -4,11 +4,13 @@ import com.restflow.core.Network.IMessage;
 import com.restflow.core.WorkflowExecution.ExecutionLogger;
 import com.restflow.core.WorkflowExecution.WorkflowTasks.EWorkflowTaskFactory;
 import com.restflow.core.WorkflowExecution.WorkflowTasks.ITaskAction;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.IParameter;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.ITask;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.IVariable;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.Tasks.CInvokeServiceTask;
 import org.springframework.lang.NonNull;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
@@ -19,18 +21,22 @@ public class CWorkflow implements IWorkflow {
     private final String mDefinitionReference;
     private final String mDescription;
 
-    private Queue<ITaskAction> mExecution = new ConcurrentLinkedQueue<>();
+    private final Queue<ITaskAction> mExecution = new ConcurrentLinkedQueue<>();
 
-    private AtomicReference<ITaskAction> mCurrentTask = new AtomicReference<>();
+    private final AtomicReference<ITaskAction> mCurrentTask = new AtomicReference<>();
 
-    private Map<String, IVariable> mVariables;
+    private Map<String, IVariable<?>> mVariables;
 
-    private List<String> mEmptyVariables = new LinkedList<>();
+    private List<IParameter<?>> mEmptyVariables = new LinkedList<>();
 
     private EWorkflowStatus mStatus;
 
+    // TODO : Create an interface!
+    private final AtomicReference<CMonitoringInfo> mMonitoringInfo = new AtomicReference<>();
+
     /**
      * Clone Constructor
+     *
      * @param that The object to copy.
      */
     public CWorkflow(@NonNull final IWorkflow that, @NonNull final Queue<ITask> tasks) {
@@ -43,10 +49,9 @@ public class CWorkflow implements IWorkflow {
         this.mStatus = EWorkflowStatus.INITIATED;
     }
 
-    public CWorkflow(String pTitle, String pDescription, Map<String, IVariable> pVariables) {
+    public CWorkflow(String pTitle, String pDescription) {
         this.mDefinitionReference = pTitle;
         this.mDescription = pDescription;
-        this.mVariables = Collections.synchronizedMap(pVariables);
 
         this.mStatus = EWorkflowStatus.INITIATED;
     }
@@ -88,13 +93,13 @@ public class CWorkflow implements IWorkflow {
 
     @NonNull
     @Override
-    public Map<String, IVariable> variables() {
+    public Map<String, IVariable<?>> variables() {
         return mVariables;
     }
 
     @NonNull
     @Override
-    public List<String> emptyVariables() {
+    public List<IParameter<?>> emptyVariables() {
         return mEmptyVariables;
     }
 
@@ -102,6 +107,12 @@ public class CWorkflow implements IWorkflow {
     @Override
     public Queue<ITaskAction> execution() {
         return mExecution;
+    }
+
+    @NonNull
+    @Override
+    public CMonitoringInfo monitoringInfo() {
+        return mMonitoringInfo.get();
     }
 
     @Override
@@ -115,12 +126,18 @@ public class CWorkflow implements IWorkflow {
     }
 
     @Override
-    public void setStatus(@NonNull EWorkflowStatus pStatus) {
-        this.mStatus = pStatus;
+    public void setVariables(@NonNull Map<String, IVariable<?>> pVariables) {
+        this.mVariables = Collections.synchronizedMap(pVariables);
     }
 
     @Override
-    public void setEmptyVariables(@NonNull List<String> pEmptyVariables) {
+    public void setStatus(@NonNull EWorkflowStatus pStatus) {
+        this.mStatus = pStatus;
+        this.mMonitoringInfo.get().setWorkflowStatus(pStatus).sendMessage();
+    }
+
+    @Override
+    public void setEmptyVariables(@NonNull List<IParameter<?>> pEmptyVariables) {
         this.mEmptyVariables = pEmptyVariables;
     }
 
@@ -143,8 +160,8 @@ public class CWorkflow implements IWorkflow {
     }
 
     @Override
-    public Map<String, IVariable> resetVariable(@NonNull Map<String, IVariable> pVariables) {
-        pVariables.forEach((key, value) -> value.setValue(null));
+    public Map<String, IVariable<?>> resetVariable(@NonNull Map<String, IVariable<?>> pVariables) {
+        // pVariables.forEach((key, value) -> value.setValue(null));
 
         return pVariables;
     }
@@ -160,6 +177,11 @@ public class CWorkflow implements IWorkflow {
         // Execution has started
         mStatus = EWorkflowStatus.ACTIVE;
 
+        // Create initial monitoring object
+        mMonitoringInfo.set(new CMonitoringInfo(mInstanceName, LocalDateTime.now()));
+        // Send this initial message
+        mMonitoringInfo.get().sendMessage();
+
         this.executeStep();
         return this;
     }
@@ -171,10 +193,15 @@ public class CWorkflow implements IWorkflow {
     public void executeStep() {
 
         if (mStatus == EWorkflowStatus.ACTIVE) {
-            mCurrentTask.set(mExecution.element());
-            ExecutionLogger.INSTANCE.info(this.mInstanceName, "Executing: " + mCurrentTask.get().title());
+            ITaskAction lCurrentTask = mExecution.element();
+            // Update the current Task reference
+            mCurrentTask.set(lCurrentTask);
+            ExecutionLogger.INSTANCE.info(this.mInstanceName, "Executing: " + lCurrentTask);
 
-            //Den Head der Queue ausführen und wenn true geliefert wird, muss auf eine Nachricht gewartet werden
+            // Update the monitoring object with the new current task
+            mMonitoringInfo.get().setCurrentActivity(lCurrentTask.id()).sendMessage();
+
+            // Den Head der Queue ausführen und wenn true geliefert wird, muss auf eine Nachricht gewartet werden
             if (mExecution.element().apply(mExecution)) {
                 return;
             }
@@ -199,13 +226,18 @@ public class CWorkflow implements IWorkflow {
             return;
         }
 
+        // Queue was successfully processed -> Set workflow status to COMPLETE
         this.setStatus(EWorkflowStatus.COMPLETE);
+
+        // Update the monitoring object
+        mMonitoringInfo.get().setWorkflowStatus(EWorkflowStatus.COMPLETE).sendMessage();
     }
 
     @Override
     public void accept(IMessage pMessage) {
 
         //Kopf der Queue holen und Nachricht mit aktueller Ausführungsqueue weitergeben
+        assert mExecution.peek() != null;
         mExecution.peek().accept(pMessage);
         this.postAction();
     }

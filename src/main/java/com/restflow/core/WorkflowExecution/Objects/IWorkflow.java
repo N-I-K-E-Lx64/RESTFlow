@@ -2,6 +2,7 @@ package com.restflow.core.WorkflowExecution.Objects;
 
 import com.restflow.core.Network.IMessage;
 import com.restflow.core.WorkflowExecution.WorkflowTasks.ITaskAction;
+import com.restflow.core.WorkflowParser.WorkflowParserObjects.IParameter;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.ITask;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.IVariable;
 import org.springframework.lang.NonNull;
@@ -31,25 +32,30 @@ public interface IWorkflow extends Consumer<IMessage> {
     ITaskAction currentTask();
 
     @NonNull
-    Map<String, IVariable> variables();
+    Map<String, IVariable<?>> variables();
 
     @NonNull
-    List<String> emptyVariables();
+    List<IParameter<?>> emptyVariables();
 
     @NonNull
     Queue<ITaskAction> execution();
 
+    @NonNull
+    CMonitoringInfo monitoringInfo();
+
     void setQueue(@NonNull Queue<ITask> pExecution);
+
+    void setVariables(@NonNull Map<String, IVariable<?>> pVariables);
 
     void setStatus(@NonNull EWorkflowStatus pStatus);
 
-    void setEmptyVariables(@NonNull List<String> pEmptyVariables);
+    void setEmptyVariables(@NonNull List<IParameter<?>> pEmptyVariables);
 
     void generateExecutionOrder(@NonNull Queue<ITask> pTasks);
 
     Queue<ITask> resetInput(@NonNull Queue<ITask> pTasks);
 
-    Map<String, IVariable> resetVariable(@NonNull Map<String, IVariable> pVariables);
+    Map<String, IVariable<?>> resetVariable(@NonNull Map<String, IVariable<?>> pVariables);
 
     @NonNull
     IWorkflow start();

@@ -26,7 +26,7 @@ public interface IRequest {
     MediaType responseMediaType();
 
     @NonNull
-    Map<String, IParameter> fields();
+    Map<String, IParameter<?>> fields();
 
     void setResponse(@NonNull final String pResponse);
 
