@@ -28,6 +28,11 @@ public class RESTflowApplication {
         SpringApplication.run(RESTflowApplication.class, args);
     }
 
+    /**
+     * Bean to delete the debugging folder!
+     * @param storageService
+     * @return
+     */
     @Bean
     CommandLineRunner init(StorageService storageService) {
         return (args) -> {

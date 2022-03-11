@@ -13,10 +13,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.nio.channels.FileChannel;
+import java.nio.file.*;
 import java.text.MessageFormat;
 import java.util.Objects;
 
@@ -62,6 +60,53 @@ public class FileSystemStorageService implements StorageService {
             }
         } catch (IOException e) {
             throw new StorageExecption("Could not create the workflow directory where the uploaded files will be stored", e);
+        }
+    }
+
+    /**
+     * Creates a new file and writes the pretty formatted JSON string to it
+     * @param json JSON String
+     * @param filename Filename
+     */
+    public void storeModel(@NonNull final String json, @NonNull final String filename) {
+        try {
+            // Security Checks
+            if (json.isEmpty()) {
+                throw new StorageExecption("Cannot store empty file" + filename);
+            }
+
+            if (filename.contains("..")) {
+                throw new StorageExecption("Cannot store file with relative path outside current directory " + filename);
+            }
+
+            Path targetLocation = this.rootLocation.resolve(filename + ".json");
+            if (!Files.exists(targetLocation)) {
+                Files.createFile(targetLocation);
+            }
+            Files.writeString(targetLocation, json, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            logger.info("Saved model on Location: " + targetLocation);
+        } catch (IOException e) {
+            throw new StorageExecption(MessageFormat.format("Failed to write JSON string to file [{0}]!", filename));
+        }
+    }
+
+    // TODO : Unify this!
+    public Resource loadModelAsResource(@NonNull final String filename) {
+        try {
+            Path fileLocation = this.rootLocation.resolve(filename).normalize();
+            Resource resource = new UrlResource(fileLocation.toUri());
+
+            if (resource.exists() || resource.isReadable()) {
+                return resource;
+            } else {
+                logger.error(MessageFormat.format(
+                        "File {0} on location {3} exists: {1}; isReadable: {2}",
+                        filename, resource.exists(), resource.isReadable(), fileLocation.toUri()));
+
+                throw new StorageFileNotFoundException("Could not read file: " + filename);
+            }
+        } catch (MalformedURLException e) {
+            throw new StorageFileNotFoundException("Could not read file: " + filename, e);
         }
     }
 

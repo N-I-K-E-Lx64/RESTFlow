@@ -2,6 +2,7 @@ package com.restflow.core.Network;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.restflow.core.Network.Objects.CCollaborationMessage;
+import com.restflow.core.Network.Objects.CRequest;
 import com.restflow.core.Network.Objects.IRequest;
 import com.restflow.core.WorkflowExecution.Objects.EWorkflowStatus;
 import com.restflow.core.WorkflowExecution.Objects.IWorkflow;
@@ -34,7 +35,7 @@ public enum ERequestSender {
      * @param pWorkflow Corresponding workflow Definition
      * @return IRequest object with the results of the request
      * @throws JsonProcessingException Will be thrown if the request body could not be created
-     * @see com.restflow.core.Network.Objects.CRequest
+     * @see CRequest
      */
     public IRequest doRequestWithWebClient(IRequest pRequest, IWorkflow pWorkflow) throws JsonProcessingException {
 
