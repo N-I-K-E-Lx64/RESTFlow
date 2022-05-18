@@ -1,21 +1,16 @@
 package com.restflow.core.Controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.restflow.core.ModelingTool.EModels;
+import com.restflow.core.ModelingTool.ModelService;
 import com.restflow.core.ModelingTool.model.WorkflowModel;
-import com.restflow.core.Storage.StorageService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 
 @CrossOrigin(origins = "http://localhost:3000")
@@ -26,54 +21,61 @@ public class ModelingToolController {
 
 	private static final ObjectMapper mapper = new ObjectMapper();
 
-	private final StorageService storageService;
+	private final ModelService modelService;
 
 	@Autowired
-	public ModelingToolController(StorageService storageService) {
-		this.storageService = storageService;
+	public ModelingToolController(ModelService modelService) {
+		this.modelService = modelService;
 	}
 
 	@RequestMapping(value = "/models", method = RequestMethod.GET)
 	public ResponseEntity<List<WorkflowModel>> getModels() {
-		return ResponseEntity.ok(EModels.INSTANCE.get());
-	}
-
-	/**
-	 * Returns the model matching the provided id.
-	 *
-	 * @param id Id of the model
-	 * @return Corresponding workflow model
-	 * @throws IOException
-	 * @see WorkflowModel
-	 */
-	@RequestMapping(value = "/model/{id:.+}", method = RequestMethod.GET)
-	public ResponseEntity<WorkflowModel> getModelById(@PathVariable String id) throws IOException {
-		WorkflowModel model = EModels.INSTANCE.apply(UUID.fromString(id));
-
-		// If the model is not loaded currently check if it exists in the storage and load it
-		if (Objects.isNull(model)) {
-			Resource storedModel = storageService.loadModelAsResource(id);
-			model = mapper.readValue(storedModel.getFile(), WorkflowModel.class);
-
-			EModels.INSTANCE.addModel(model);
-		}
-
-		return ResponseEntity.ok(model);
+		return ResponseEntity.ok(this.modelService.get());
 	}
 
 	/**
 	 * Adds the provided workflow model to the state and saves it as a JSON-file.
 	 *
-	 * @param model Model that is added to the state
-	 * @return The provided workflow model
+	 * @param jsonModel String that represents the workflow model
+	 * @return The parsed workflow model
 	 * @see WorkflowModel
 	 */
-	@RequestMapping(value = "/model", method = RequestMethod.POST)
-	public ResponseEntity<WorkflowModel> addModel(@RequestBody WorkflowModel model) throws JsonProcessingException {
-		EModels.INSTANCE.addModel(model);
-		String prettyJson = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(model);
-		storageService.storeModel(prettyJson, String.valueOf(model.id));
+	@RequestMapping(value = "/model", method = RequestMethod.PUT)
+	public ResponseEntity<WorkflowModel> addModel(@RequestBody String jsonModel) {
+		WorkflowModel parsedModel = this.modelService.parseModel(jsonModel, false);
 
-		return ResponseEntity.ok(model);
+		logger.info(MessageFormat.format("Received a new model with id {0}", parsedModel.id));
+
+		return ResponseEntity.ok(parsedModel);
+	}
+
+	/**
+	 * Updates an existing model in the state.
+	 *
+	 * @param jsonModel String that represents the workflow model
+	 * @return The parsed workflow model
+	 * @see WorkflowModel
+	 */
+	@RequestMapping(value = "/model", method = RequestMethod.PATCH)
+	public ResponseEntity<WorkflowModel> updateModel(@RequestBody String jsonModel) {
+		WorkflowModel parsedModel = this.modelService.parseModel(jsonModel, true);
+
+		logger.info(MessageFormat.format("Successfully updated model {0}", parsedModel.id));
+
+		return ResponseEntity.ok(parsedModel);
+	}
+
+	/**
+	 * Removes the model specified by the provided id.
+	 * @param modelId Id of the model that should be removed
+	 * @return Success message
+	 */
+	@RequestMapping(value = "/model/{modelId:.+}", method = RequestMethod.DELETE)
+	public ResponseEntity<?> deleteModel(@PathVariable UUID modelId) {
+		this.modelService.removeModel(modelId);
+
+		logger.info(MessageFormat.format("Successfully removed Model {0}", modelId));
+
+		return ResponseEntity.ok("Successfully removed Model: " + modelId);
 	}
 }

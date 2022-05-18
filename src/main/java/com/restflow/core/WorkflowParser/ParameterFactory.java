@@ -57,22 +57,14 @@ public class ParameterFactory {
      * @param <T>   Generic
      * @return The class of all the supported parameter types
      */
-    public <T> Class<?> determineClass(@NonNull final String pType) {
-        switch (pType.toUpperCase()) {
-            case "STRING":
-                return String.class;
-
-            case "DOUBLE":
-                return Double.class;
-
-            case "INTEGER":
-                return Integer.class;
-
-            case "JSON":
-                return JsonNode.class;
-
-            default:
-                throw new CWorkflowParseException(MessageFormat.format("Parameter-Type [{0}] does not match any known type!", pType));
-        }
+    public <T> Class<?> determineClass(@NonNull final int pType) {
+        return switch (pType) {
+            case 0 -> String.class;
+            case 1 -> Double.class;
+            case 2 -> Integer.class;
+            case 3 -> JsonNode.class;
+            default ->
+                    throw new CWorkflowParseException(MessageFormat.format("Parameter-Type [{0}] does not match any known type!", pType));
+        };
     }
 }

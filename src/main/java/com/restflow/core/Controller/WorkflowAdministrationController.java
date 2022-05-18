@@ -6,7 +6,6 @@ import com.restflow.core.WorkflowDatabase.EActiveWorkflows;
 import com.restflow.core.WorkflowDatabase.EWorkflowDefinitions;
 import com.restflow.core.WorkflowExecution.Objects.IWorkflow;
 import com.restflow.core.WorkflowParser.CWorkflowParseException;
-import com.restflow.core.WorkflowParser.WorkflowParserService;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -31,12 +30,12 @@ public class WorkflowAdministrationController {
     private static final ObjectMapper mapper = new ObjectMapper();
 
     private final StorageService mStorageService;
-    private final WorkflowParserService mParserService;
+    // private final OldWorkflowParserService mParserService;
 
     @Autowired
-    public WorkflowAdministrationController(StorageService storageService, WorkflowParserService parserService) {
+    public WorkflowAdministrationController(StorageService storageService) {
         mStorageService = storageService;
-        mParserService = parserService;
+        // mParserService = parserService;
     }
 
     /**
@@ -45,7 +44,7 @@ public class WorkflowAdministrationController {
      * @param filename filename of the file to be converted
      * @return suitable response with the name of the parent workflow definition
      */
-    @RequestMapping(value = "/createWorkflowDefinition", method = RequestMethod.POST)
+    /*@RequestMapping(value = "/createWorkflowDefinition", method = RequestMethod.POST)
     public ResponseEntity<?> parseWorkflow(@RequestParam(name = "project") String project,
                                            @RequestParam(name = "workflowModel") String filename) {
         try {
@@ -65,7 +64,7 @@ public class WorkflowAdministrationController {
             logger.error(e.getMessage());
             return ResponseEntity.internalServerError().body(e.getMessage());
         }
-    }
+    }*/
 
     /**
      * Function for deleting a parent workflow definition
