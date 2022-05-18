@@ -1,11 +1,9 @@
 package com.restflow.core.WorkflowParser.WorkflowParserObjects;
 
+import com.restflow.core.RESTflowApplication;
 import com.restflow.core.WorkflowParser.CConversionService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.lang.NonNull;
 
-@Configurable
 public class CParameter<T> implements IParameter<T> {
 
     private T mValue;
@@ -13,8 +11,7 @@ public class CParameter<T> implements IParameter<T> {
     private final String mParameterId;
     private final Boolean mIsUserParameter;
 
-    @Autowired
-    private CConversionService conversionService;
+    protected CConversionService conversionService;
 
     /**
      * CTor for creating a generic parameter
@@ -30,6 +27,9 @@ public class CParameter<T> implements IParameter<T> {
         this.mIsUserParameter = pIsUserParameter;
         this.mType = pType;
         this.mValue = null;
+        this.conversionService = RESTflowApplication.CGlobal.instance()
+                .context()
+                .getBean(CConversionService.class);
     }
 
     @NonNull

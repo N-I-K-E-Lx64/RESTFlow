@@ -20,22 +20,20 @@ public class CInvokeServiceTask extends ATask {
                               @NonNull final String description,
                               @NonNull final int resourceIndex,
                               @NonNull final Api api,
-                              @NonNull final Map<String, IParameter<?>> parameters) {
+                              @NonNull final Map<String, IParameter<?>> parameters,
+                              @NonNull final IVariable<?> targetVariable) {
         super(id, description, ETaskType.INVOKE);
 
         this.mResourceIndex = resourceIndex;
         this.mApi = api;
         this.mInput = parameters;
+        this.mTargetReference.set(targetVariable);
     }
 
     @NonNull
     @Override
     public Object raw() {
         return this;
-    }
-
-    public void setTargetVariable(@NonNull final IVariable<?> targetVariable) {
-        mTargetReference.set(targetVariable);
     }
 
     @NonNull

@@ -8,8 +8,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.aspectj.EnableSpringConfigured;
 import org.springframework.lang.NonNull;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -33,13 +31,13 @@ public class RESTflowApplication {
      * @param storageService
      * @return
      */
-    @Bean
+    /*@Bean
     CommandLineRunner init(StorageService storageService) {
         return (args) -> {
             storageService.deleteAll();
             storageService.init();
         };
-    }
+    }*/
 
     /**
      * global context
@@ -75,11 +73,6 @@ public class RESTflowApplication {
         public ApplicationContext context() {
             return context;
         }
-    }
-
-    @ComponentScan
-    @EnableSpringConfigured
-    public static class AspectJConfig {
     }
 }
 
