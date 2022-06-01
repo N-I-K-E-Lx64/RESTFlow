@@ -3,6 +3,8 @@ package com.restflow.core.ModelingTool;
 import com.restflow.core.ModelingTool.model.WorkflowModel;
 import com.restflow.core.Storage.StorageService;
 import com.restflow.core.WorkflowParser.WorkflowParserService;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
@@ -17,6 +19,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class ModelService implements Supplier<List<WorkflowModel>>, Function<UUID, WorkflowModel> {
+
+	private static final Logger logger = LogManager.getLogger(ModelService.class);
 
 	private final Map<UUID, WorkflowModel> workflowModels;
 
@@ -38,6 +42,7 @@ public class ModelService implements Supplier<List<WorkflowModel>>, Function<UUI
 	private Map<UUID, WorkflowModel> loadModels() {
 		List<File> models = this.storageService.loadAllModels();
 		if (models.size() > 0) {
+			logger.info(MessageFormat.format("{0} models were successfully restored", models.size()));
 			return models.stream()
 					.map(workflowParserService::parseFileModel)
 					.collect(Collectors.toMap(WorkflowModel::getId, Function.identity()));
@@ -58,8 +63,10 @@ public class ModelService implements Supplier<List<WorkflowModel>>, Function<UUI
 		// Add it to the state and save it permanently
 		if (isUpdate) {
 			this.updateModel(parsedModel);
+			logger.info(MessageFormat.format("Model {0} is successfully updated.", parsedModel.id));
 		} else {
 			this.addModel(parsedModel);
+			logger.info(MessageFormat.format("Saved new model {0}.", parsedModel.id));
 		}
 		// Store model permanently
 		this.storageService.storeModel(jsonModel, String.valueOf(parsedModel.id));
@@ -95,7 +102,7 @@ public class ModelService implements Supplier<List<WorkflowModel>>, Function<UUI
 
 		workflowModels.remove(modelId);
 		// Remove the model also from the storage
-		storageService.deleteFile(modelId.toString());
+		storageService.deleteFile(modelId.toString().concat(".json"));
 	}
 
 	/**

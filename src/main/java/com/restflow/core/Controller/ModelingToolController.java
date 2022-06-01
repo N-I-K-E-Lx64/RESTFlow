@@ -3,6 +3,9 @@ package com.restflow.core.Controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.restflow.core.ModelingTool.ModelService;
 import com.restflow.core.ModelingTool.model.WorkflowModel;
+import com.restflow.core.Storage.StorageService;
+import com.restflow.core.WorkflowExecution.WorkflowService;
+import com.restflow.core.WorkflowParser.RamlParserService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,15 +25,29 @@ public class ModelingToolController {
 	private static final ObjectMapper mapper = new ObjectMapper();
 
 	private final ModelService modelService;
+	private final WorkflowService workflowService;
 
 	@Autowired
-	public ModelingToolController(ModelService modelService) {
+	public ModelingToolController(ModelService modelService, WorkflowService workflowService) {
 		this.modelService = modelService;
+		this.workflowService = workflowService;
 	}
 
 	@RequestMapping(value = "/models", method = RequestMethod.GET)
 	public ResponseEntity<List<WorkflowModel>> getModels() {
 		return ResponseEntity.ok(this.modelService.get());
+	}
+
+	/**
+	 * Returns the specified model
+	 *
+	 * @param modelId Id of the model
+	 * @return The specified workflow model
+	 * @see WorkflowModel
+	 */
+	@RequestMapping(value = "/model/{modelId:.+}", method = RequestMethod.GET)
+	public ResponseEntity<WorkflowModel> getModelById(@PathVariable UUID modelId) {
+		return ResponseEntity.ok(this.modelService.apply(modelId));
 	}
 
 	/**
@@ -43,8 +60,6 @@ public class ModelingToolController {
 	@RequestMapping(value = "/model", method = RequestMethod.PUT)
 	public ResponseEntity<WorkflowModel> addModel(@RequestBody String jsonModel) {
 		WorkflowModel parsedModel = this.modelService.parseModel(jsonModel, false);
-
-		logger.info(MessageFormat.format("Received a new model with id {0}", parsedModel.id));
 
 		return ResponseEntity.ok(parsedModel);
 	}
@@ -67,6 +82,7 @@ public class ModelingToolController {
 
 	/**
 	 * Removes the model specified by the provided id.
+	 *
 	 * @param modelId Id of the model that should be removed
 	 * @return Success message
 	 */
@@ -78,4 +94,20 @@ public class ModelingToolController {
 
 		return ResponseEntity.ok("Successfully removed Model: " + modelId);
 	}
+
+	/**
+	 * Function for starting / creating a workflow instance
+	 *
+	 * @param modelId Id of the model on which the new instance is based on.
+	 * @param instanceId Name of the instance
+	 * @return suitable response
+	 */
+	@RequestMapping(value = "/execute/{modelId:.+}/{instanceId:.+}", method = RequestMethod.GET)
+	public ResponseEntity<?> startModelExecution(@PathVariable UUID modelId, @PathVariable String instanceId) {
+		this.workflowService.accept(this.modelService.apply(modelId), instanceId);
+
+		return ResponseEntity.ok(MessageFormat.format("Successfully created a new instance {0} from the model {1}", instanceId, modelId));
+	}
+
+	// TODO : Stop, restart operations!
 }

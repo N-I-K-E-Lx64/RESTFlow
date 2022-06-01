@@ -1,8 +1,11 @@
 package com.restflow.core.Controller;
 
-import com.restflow.core.Network.Responses.UploadFileResponse;
+import com.restflow.core.Network.Responses.UploadRamlResponse;
 import com.restflow.core.Storage.StorageFileNotFoundException;
 import com.restflow.core.Storage.StorageService;
+import com.restflow.core.ThrowingFunction;
+import com.restflow.core.WorkflowParser.RamlParserService;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,75 +15,68 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 public class FileUploadController {
 
     private static final Logger logger = LogManager.getLogger(FileUploadController.class);
 
-    private final StorageService mStorageService;
+    private final StorageService storageService;
+
+    private final RamlParserService ramlParserService;
 
     @Autowired
-    public FileUploadController(StorageService storageService) {
-        mStorageService = storageService;
+    public FileUploadController(StorageService storageService, RamlParserService ramlParserService) {
+        this.storageService = storageService;
+        this.ramlParserService = ramlParserService;
     }
 
-    @RequestMapping(value = "/uploadFile", method = RequestMethod.POST)
-    public UploadFileResponse uploadFile(@RequestParam("file") MultipartFile file,
-                                         @RequestParam("project") String project) {
+    /**
+     * Checks whether the uploaded files are raml files and saves them in the correct folder
+     * @param files RAML-files to be saved
+     * @param modelId Id of the corresponding model (name of the folder)
+     * @return List of all resources from this raml-file
+     */
+    @RequestMapping(value = "/uploadFile/{modelId:.+}", method = RequestMethod.PUT)
+    public ResponseEntity<List<UploadRamlResponse>> uploadRamlFile(@RequestParam("files") MultipartFile[] files, @PathVariable String modelId) {
+        this.storageService.initWorkflowDirectory(modelId);
 
-        mStorageService.initWorkflowDirectory(project);
+        List<UploadRamlResponse> response = Arrays.stream(files)
+                .filter(multipartFile -> Objects.equals(FilenameUtils.getExtension(multipartFile.getOriginalFilename()), "raml"))
+                .map(file -> this.storageService.store(file, modelId))
+                .map(storageConfirmation -> this.ramlParserService.parseRaml(storageConfirmation.file(), modelId))
+                .filter(Objects::nonNull)
+                .map(apiStorage -> new UploadRamlResponse(apiStorage.fileName(), apiStorage.resources()))
+                .toList();
 
-        String fileName = mStorageService.store(file, project);
-
-        String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/downloadFile/")
-                .path(fileName)
-                .toUriString();
-
-        return new UploadFileResponse(file.getOriginalFilename(), project, fileDownloadUri, file.getContentType(), file.getSize());
+        return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/uploadMultipleFiles")
-    public List<UploadFileResponse> uploadMultipleFiles(@RequestParam("files") MultipartFile[] files,
-                                                        @RequestParam("project") String project) {
-
-        return Arrays.stream(files)
-                .map(file -> uploadFile(file, project))
-                .collect(Collectors.toList());
-    }
-
-    @GetMapping("/downloadFile/{workflowName:.+}/{fileName:.+}")
-    public ResponseEntity<Resource> downloadFile(@PathVariable String workflowName, @PathVariable String fileName,
-                                                 HttpServletRequest request) {
-
-        // Load file as Resource
-        Resource resource = mStorageService.loadAsResource(fileName, workflowName);
-
-        // Determine file's content type
-        String contentType = null;
+    /**
+     * Loads the parsed API description from the state and returns the relative url of every resource
+     * @param modelId Id of the corresponding model (name of the folder)
+     * @return List of all Resources from this raml-file
+     */
+    @RequestMapping(value = "/ramlFiles/{modelId:.+}", method = RequestMethod.GET)
+    public ResponseEntity<List<UploadRamlResponse>> getApiResources(@PathVariable String modelId) {
         try {
-            contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
-        } catch (IOException e) {
-            logger.info("Could not determine file type.");
-        }
+            List<UploadRamlResponse> response = this.ramlParserService.getRamlFilesForModel(modelId)
+                    .stream()
+                    .map(apiStorage -> new UploadRamlResponse(apiStorage.fileName(), apiStorage.resources()))
+                    .toList();
 
-        // Fallback to the default content type if type could not be determined.
-        if (contentType == null) {
-            contentType = "application/octet-stream";
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException ex) {
+            logger.info(ex.getMessage());
+            return ResponseEntity.notFound().build();
         }
-
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(contentType))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
-                .body(resource);
     }
 
     @ExceptionHandler(StorageFileNotFoundException.class)

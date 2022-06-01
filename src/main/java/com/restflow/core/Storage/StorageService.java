@@ -1,7 +1,6 @@
 package com.restflow.core.Storage;
 
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.lang.NonNull;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,11 +21,9 @@ public interface StorageService {
 
     void storeModel(String json, String filename);
 
-    Resource loadModelAsResource(String filename);
+    List<File> loadAllFilesFromFolder(String folder);
 
     List<File> loadAllModels();
 
-    String store(MultipartFile file, String workflowName);
-
-    Resource loadAsResource(String filename, String workflowName);
+    StorageConfirmation store(MultipartFile file, String workflowName);
 }

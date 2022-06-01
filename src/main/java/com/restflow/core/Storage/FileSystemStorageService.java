@@ -1,27 +1,22 @@
 package com.restflow.core.Storage;
 
-import com.restflow.core.ThrowingFunction;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
-import org.springframework.core.io.UrlResource;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
-import org.springframework.util.ResourceUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.nio.file.*;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Function;
+import java.util.stream.Stream;
 
 @Service
 public class FileSystemStorageService implements StorageService {
@@ -37,7 +32,6 @@ public class FileSystemStorageService implements StorageService {
 
     @Override
     public void init() {
-
         try {
             Files.createDirectories(this.rootLocation);
         } catch (IOException e) {
@@ -100,40 +94,33 @@ public class FileSystemStorageService implements StorageService {
         }
     }
 
-    // TODO : Unify this!
-    public Resource loadModelAsResource(@NonNull final String filename) {
+    public List<File> loadAllFilesFromFolder(@NonNull final String folder) {
+        Path folderLocation = this.rootLocation.resolve(folder).normalize();
         try {
-            Path fileLocation = this.rootLocation.resolve(filename).normalize();
-            Resource resource = new UrlResource(fileLocation.toUri());
-
-            if (resource.exists() || resource.isReadable()) {
-                return resource;
-            } else {
-                logger.error(MessageFormat.format(
-                        "File {0} on location {3} exists: {1}; isReadable: {2}",
-                        filename, resource.exists(), resource.isReadable(), fileLocation.toUri()));
-
-                throw new StorageFileNotFoundException("Could not read file: " + filename);
+            try (Stream<Path> stream = Files.list(folderLocation)) {
+                return stream.filter(file -> !Files.isDirectory(file))
+                        .map(Path::toFile)
+                        .toList();
             }
-        } catch (MalformedURLException e) {
-            throw new StorageFileNotFoundException("Could not read file: " + filename, e);
+        } catch (IOException ex) {
+            throw new StorageExecption("Can not traverse : " + folder, ex);
         }
     }
 
     public List<File> loadAllModels() {
-
         try {
-            return Files.list(this.rootLocation)
-                    .filter(file -> !Files.isDirectory(file))
-                    .map(Path::toUri)
-                    .map(throwingFunctionWrapper(ResourceUtils::getFile))
-                    .toList();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            try (Stream<Path> stream = Files.list(this.rootLocation)) {
+                return stream.filter(file -> !Files.isDirectory(file))
+                        .filter(file -> FilenameUtils.getExtension(file.toString()).equals("json"))
+                        .map(Path::toFile)
+                        .toList();
+            }
+        } catch (IOException ex) {
+            throw new StorageExecption("Can not traverse root folder!", ex);
         }
     }
 
-    public String store(@NonNull final MultipartFile file, @NonNull final String workflow) {
+    public StorageConfirmation store(@NonNull final MultipartFile file, @NonNull final String workflow) {
 
         String filename = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
 
@@ -151,40 +138,9 @@ public class FileSystemStorageService implements StorageService {
             logger.info("Save file on Location: " + targetLocation);
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 
-            return filename;
-
+            return new StorageConfirmation(filename, targetLocation.toFile());
         } catch (IOException e) {
             throw new StorageExecption("Failed to store file " + filename, e);
         }
-    }
-
-    public Resource loadAsResource(@NonNull final String filename, @NonNull final String workflowName) {
-        try {
-            Path workflowLocation = this.rootLocation.resolve(workflowName);
-            Path fileLocation = workflowLocation.resolve(filename).normalize();
-            Resource resource = new UrlResource(fileLocation.toUri());
-
-            if (resource.exists() || resource.isReadable()) {
-                return resource;
-            } else {
-                logger.error(MessageFormat.format(
-                        "File {0} on location {3} exists: {1}; isReadable: {2}",
-                        filename, resource.exists(), resource.isReadable(), fileLocation.toUri()));
-
-                throw new StorageFileNotFoundException("Could not read file: " + filename);
-            }
-        } catch (MalformedURLException e) {
-            throw new StorageFileNotFoundException("Could not read file: " + filename, e);
-        }
-    }
-
-    private static <T, R, E extends Exception>Function<T, R> throwingFunctionWrapper(ThrowingFunction<T, R, E> function) {
-        return i -> {
-            try {
-                return function.apply(i);
-            } catch (Exception ex) {
-                throw new RuntimeException(ex);
-            }
-        };
     }
 }

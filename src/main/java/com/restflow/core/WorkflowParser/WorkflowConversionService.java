@@ -18,23 +18,28 @@ import java.util.stream.Collectors;
 @Service
 public class WorkflowConversionService {
 
+	private final ParserTempState parserTempState;
 	private final ParameterFactory parameterFactory;
 	private final TaskFactory taskFactory;
 
 	@Autowired
-	public WorkflowConversionService(ParameterFactory parameterFactory, TaskFactory taskFactory) {
+	public WorkflowConversionService(ParserTempState parserTempState, ParameterFactory parameterFactory,
+	                                 TaskFactory taskFactory) {
+		this.parserTempState = parserTempState;
 		this.parameterFactory = parameterFactory;
 		this.taskFactory = taskFactory;
 	}
 
 	public IWorkflow convertWorkflowModel(@NonNull final WorkflowModel model) {
-		IWorkflow convertedWorkflow = new CWorkflow(model.getName(), model.getDescription());
-
+		IWorkflow convertedWorkflow = new CWorkflow(model.getId(), model.getDescription());
 
 		Map<String, IVariable<?>> variables = model.getVariables()
 				.stream()
 				.map(variable -> this.parameterFactory.createVariable(variable.name(), parameterFactory.determineClass(variable.type())))
 				.collect(Collectors.toMap(IVariable::id, Function.identity()));
+
+		this.parserTempState.setModelIdReference(model.getId());
+		this.parserTempState.setVariableReferences(variables);
 
 		Queue<ITask> executionOrder = model.getTasks()
 				.stream()

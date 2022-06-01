@@ -16,9 +16,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class CWorkflow implements IWorkflow {
-
     private String mInstanceName;
-    private final String mDefinitionReference;
+    private final UUID mModelReference;
     private final String mDescription;
 
     private final Queue<ITaskAction> mExecution = new ConcurrentLinkedQueue<>();
@@ -41,7 +40,7 @@ public class CWorkflow implements IWorkflow {
      */
     public CWorkflow(@NonNull final IWorkflow that, @NonNull final Queue<ITask> tasks) {
         this.mInstanceName = that.instance();
-        this.mDefinitionReference = that.definition();
+        this.mModelReference = that.modelReference();
         this.mDescription = that.description();
         this.mVariables = Collections.synchronizedMap(resetVariable(that.variables()));
         generateExecutionOrder(resetInput(tasks));
@@ -49,8 +48,8 @@ public class CWorkflow implements IWorkflow {
         this.mStatus = EWorkflowStatus.INITIATED;
     }
 
-    public CWorkflow(String pTitle, String pDescription) {
-        this.mDefinitionReference = pTitle;
+    public CWorkflow(UUID pParentModel, String pDescription) {
+        this.mModelReference = pParentModel;
         this.mDescription = pDescription;
 
         this.mStatus = EWorkflowStatus.INITIATED;
@@ -69,8 +68,8 @@ public class CWorkflow implements IWorkflow {
 
     @NonNull
     @Override
-    public String definition() {
-        return mDefinitionReference;
+    public UUID modelReference() {
+        return mModelReference;
     }
 
     @NonNull
@@ -171,7 +170,7 @@ public class CWorkflow implements IWorkflow {
     public IWorkflow start() {
 
         if (mExecution.isEmpty()) {
-            throw new CWorkflowExecutionException("Workflow " + this.mDefinitionReference + " enthält keine Tasklist!");
+            throw new CWorkflowExecutionException("Workflow " + this.mModelReference + " enthält keine Tasklist!");
         }
 
         // Execution has started

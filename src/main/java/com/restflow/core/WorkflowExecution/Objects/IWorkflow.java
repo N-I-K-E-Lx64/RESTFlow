@@ -10,6 +10,7 @@ import org.springframework.lang.NonNull;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 public interface IWorkflow extends Consumer<IMessage> {
@@ -20,7 +21,7 @@ public interface IWorkflow extends Consumer<IMessage> {
     void setInstanceName(@NonNull final String pInstanceName);
 
     @NonNull
-    String definition();
+    UUID modelReference();
 
     @NonNull
     String description();
