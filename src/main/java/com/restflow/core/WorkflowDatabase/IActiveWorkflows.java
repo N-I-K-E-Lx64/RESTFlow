@@ -8,11 +8,11 @@ import org.springframework.lang.NonNull;
  */
 public interface IActiveWorkflows {
 
-    @NonNull
-    IWorkflow add(@NonNull final String pWorkflowName, @NonNull final IWorkflow pWorkflow);
+  @NonNull
+  IWorkflow add(@NonNull final String pWorkflowName, @NonNull final IWorkflow pWorkflow);
 
-    @NonNull
-    IWorkflow restart(@NonNull final String pWorkflowInstance);
+  @NonNull
+  IWorkflow restart(@NonNull final String pWorkflowInstance);
 
-    void remove(@NonNull final String pWorkflow);
+  void remove(@NonNull final String pWorkflow);
 }

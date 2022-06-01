@@ -5,15 +5,15 @@ import org.springframework.lang.NonNull;
 
 public interface ITask {
 
-    Object raw();
+  Object raw();
 
-    @NonNull
-    String id();
+  @NonNull
+  String id();
 
-    @NonNull
-    String description();
+  @NonNull
+  String description();
 
-    @NonNull
-    ETaskType taskType();
+  @NonNull
+  ETaskType taskType();
 
 }

@@ -4,6 +4,6 @@ import org.springframework.lang.NonNull;
 
 public interface ICondition {
 
-    @NonNull
-    Boolean execute();
+  @NonNull
+  Boolean execute();
 }

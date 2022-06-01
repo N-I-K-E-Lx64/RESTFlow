@@ -1,66 +1,67 @@
 package com.restflow.core.ModelingTool.model;
 
 public class InvokeTaskParameters implements ITaskParameters {
-	private final String raml;
-	private final String resource;
-	private String userParameterId;
-	private int userParameterType;
-	private String inputVariable;
-	private String targetVariable;
-	private final boolean isUserParameter;
 
-	public InvokeTaskParameters(String raml, String resource, boolean isUserParameter) {
-		this.raml = raml;
-		this.resource = resource;
-		this.isUserParameter = isUserParameter;
-	}
+  private final String raml;
+  private final String resource;
+  private String userParameterId;
+  private int userParameterType;
+  private String inputVariable;
+  private String targetVariable;
+  private final boolean isUserParameter;
 
-	public String raml() {
-		return raml;
-	}
+  public InvokeTaskParameters(String raml, String resource, boolean isUserParameter) {
+    this.raml = raml;
+    this.resource = resource;
+    this.isUserParameter = isUserParameter;
+  }
 
-	public String resource() {
-		return resource;
-	}
+  public String raml() {
+    return raml;
+  }
 
-	public String userParameterId() {
-		return userParameterId;
-	}
+  public String resource() {
+    return resource;
+  }
 
-	public int userParameterType() {
-		return userParameterType;
-	}
+  public String userParameterId() {
+    return userParameterId;
+  }
 
-	public String inputVariable() {
-		return inputVariable;
-	}
+  public int userParameterType() {
+    return userParameterType;
+  }
 
-	public String targetVariable() {
-		return targetVariable;
-	}
+  public String inputVariable() {
+    return inputVariable;
+  }
 
-	public boolean isUserParameter() {
-		return isUserParameter;
-	}
+  public String targetVariable() {
+    return targetVariable;
+  }
 
-	public void setUserParameterId(String userParameterId) {
-		this.userParameterId = userParameterId;
-	}
+  public boolean isUserParameter() {
+    return isUserParameter;
+  }
 
-	public void setUserParameterType(int userParameterType) {
-		this.userParameterType = userParameterType;
-	}
+  public void setUserParameterId(String userParameterId) {
+    this.userParameterId = userParameterId;
+  }
 
-	public void setInputVariable(String inputVariable) {
-		this.inputVariable = inputVariable;
-	}
+  public void setUserParameterType(int userParameterType) {
+    this.userParameterType = userParameterType;
+  }
 
-	public void setTargetVariable(String targetVariable) {
-		this.targetVariable = targetVariable;
-	}
+  public void setInputVariable(String inputVariable) {
+    this.inputVariable = inputVariable;
+  }
 
-	@Override
-	public Object raw() {
-		return this;
-	}
+  public void setTargetVariable(String targetVariable) {
+    this.targetVariable = targetVariable;
+  }
+
+  @Override
+  public Object raw() {
+    return this;
+  }
 }

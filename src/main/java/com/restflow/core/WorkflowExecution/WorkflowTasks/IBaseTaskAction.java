@@ -5,12 +5,12 @@ import org.springframework.lang.NonNull;
 
 public abstract class IBaseTaskAction implements ITaskAction {
 
-    protected final IWorkflow mWorkflow;
+  protected final IWorkflow mWorkflow;
 
-    protected IBaseTaskAction(@NonNull final IWorkflow pWorkflow) {
-        this.mWorkflow = pWorkflow;
-    }
+  protected IBaseTaskAction(@NonNull final IWorkflow pWorkflow) {
+    this.mWorkflow = pWorkflow;
+  }
 
-    @NonNull
-    public abstract String id();
+  @NonNull
+  public abstract String id();
 }

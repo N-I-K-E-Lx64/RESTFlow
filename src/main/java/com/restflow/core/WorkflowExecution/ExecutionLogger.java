@@ -5,11 +5,11 @@ import org.apache.logging.log4j.Logger;
 
 public enum ExecutionLogger {
 
-    INSTANCE;
+  INSTANCE;
 
-    private static final Logger logger = LogManager.getLogger(ExecutionLogger.class);
+  private static final Logger logger = LogManager.getLogger(ExecutionLogger.class);
 
-    public void info(String workflowInstance, String message) {
-        logger.info(workflowInstance + " reported the following log message: " + message);
-    }
+  public void info(String workflowInstance, String message) {
+    logger.info(workflowInstance + " reported the following log message: " + message);
+  }
 }
