@@ -1,6 +1,7 @@
 package com.restflow.core.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import java.security.Principal;
+import java.util.Objects;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -17,49 +18,46 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
-import java.security.Principal;
-import java.util.Objects;
-import java.util.UUID;
-
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-	private static final String APP_DESTINATION_PREFIX = "/app";
-	private static final String USER_PREFIX = "/user";
-	private static final String ENDPOINT = "/restflow";
+  private static final String APP_DESTINATION_PREFIX = "/app";
+  private static final String USER_PREFIX = "/user";
+  private static final String ENDPOINT = "/restflow";
 
-	@Override
-	@Order(Ordered.HIGHEST_PRECEDENCE + 99)
-	public void configureClientInboundChannel(ChannelRegistration registration) {
-		registration.interceptors(new ChannelInterceptor() {
+  @Override
+  @Order(Ordered.HIGHEST_PRECEDENCE + 99)
+  public void configureClientInboundChannel(ChannelRegistration registration) {
+    registration.interceptors(new ChannelInterceptor() {
 
-			@Override
-			public Message<?> preSend(@NonNull Message<?> message, @NonNull MessageChannel channel) {
-				StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-				assert accessor != null;
+      @Override
+      public Message<?> preSend(@NonNull Message<?> message, @NonNull MessageChannel channel) {
+        StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message,
+            StompHeaderAccessor.class);
+        assert accessor != null;
 
-				if (Objects.equals(accessor.getCommand(), StompCommand.CONNECT)) {
-					final String name = accessor.getLogin();
-					Principal user = () -> name;
+        if (Objects.equals(accessor.getCommand(), StompCommand.CONNECT)) {
+          final String name = accessor.getLogin();
+          Principal user = () -> name;
 
-					accessor.setUser(user);
-				}
+          accessor.setUser(user);
+        }
 
-				return message;
-			}
-		});
-	}
+        return message;
+      }
+    });
+  }
 
-	@Override
-	public void configureMessageBroker(MessageBrokerRegistry config) {
-		config.enableSimpleBroker("/topic", "/queue");
-		config.setApplicationDestinationPrefixes(APP_DESTINATION_PREFIX);
-		config.setUserDestinationPrefix(USER_PREFIX);
-	}
+  @Override
+  public void configureMessageBroker(MessageBrokerRegistry config) {
+    config.enableSimpleBroker("/topic", "/queue");
+    config.setApplicationDestinationPrefixes(APP_DESTINATION_PREFIX);
+    config.setUserDestinationPrefix(USER_PREFIX);
+  }
 
-	@Override
-	public void registerStompEndpoints(StompEndpointRegistry registry) {
-		registry.addEndpoint(ENDPOINT).setAllowedOrigins("*");
-	}
+  @Override
+  public void registerStompEndpoints(StompEndpointRegistry registry) {
+    registry.addEndpoint(ENDPOINT).setAllowedOrigins("*");
+  }
 }

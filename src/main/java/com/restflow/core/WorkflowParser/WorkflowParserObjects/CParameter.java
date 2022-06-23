@@ -1,56 +1,63 @@
 package com.restflow.core.WorkflowParser.WorkflowParserObjects;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.restflow.core.RESTflowApplication;
+import com.restflow.core.WorkflowExecution.Objects.CWorkflowExecutionException;
 import com.restflow.core.WorkflowParser.CConversionService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.lang.NonNull;
 
-@Configurable
 public class CParameter<T> implements IParameter<T> {
 
-    private T mValue;
-    private final Class<T> mType;
-    private final String mParameterId;
-    private final Boolean mIsUserParameter;
+  private T mValue;
+  private final Class<T> mType;
+  private final String mParameterId;
+  private final Boolean mIsUserParameter;
 
-    @Autowired
-    private CConversionService conversionService;
+  protected CConversionService conversionService;
 
-    /**
-     * CTor for creating a generic parameter
-     *
-     * @param pParameterId     ID to identify the parameter
-     * @param pIsUserParameter Boolean that describes whether the value of this parameter must be set by a user.
-     * @param pType            Representation of the parameter type
-     */
-    public CParameter(@NonNull final String pParameterId,
-                      @NonNull final Boolean pIsUserParameter,
-                      @NonNull final Class<T> pType) {
-        this.mParameterId = pParameterId;
-        this.mIsUserParameter = pIsUserParameter;
-        this.mType = pType;
-        this.mValue = null;
+  /**
+   * CTor for creating a generic parameter
+   *
+   * @param pParameterId     ID to identify the parameter
+   * @param pIsUserParameter Boolean that describes whether the value of this parameter must be set
+   *                         by a user.
+   * @param pType            Representation of the parameter type
+   */
+  public CParameter(@NonNull final String pParameterId,
+      @NonNull final Boolean pIsUserParameter,
+      @NonNull final Class<T> pType) {
+    this.mParameterId = pParameterId;
+    this.mIsUserParameter = pIsUserParameter;
+    this.mType = pType;
+    this.mValue = null;
+    this.conversionService = RESTflowApplication.CGlobal.instance()
+        .context()
+        .getBean(CConversionService.class);
+  }
+
+  @NonNull
+  @Override
+  public String id() {
+    return mParameterId;
+  }
+
+  @Override
+  public T value() {
+    return mValue;
+  }
+
+  @Override
+  public IParameter<T> setValue(String pValue) {
+    try {
+      mValue = conversionService.convertStringValue(pValue, mType);
+    } catch (JsonProcessingException ex) {
+      throw new CWorkflowExecutionException("Json string cannot be processed!");
     }
 
-    @NonNull
-    @Override
-    public String id() {
-        return mParameterId;
-    }
+    return this;
+  }
 
-    @Override
-    public T value() {
-        return mValue;
-    }
-
-    @Override
-    public IParameter<T> setValue(String pValue) {
-        mValue = conversionService.convertValue(pValue, mType);
-
-        return this;
-    }
-
-    public Boolean isUserParameter() {
-        return mIsUserParameter;
-    }
+  public Boolean isUserParameter() {
+    return mIsUserParameter;
+  }
 }

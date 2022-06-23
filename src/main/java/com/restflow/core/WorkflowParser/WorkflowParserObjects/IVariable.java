@@ -4,13 +4,13 @@ import org.springframework.lang.NonNull;
 
 public interface IVariable<T> {
 
-    @NonNull
-    String id();
+  @NonNull
+  String id();
 
-    @NonNull
-    Class<T> type();
+  @NonNull
+  Class<T> type();
 
-    T value();
+  T value();
 
-    void setValue(String value);
+  void setValue(String value);
 }

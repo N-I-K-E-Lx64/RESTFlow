@@ -4,10 +4,10 @@ import org.springframework.lang.NonNull;
 
 public interface IParameter<T> {
 
-    @NonNull
-    String id();
+  @NonNull
+  String id();
 
-    T value();
+  T value();
 
-    IParameter<T> setValue(String pValue);
+  IParameter<T> setValue(String pValue);
 }
