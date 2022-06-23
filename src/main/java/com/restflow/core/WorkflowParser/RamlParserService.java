@@ -8,6 +8,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
@@ -18,16 +20,17 @@ import org.raml.v2.api.RamlModelBuilder;
 import org.raml.v2.api.RamlModelResult;
 import org.raml.v2.api.model.v10.api.Api;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 @Service
-public class RamlParserService implements BiFunction<String, String, Api> {
+public class RamlParserService implements BiFunction<UUID, String, Api> {
 
   private static final Logger logger = LogManager.getLogger(RamlParserService.class);
 
   private final StorageService storageService;
 
-  private final Map<String, List<ApiStorage>> ramlFiles = new ConcurrentHashMap<>();
+  private final Map<UUID, List<ApiStorage>> ramlFiles = new ConcurrentHashMap<>();
 
   @Autowired
   RamlParserService(StorageService storageService) {
@@ -40,7 +43,7 @@ public class RamlParserService implements BiFunction<String, String, Api> {
    * @param ramlFile RAML file
    * @return Parsed api (Version 1.0)
    */
-  public ApiStorage parseRaml(File ramlFile, String modelId) {
+  public ApiStorage parseRaml(@NonNull final File ramlFile, @NonNull final UUID modelId) {
     RamlModelResult ramlModelResult = new RamlModelBuilder().buildApi(ramlFile);
     if (ramlModelResult.hasErrors()) {
       ramlModelResult.getValidationResults()
@@ -86,13 +89,17 @@ public class RamlParserService implements BiFunction<String, String, Api> {
    * @return Specified Api object or if it does not exist null
    */
   @Override
-  public Api apply(String modelId, String fileName) {
-    return this.ramlFiles.get(modelId)
-        .stream()
-        .filter(apiStorage -> Objects.equals(apiStorage.fileName(), fileName))
-        .map(ApiStorage::api)
-        .findFirst()
-        .orElse(null);
+  public Api apply(@NonNull final UUID modelId, @NonNull final String fileName) {
+    if (this.ramlFiles.containsKey(modelId)) {
+      return this.ramlFiles.get(modelId)
+          .stream()
+          .filter(apiStorage -> Objects.equals(apiStorage.fileName(), fileName))
+          .map(ApiStorage::api)
+          .findFirst()
+          .orElse(null);
+    } else {
+      throw new CWorkflowParseException("Api {0} does not exist!");
+    }
   }
 
   /**
@@ -104,21 +111,23 @@ public class RamlParserService implements BiFunction<String, String, Api> {
    * @return List of ApiStorage-objects
    * @see ApiStorage
    */
-  public List<ApiStorage> getRamlFilesForModel(String modelId) {
+  public List<ApiStorage> getRamlFilesForModel(UUID modelId) {
     if (ramlFiles.containsKey(modelId)) {
       return ramlFiles.get(modelId);
     } else {
-      // TODO : This throws an error!
-      List<File> storedFiles = this.storageService.loadAllFilesFromFolder(modelId);
-      if (!storedFiles.isEmpty()) {
-        return storedFiles.stream()
-            .map(file -> parseRaml(file, modelId))
-            .filter(Objects::nonNull)
-            .toList();
-      } else {
-        throw new RuntimeException(
-            MessageFormat.format("No api description could be found for model {0}!", modelId));
-      }
+      throw new RuntimeException(
+          MessageFormat.format("No api description could be found for model {0}!", modelId));
     }
+  }
+
+  public void initializeRamlCache(@NonNull final Set<UUID> folders) {
+    folders.forEach(folder -> {
+      List<File> storedFiles = this.storageService.loadAllFilesFromFolder(folder.toString());
+      if (!storedFiles.isEmpty()) {
+        storedFiles.forEach(file -> parseRaml(file, folder));
+      } else {
+        logger.info(MessageFormat.format("No raml files could be found for model {0}!", folder));
+      }
+    });
   }
 }

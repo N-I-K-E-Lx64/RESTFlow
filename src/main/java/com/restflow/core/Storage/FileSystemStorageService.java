@@ -8,6 +8,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.text.MessageFormat;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -47,8 +48,8 @@ public class FileSystemStorageService implements StorageService {
     FileSystemUtils.deleteRecursively(rootLocation.toFile());
   }
 
-  public void deleteFolder(String workflowName) {
-    Path workflowFolder = rootLocation.resolve(workflowName);
+  public void deleteFolder(String folder) {
+    Path workflowFolder = rootLocation.resolve(folder);
     FileSystemUtils.deleteRecursively(workflowFolder.toFile());
   }
 
@@ -103,19 +104,35 @@ public class FileSystemStorageService implements StorageService {
     }
   }
 
+  /**
+   * Iterates over a specific folder and returns all files inside this folder
+   *
+   * @param folder Folder-name
+   * @return File list containing all files in the specified folder
+   */
   public List<File> loadAllFilesFromFolder(@NonNull final String folder) {
     Path folderLocation = this.rootLocation.resolve(folder).normalize();
-    try {
-      try (Stream<Path> stream = Files.list(folderLocation)) {
-        return stream.filter(file -> !Files.isDirectory(file))
-            .map(Path::toFile)
-            .toList();
+    // Checks if folder exists
+    if (Files.isDirectory(folderLocation) && Files.exists(folderLocation)) {
+      try {
+        try (Stream<Path> stream = Files.list(folderLocation)) {
+          return stream.filter(file -> !Files.isDirectory(file))
+              .map(Path::toFile)
+              .toList();
+        }
+      } catch (IOException ex) {
+        throw new StorageExecption("Can not traverse : " + folder, ex);
       }
-    } catch (IOException ex) {
-      throw new StorageExecption("Can not traverse : " + folder, ex);
+    } else {
+      return Collections.emptyList();
     }
   }
 
+  /**
+   * Iterates over the root-location and returns all .json files
+   *
+   * @return File list containing all json files in the root-location
+   */
   public List<File> loadAllModels() {
     try {
       try (Stream<Path> stream = Files.list(this.rootLocation)) {
@@ -129,8 +146,16 @@ public class FileSystemStorageService implements StorageService {
     }
   }
 
+  /**
+   * Saves a file to a specified folder!
+   *
+   * @param file   File to be saved
+   * @param folder Folder in which the file is saved
+   * @return StorageConfirmation which contains the filename and a path object
+   * @see StorageConfirmation
+   */
   public StorageConfirmation store(@NonNull final MultipartFile file,
-      @NonNull final String workflow) {
+      @NonNull final String folder) {
 
     String filename = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
 
@@ -144,7 +169,7 @@ public class FileSystemStorageService implements StorageService {
             "Cannot store file with relative path outside current directory " + filename);
       }
 
-      Path workflowLocation = this.rootLocation.resolve(workflow);
+      Path workflowLocation = this.rootLocation.resolve(folder);
       Path targetLocation = workflowLocation.resolve(filename);
       logger.info("Save file on Location: " + targetLocation);
       Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);

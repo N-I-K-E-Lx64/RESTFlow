@@ -35,7 +35,7 @@ public class ParserTempState implements Function<String, IVariable<?>> {
     }
   }
 
-  public String modelId() {
-    return modelIdReference.get().toString();
+  public UUID modelId() {
+    return modelIdReference.get();
   }
 }

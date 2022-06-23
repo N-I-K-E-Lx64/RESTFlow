@@ -5,8 +5,10 @@ import com.restflow.core.Storage.StorageFileNotFoundException;
 import com.restflow.core.Storage.StorageService;
 import com.restflow.core.WorkflowParser.RamlParserService;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -46,13 +48,13 @@ public class FileUploadController {
    */
   @RequestMapping(value = "/uploadFile/{modelId:.+}", method = RequestMethod.PUT)
   public ResponseEntity<List<UploadRamlResponse>> uploadRamlFile(
-      @RequestParam("files") MultipartFile[] files, @PathVariable String modelId) {
-    this.storageService.initWorkflowDirectory(modelId);
+      @RequestParam("files") MultipartFile[] files, @PathVariable UUID modelId) {
+    this.storageService.initWorkflowDirectory(modelId.toString());
 
     List<UploadRamlResponse> response = Arrays.stream(files)
         .filter(multipartFile -> Objects.equals(
             FilenameUtils.getExtension(multipartFile.getOriginalFilename()), "raml"))
-        .map(file -> this.storageService.store(file, modelId))
+        .map(file -> this.storageService.store(file, modelId.toString()))
         .map(storageConfirmation -> this.ramlParserService.parseRaml(storageConfirmation.file(),
             modelId))
         .filter(Objects::nonNull)
@@ -69,7 +71,7 @@ public class FileUploadController {
    * @return List of all Resources from this raml-file
    */
   @RequestMapping(value = "/ramlFiles/{modelId:.+}", method = RequestMethod.GET)
-  public ResponseEntity<List<UploadRamlResponse>> getApiResources(@PathVariable String modelId) {
+  public ResponseEntity<List<UploadRamlResponse>> getApiResources(@PathVariable UUID modelId) {
     try {
       List<UploadRamlResponse> response = this.ramlParserService.getRamlFilesForModel(modelId)
           .stream()

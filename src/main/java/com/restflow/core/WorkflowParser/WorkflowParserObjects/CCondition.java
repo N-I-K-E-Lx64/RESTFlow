@@ -1,12 +1,9 @@
 package com.restflow.core.WorkflowParser.WorkflowParserObjects;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.restflow.core.WorkflowExecution.Condition.EConditionType;
+import com.restflow.core.RESTflowApplication;
 import com.restflow.core.WorkflowExecution.Objects.CConditionException;
-import com.restflow.core.WorkflowExecution.Objects.CWorkflowExecutionException;
-import java.text.MessageFormat;
+import com.restflow.core.WorkflowExecution.WorkflowTasks.EConditionType;
+import com.restflow.core.WorkflowParser.CConversionService;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import org.springframework.lang.NonNull;
@@ -17,90 +14,51 @@ public class CCondition implements ICondition {
   private final AtomicReference<IParameter<?>> mFirstParameter = new AtomicReference<>();
   private final AtomicReference<IParameter<?>> mSecondParameter = new AtomicReference<>();
 
+  protected CConversionService conversionService;
+
   public CCondition(@NonNull final EConditionType pConditionType, IParameter<?> pFirstParameter,
       IParameter<?> pSecondParameter) {
     this.mConditionType = pConditionType;
     this.mFirstParameter.set(pFirstParameter);
     this.mSecondParameter.set(pSecondParameter);
+    this.conversionService = RESTflowApplication.CGlobal.instance().context()
+        .getBean(CConversionService.class);
   }
 
   @NonNull
   @Override
   public Boolean execute() {
 
-    Object lFirstParameter;
-    Object lSecondParameter;
-
-    if (mFirstParameter.get().value() instanceof IVariable<?>) {
-      lFirstParameter = deserializeVariable((IVariable<?>) mFirstParameter.get().value());
-    } else {
-      lFirstParameter = mFirstParameter.get().value();
-    }
-
-    if (mSecondParameter.get().value() instanceof IVariable<?>) {
-      lSecondParameter = deserializeVariable((IVariable<?>) mSecondParameter.get().value());
-    } else {
-      lSecondParameter = mSecondParameter.get().value();
-    }
-
-    if (Objects.isNull(lFirstParameter) || Objects.isNull(lSecondParameter)) {
+    if (Objects.isNull(mFirstParameter.get()) || Objects.isNull(mSecondParameter.get())) {
       throw new CConditionException("No decision could be made due to a zero value!" +
           " First Parameter: " + mFirstParameter.get().id() + " = " + Objects.isNull(
-          lFirstParameter) +
+          mFirstParameter.get()) +
           " Second Parameter: " + mSecondParameter.get().id() + " = " + Objects.isNull(
-          lSecondParameter));
+          mSecondParameter.get()));
     }
 
-    switch (mConditionType) {
-      case SMALLER:
-        return doubleParameter(lFirstParameter) < doubleParameter(lSecondParameter);
-
-      case BIGGER:
-        return doubleParameter(lFirstParameter) > doubleParameter(lSecondParameter);
-
-      case GREATER_OR_EQUALS:
-        return doubleParameter(lFirstParameter) >= doubleParameter(lSecondParameter);
-
-      case LESS_OR_EQUALS:
-        return doubleParameter(lFirstParameter) <= doubleParameter(lSecondParameter);
-
-      case EQUALS:
-        return lFirstParameter.equals(lSecondParameter);
-
-      case NOT_EQUALS:
-        return !(lFirstParameter.equals(lSecondParameter));
-
-      case STRING_CONTAINS:
-        return stringParameter(lFirstParameter).contains(stringParameter(lSecondParameter));
-
-      case NOT_STRING_CONTAINS:
-        return !(stringParameter(lFirstParameter).contains(stringParameter(lSecondParameter)));
-
-      default:
-        throw new CConditionException(
-            MessageFormat.format("Condition Type [{0}] unknown", mConditionType));
-    }
+    return switch (mConditionType) {
+      case LESS -> convertParameter(mFirstParameter.get(), Double.class) < convertParameter(
+          mSecondParameter.get(), Double.class);
+      case GREATER -> convertParameter(mFirstParameter.get(), Double.class) > convertParameter(
+          mSecondParameter.get(), Double.class);
+      case GREATER_OR_EQUALS ->
+          convertParameter(mFirstParameter.get(), Double.class) >= convertParameter(
+              mSecondParameter.get(), Double.class);
+      case LESS_OR_EQUALS ->
+          convertParameter(mFirstParameter.get(), Double.class) <= convertParameter(
+              mSecondParameter.get(), Double.class);
+      case EQUALS -> Objects.equals(mFirstParameter.get(), mSecondParameter.get());
+      case NOT_EQUALS -> !Objects.equals(mFirstParameter.get(), mSecondParameter.get());
+      case STRING_CONTAINS -> convertParameter(mFirstParameter.get(), String.class).contains(
+          convertParameter(mSecondParameter.get(), String.class));
+      case NOT_STRING_CONTAINS -> !(convertParameter(mFirstParameter.get(), String.class).contains(
+          convertParameter(mSecondParameter.get(), String.class)));
+    };
   }
 
-  // TODO: Use the conversion service for this!
-  private Double doubleParameter(Object pNumber) {
-    return (Double) pNumber;
-  }
-
-  private String stringParameter(Object pString) {
-    return (String) pString;
-  }
-
-  private String deserializeVariable(IVariable<?> pVariable) {
-    if (pVariable.type() == JsonNode.class) {
-      try {
-        ObjectMapper mapper = new ObjectMapper();
-        return mapper.writeValueAsString(pVariable.value());
-      } catch (JsonProcessingException e) {
-        throw new CWorkflowExecutionException("Variable cannot be parsed to string!", e);
-      }
-    } else {
-      return (String) pVariable.value();
-    }
+  private <T> T convertParameter(@NonNull final IParameter<?> parameter,
+      @NonNull final Class<T> type) {
+    return this.conversionService.convertValue(parameter.value(), type);
   }
 }

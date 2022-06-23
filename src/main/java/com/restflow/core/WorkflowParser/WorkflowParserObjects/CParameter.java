@@ -1,6 +1,8 @@
 package com.restflow.core.WorkflowParser.WorkflowParserObjects;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.restflow.core.RESTflowApplication;
+import com.restflow.core.WorkflowExecution.Objects.CWorkflowExecutionException;
 import com.restflow.core.WorkflowParser.CConversionService;
 import org.springframework.lang.NonNull;
 
@@ -46,7 +48,11 @@ public class CParameter<T> implements IParameter<T> {
 
   @Override
   public IParameter<T> setValue(String pValue) {
-    mValue = conversionService.convertValue(pValue, mType);
+    try {
+      mValue = conversionService.convertStringValue(pValue, mType);
+    } catch (JsonProcessingException ex) {
+      throw new CWorkflowExecutionException("Json string cannot be processed!");
+    }
 
     return this;
   }

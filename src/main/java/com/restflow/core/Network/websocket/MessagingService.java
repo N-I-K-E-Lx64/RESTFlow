@@ -1,6 +1,5 @@
 package com.restflow.core.Network.websocket;
 
-import java.text.MessageFormat;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,8 +29,7 @@ public class MessagingService {
    */
   public final void sendTo(@NonNull final String user, @NonNull final String endpoint,
       @NonNull final Object data) {
-    logger.info(
-        MessageFormat.format("Sending direct message to user {0} over {1}", user, endpoint));
+    // logger.info(MessageFormat.format("Sending direct message to user {0} over {1}", user, endpoint));
     websocket.convertAndSendToUser(user, endpoint, data);
   }
 
@@ -42,7 +40,7 @@ public class MessagingService {
    * @param data     Message payload to be sent
    */
   public final void sendTo(@NonNull final String endpoint, @NonNull final Object data) {
-    logger.info("Sending broadcast message to " + endpoint);
+    // logger.info("Sending broadcast message to " + endpoint);
     websocket.convertAndSend(endpoint, data);
   }
 }

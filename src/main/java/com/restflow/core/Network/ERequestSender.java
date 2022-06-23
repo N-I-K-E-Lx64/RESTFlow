@@ -14,6 +14,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -41,7 +42,9 @@ public enum ERequestSender {
 
     WebClient client = WebClient.create(pRequest.baseUrl());
 
-    String lResponse = client
+    // TODO: Error handling!!!
+
+    ResponseEntity<?> response = client
         .method(pRequest.type())
         .uri(pRequest.resourceUrl())
         .header(HttpHeaders.CONTENT_TYPE, String.valueOf(pRequest.requestMediaType()))
@@ -52,11 +55,12 @@ public enum ERequestSender {
             Mono.error(new CWebClientResponseException(pWorkflow,
                 "Response contains an error status code: " + clientResponse.statusCode().value()
                     + " " + clientResponse.statusCode().getReasonPhrase())))
-        .bodyToMono(String.class)
+        .toEntity(String.class)
         .block();
 
-    logger.info("Response: " + lResponse);
-    pRequest.setResponse(Objects.requireNonNull(lResponse));
+    assert response != null;
+    logger.info("Response: " + response.getBody());
+    pRequest.setResponse(Objects.requireNonNull(response.getBody()).toString());
 
     return pRequest;
   }

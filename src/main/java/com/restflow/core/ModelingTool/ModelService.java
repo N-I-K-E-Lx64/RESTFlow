@@ -31,13 +31,17 @@ public class ModelService implements Supplier<List<WorkflowModel>>, Function<UUI
 
   private final StorageService storageService;
   private final WorkflowParserService workflowParserService;
+  private final RamlParserService ramlParserService;
 
   @Autowired
-  public ModelService(StorageService storageService, WorkflowParserService workflowParserService) {
+  public ModelService(StorageService storageService, WorkflowParserService workflowParserService,
+      RamlParserService ramlParserService) {
     this.storageService = storageService;
     this.workflowParserService = workflowParserService;
+    this.ramlParserService = ramlParserService;
 
     this.workflowModels = loadModels();
+    this.ramlParserService.initializeRamlCache(this.workflowModels.keySet());
   }
 
   /**
