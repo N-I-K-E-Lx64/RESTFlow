@@ -3,7 +3,7 @@ package com.restflow.core;
 @FunctionalInterface
 public interface ThrowingFunction<T, R, E extends Exception> {
 
-	R apply(T t) throws E;
+  R apply(T t) throws E;
 
 	/*private static <T, R, E extends Exception> Function<T, R> throwingFunctionWrapper(ThrowingFunction<T, R, E> function) {
 		return i -> {
