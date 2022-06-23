@@ -8,7 +8,9 @@ import com.restflow.core.ModelingTool.model.Connector;
 import com.restflow.core.ModelingTool.model.Element;
 import com.restflow.core.ModelingTool.model.ITaskParameters;
 import com.restflow.core.ModelingTool.model.InvokeTaskParameters;
+import com.restflow.core.ModelingTool.model.SwitchTaskParameters;
 import com.restflow.core.ModelingTool.model.Task;
+import com.restflow.core.ModelingTool.model.UserParameter;
 import com.restflow.core.ModelingTool.model.Variable;
 import com.restflow.core.ModelingTool.model.WorkflowModel;
 import java.io.File;
@@ -18,6 +20,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import org.slf4j.Logger;
@@ -79,7 +82,8 @@ public class WorkflowParserService {
     List<Connector> connectors = parseConnectors(rootNode);
     List<Task> tasks = parseTasks(rootNode);
 
-    return new WorkflowModel(modelId, modelName, modelDescription, variables, elements, connectors,
+    return new WorkflowModel(UUID.fromString(modelId), modelName, modelDescription, variables,
+        elements, connectors,
         tasks);
   }
 
@@ -139,40 +143,30 @@ public class WorkflowParserService {
     String taskDescription = taskNode.path("description").asText();
     int taskType = taskNode.path("type").asInt();
 
-    ITaskParameters taskParams = parseTaskParamsNode(taskNode, taskType);
+    ITaskParameters taskParams = parseTaskParamsNode(taskNode.path("params"), taskType);
 
-    return new Task(taskId, taskTitle, taskDescription, taskType, taskParams);
+    return new Task(UUID.fromString(taskId), taskTitle, taskDescription, taskType, taskParams);
   }
 
   private ITaskParameters parseTaskParamsNode(@NonNull final JsonNode taskParamsNode,
       @NonNull final int taskType) {
-    if (taskType == 0 && taskParamsNode.has("invokeParams")) {
-      JsonNode paramsNode = taskParamsNode.path("invokeParams");
-      String ramlFile = paramsNode.path("raml").asText();
-      String ramlResource = paramsNode.path("resource").asText();
-      boolean isUserParameter = paramsNode.path("inputType").asInt() != 0;
-      InvokeTaskParameters invokeParameters = new InvokeTaskParameters(ramlFile, ramlResource,
-          isUserParameter);
+    if (taskType == 0) {
+      String ramlFile = taskParamsNode.path("raml").asText();
+      String ramlResource = taskParamsNode.path("resource").asText();
+      int inputType = taskParamsNode.path("inputType").asInt();
+      List<UserParameter> userParameters = this.parseJsonArrayNode(
+          taskParamsNode.path("userParams"), UserParameter.class);
+      String inputVariable = taskParamsNode.path("inputVariable").asText();
+      String targetVariable = taskParamsNode.path("targetVariable").asText();
 
-      if (isUserParameter) {
-        invokeParameters.setUserParameterId(paramsNode.path("userParamId").asText());
-        invokeParameters.setUserParameterType(paramsNode.path("userParamType").asInt());
-      } else {
-        invokeParameters.setInputVariable(paramsNode.path("inputVariable").asText());
-      }
+      boolean isUserParameter = inputType != 0;
 
-      if (paramsNode.has("targetVariable")) {
-        invokeParameters.setTargetVariable(paramsNode.path("targetVariable").asText());
-      }
-
-      return invokeParameters;
-    } else if (taskType == 1 && taskParamsNode.has("assignParams")) {
-      JsonNode paramsNode = taskParamsNode.path("assignParams");
-      String parameterId = paramsNode.path("paramId").asText();
-      String parameterValue = paramsNode.path("value").asText();
-      String targetVariable = paramsNode.path("variable").asText();
-
-      return new AssignTaskParameters(parameterId, parameterValue, targetVariable);
+      return new InvokeTaskParameters(inputType, ramlFile, ramlResource, userParameters,
+          inputVariable, targetVariable, isUserParameter);
+    } else if (taskType == 1) {
+      return this.parseJsonNode(taskParamsNode, AssignTaskParameters.class);
+    } else if (taskType == 2) {
+      return this.parseJsonNode(taskParamsNode, SwitchTaskParameters.class);
     } else {
       throw new CWorkflowParseException("The provided task type is not supported!");
     }
@@ -193,5 +187,13 @@ public class WorkflowParserService {
     } catch (JsonProcessingException ex) {
       throw new CWorkflowParseException(ex.getMessage());
     }
+  }
+
+  private <T> List<T> parseJsonArrayNode(@NonNull final JsonNode node,
+      @NonNull final Class<T> type) {
+    return StreamSupport
+        .stream(Spliterators.spliteratorUnknownSize(node.elements(), Spliterator.ORDERED), false)
+        .map(element -> parseJsonNode(element, type))
+        .toList();
   }
 }

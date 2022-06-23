@@ -79,7 +79,8 @@ public class FileUploadController {
       return ResponseEntity.ok(response);
     } catch (RuntimeException ex) {
       logger.info(ex.getMessage());
-      return ResponseEntity.notFound().build();
+      // Returns an immutable empty list
+      return ResponseEntity.ok(Collections.emptyList());
     }
   }
 

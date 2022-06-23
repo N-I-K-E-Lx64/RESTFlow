@@ -67,8 +67,10 @@ public class CWorkflow implements IWorkflow {
   }
 
   @Override
-  public void setInstanceName(@NonNull final String pInstanceName) {
+  public IWorkflow setInstanceName(@NonNull final String pInstanceName) {
     this.mInstanceName = pInstanceName;
+
+    return this;
   }
 
   @NonNull
@@ -165,7 +167,7 @@ public class CWorkflow implements IWorkflow {
 
   @Override
   public Map<String, IVariable<?>> resetVariable(@NonNull Map<String, IVariable<?>> pVariables) {
-    // pVariables.forEach((key, value) -> value.setValue(null));
+    pVariables.forEach((key, value) -> value.setValue(null));
 
     return pVariables;
   }
@@ -191,6 +193,15 @@ public class CWorkflow implements IWorkflow {
     return this;
   }
 
+  @Override
+  public IWorkflow stop() {
+    // Indicate that the execution has been stopped
+    mStatus = EWorkflowStatus.STOPPED;
+
+    mMonitoringInfo.get().setWorkflowStatus(mStatus).sendMessage();
+    return this;
+  }
+
   /**
    * Methode, die immer eine Aufgabe der Queue ausführt
    */
@@ -204,7 +215,7 @@ public class CWorkflow implements IWorkflow {
       ExecutionLogger.INSTANCE.info(this.mInstanceName, "Executing: " + lCurrentTask);
 
       // Update the monitoring object with the new current task
-      mMonitoringInfo.get().setCurrentActivity(lCurrentTask.id()).sendMessage();
+      mMonitoringInfo.get().setCurrentActivity(lCurrentTask.title()).sendMessage();
 
       // Den Head der Queue ausführen und wenn true geliefert wird, muss auf eine Nachricht gewartet werden
       if (mExecution.element().apply(mExecution)) {

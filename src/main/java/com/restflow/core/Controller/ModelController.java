@@ -3,7 +3,6 @@ package com.restflow.core.Controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.restflow.core.ModelingTool.ModelService;
 import com.restflow.core.ModelingTool.model.WorkflowModel;
-import com.restflow.core.WorkflowExecution.WorkflowService;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.UUID;
@@ -20,19 +19,17 @@ import org.springframework.web.bind.annotation.RestController;
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
-public class ModelingToolController {
+public class ModelController {
 
-  private static final Logger logger = LogManager.getLogger(ModelingToolController.class);
+  private static final Logger logger = LogManager.getLogger(ModelController.class);
 
   private static final ObjectMapper mapper = new ObjectMapper();
 
   private final ModelService modelService;
-  private final WorkflowService workflowService;
 
   @Autowired
-  public ModelingToolController(ModelService modelService, WorkflowService workflowService) {
+  public ModelController(ModelService modelService) {
     this.modelService = modelService;
-    this.workflowService = workflowService;
   }
 
   @RequestMapping(value = "/models", method = RequestMethod.GET)
@@ -77,7 +74,7 @@ public class ModelingToolController {
   public ResponseEntity<WorkflowModel> updateModel(@RequestBody String jsonModel) {
     WorkflowModel parsedModel = this.modelService.parseModel(jsonModel, true);
 
-    logger.info(MessageFormat.format("Successfully updated model {0}", parsedModel.id));
+    logger.info(MessageFormat.format("Successfully updated model {0}", parsedModel.id()));
 
     return ResponseEntity.ok(parsedModel);
   }
@@ -96,23 +93,4 @@ public class ModelingToolController {
 
     return ResponseEntity.ok("Successfully removed Model: " + modelId);
   }
-
-  /**
-   * Function for starting / creating a workflow instance
-   *
-   * @param modelId    Id of the model on which the new instance is based on.
-   * @param instanceId Name of the instance
-   * @return suitable response
-   */
-  @RequestMapping(value = "/execute/{modelId:.+}/{instanceId:.+}", method = RequestMethod.GET)
-  public ResponseEntity<?> startModelExecution(@PathVariable UUID modelId,
-      @PathVariable String instanceId) {
-    this.workflowService.accept(this.modelService.apply(modelId), instanceId);
-
-    return ResponseEntity.ok(
-        MessageFormat.format("Successfully created a new instance {0} from the model {1}",
-            instanceId, modelId));
-  }
-
-  // TODO : Stop, restart operations!
 }

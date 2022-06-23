@@ -2,6 +2,7 @@ package com.restflow.core.ModelingTool;
 
 import com.restflow.core.ModelingTool.model.WorkflowModel;
 import com.restflow.core.Storage.StorageService;
+import com.restflow.core.WorkflowParser.RamlParserService;
 import com.restflow.core.WorkflowParser.WorkflowParserService;
 import java.io.File;
 import java.text.MessageFormat;
@@ -50,7 +51,7 @@ public class ModelService implements Supplier<List<WorkflowModel>>, Function<UUI
       logger.info(MessageFormat.format("{0} models were successfully restored", models.size()));
       return models.stream()
           .map(workflowParserService::parseFileModel)
-          .collect(Collectors.toMap(WorkflowModel::getId, Function.identity()));
+          .collect(Collectors.toMap(WorkflowModel::id, Function.identity()));
     } else {
       return new ConcurrentHashMap<>();
     }
@@ -69,38 +70,38 @@ public class ModelService implements Supplier<List<WorkflowModel>>, Function<UUI
     // Add it to the state and save it permanently
     if (isUpdate) {
       this.updateModel(parsedModel);
-      logger.info(MessageFormat.format("Model {0} is successfully updated.", parsedModel.id));
+      logger.info(MessageFormat.format("Model {0} is successfully updated.", parsedModel.id()));
     } else {
       this.addModel(parsedModel);
-      logger.info(MessageFormat.format("Saved new model {0}.", parsedModel.id));
+      logger.info(MessageFormat.format("Saved new model {0}.", parsedModel.id()));
     }
     // Store model permanently
-    this.storageService.storeModel(jsonModel, String.valueOf(parsedModel.id));
+    this.storageService.storeModel(jsonModel, String.valueOf(parsedModel.id()));
 
     return parsedModel;
   }
 
   public void addModel(@NonNull final WorkflowModel model) {
-    if (workflowModels.containsKey(model.id)) {
-      if (model != workflowModels.get(model.id)) {
-        workflowModels.replace(model.id, model);
+    if (workflowModels.containsKey(model.id())) {
+      if (model != workflowModels.get(model.id())) {
+        workflowModels.replace(model.id(), model);
       } else {
         throw new RuntimeException(
-            MessageFormat.format("Workflow Model with id [{0}] already exists!", model.name));
+            MessageFormat.format("Workflow Model with id [{0}] already exists!", model.name()));
       }
     } else {
-      workflowModels.put(model.id, model);
+      workflowModels.put(model.id(), model);
     }
   }
 
   public void updateModel(@NonNull final WorkflowModel model) {
-    if (workflowModels.containsKey(model.id)) {
-      if (model != workflowModels.get(model.id)) {
-        workflowModels.replace(model.id, model);
+    if (workflowModels.containsKey(model.id())) {
+      if (model != workflowModels.get(model.id())) {
+        workflowModels.replace(model.id(), model);
       }
     } else {
       throw new RuntimeException(
-          MessageFormat.format("Workflow Model with id [{0}] could not be found!", model.id));
+          MessageFormat.format("Workflow Model with id [{0}] could not be found!", model.id()));
     }
   }
 
@@ -113,6 +114,7 @@ public class ModelService implements Supplier<List<WorkflowModel>>, Function<UUI
     workflowModels.remove(modelId);
     // Remove the model also from the storage
     storageService.deleteFile(modelId.toString().concat(".json"));
+    storageService.deleteFolder(modelId.toString());
   }
 
   /**
@@ -140,7 +142,7 @@ public class ModelService implements Supplier<List<WorkflowModel>>, Function<UUI
   public List<WorkflowModel> get() {
     List<WorkflowModel> sortedList = new ArrayList<>(workflowModels.values());
     if (!sortedList.isEmpty()) {
-      sortedList.sort(Comparator.comparing(WorkflowModel::getName));
+      sortedList.sort(Comparator.comparing(WorkflowModel::name));
     }
 
     return sortedList;

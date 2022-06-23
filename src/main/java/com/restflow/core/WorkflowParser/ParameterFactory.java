@@ -1,11 +1,13 @@
 package com.restflow.core.WorkflowParser;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.restflow.core.ModelingTool.model.Parameter;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.CParameter;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.CVariable;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.IParameter;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.IVariable;
 import java.text.MessageFormat;
+import java.util.UUID;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
@@ -66,5 +68,18 @@ public class ParameterFactory {
       default -> throw new CWorkflowParseException(
           MessageFormat.format("Parameter-Type [{0}] does not match any known type!", pType));
     };
+  }
+
+  /**
+   * Creates a CParameter-Object out of a Parameter model
+   *
+   * @param pParameter Model of a Parameter
+   * @return A generic IParameter object
+   * @see CParameter
+   */
+  public IParameter<?> createParameterFromParameter(@NonNull final Parameter pParameter) {
+    final Class<?> parameterType = this.determineClass(pParameter.type());
+    return new CParameter<>(UUID.randomUUID().toString(), false, parameterType).setValue(
+        pParameter.value());
   }
 }

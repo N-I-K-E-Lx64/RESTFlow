@@ -1,13 +1,9 @@
 package com.restflow.core.Controller;
 
 import com.restflow.core.Network.Objects.CCollaborationMessage;
-import com.restflow.core.WorkflowDatabase.EActiveWorkflows;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -27,12 +23,12 @@ public class CollaborationController {
    * @return suitable response
    * @see CCollaborationMessage
    */
-  @RequestMapping(value = "/sendMessage", method = RequestMethod.POST)
+  /*@RequestMapping(value = "/sendMessage", method = RequestMethod.POST)
   public ResponseEntity<?> retrieveCollaboration(@RequestBody CCollaborationMessage pMessage) {
 
     EActiveWorkflows.INSTANCE.apply(pMessage.getInstanceId()).accept(pMessage);
     logger.info(pMessage);
 
     return ResponseEntity.ok().body("Message successfully received!");
-  }
+  }*/
 }
