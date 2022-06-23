@@ -17,7 +17,7 @@ public interface IWorkflow extends Consumer<IMessage> {
   @NonNull
   String instance();
 
-  void setInstanceName(@NonNull final String pInstanceName);
+  IWorkflow setInstanceName(@NonNull final String pInstanceName);
 
   @NonNull
   UUID modelReference();
@@ -59,6 +59,8 @@ public interface IWorkflow extends Consumer<IMessage> {
 
   @NonNull
   IWorkflow start();
+
+  IWorkflow stop();
 
   void executeStep();
 

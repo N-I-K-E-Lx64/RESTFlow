@@ -2,6 +2,7 @@ package com.restflow.core.WorkflowParser.WorkflowParserObjects.Tasks;
 
 import com.restflow.core.WorkflowExecution.WorkflowTasks.ETaskType;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.IVariable;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import org.springframework.lang.NonNull;
 
@@ -11,11 +12,12 @@ public class CReceiveTask extends ATask {
   private final AtomicReference<IVariable<?>> mTargetReference = new AtomicReference<>();
   private final Integer mActivityId;
 
-  public CReceiveTask(@NonNull final String taskId,
+  public CReceiveTask(@NonNull final UUID taskId,
+      @NonNull final String title,
       @NonNull final String description,
       @NonNull final Integer activityId,
       @NonNull final IVariable<?> targetVariable) {
-    super(taskId, description, ETaskType.RECEIVE);
+    super(taskId, title, description, ETaskType.RECEIVE);
 
     this.mActivityId = activityId;
     this.mTargetReference.set(targetVariable);

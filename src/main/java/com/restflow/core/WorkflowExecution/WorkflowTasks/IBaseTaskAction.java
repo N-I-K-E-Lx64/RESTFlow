@@ -1,6 +1,7 @@
 package com.restflow.core.WorkflowExecution.WorkflowTasks;
 
 import com.restflow.core.WorkflowExecution.Objects.IWorkflow;
+import java.util.UUID;
 import org.springframework.lang.NonNull;
 
 public abstract class IBaseTaskAction implements ITaskAction {
@@ -12,5 +13,8 @@ public abstract class IBaseTaskAction implements ITaskAction {
   }
 
   @NonNull
-  public abstract String id();
+  public abstract UUID id();
+
+  @NonNull
+  public abstract String title();
 }

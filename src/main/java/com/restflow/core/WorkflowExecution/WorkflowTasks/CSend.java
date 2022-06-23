@@ -8,6 +8,7 @@ import com.restflow.core.WorkflowExecution.Objects.IWorkflow;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.Tasks.CSendTask;
 import java.text.MessageFormat;
 import java.util.Queue;
+import java.util.UUID;
 import org.springframework.lang.NonNull;
 
 public class CSend extends IBaseTaskAction {
@@ -48,7 +49,13 @@ public class CSend extends IBaseTaskAction {
 
   @NonNull
   @Override
-  public String id() {
+  public UUID id() {
     return mTask.id();
+  }
+
+  @NonNull
+  @Override
+  public String title() {
+    return "null";
   }
 }

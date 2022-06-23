@@ -2,18 +2,22 @@ package com.restflow.core.WorkflowParser.WorkflowParserObjects.Tasks;
 
 import com.restflow.core.WorkflowExecution.WorkflowTasks.ETaskType;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.ITask;
+import java.util.UUID;
 import org.springframework.lang.NonNull;
 
 public abstract class ATask implements ITask {
 
-  protected String mId;
+  protected UUID mId;
+  protected String mTitle;
   protected String mDescription;
   protected ETaskType mType;
 
-  protected ATask(@NonNull final String taskId,
+  protected ATask(@NonNull final UUID taskId,
+      @NonNull final String title,
       @NonNull final String description,
       @NonNull final ETaskType type) {
     this.mId = taskId;
+    this.mTitle = title;
     this.mDescription = description;
     this.mType = type;
   }
@@ -27,8 +31,14 @@ public abstract class ATask implements ITask {
 
   @NonNull
   @Override
-  public String id() {
+  public UUID id() {
     return this.mId;
+  }
+
+  @NonNull
+  @Override
+  public String title() {
+    return this.mTitle;
   }
 
   @NonNull

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.restflow.core.Network.Objects.CCollaborationMessage;
 import com.restflow.core.WorkflowExecution.WorkflowTasks.ETaskType;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.IVariable;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import org.springframework.lang.NonNull;
 
@@ -17,13 +18,14 @@ public class CSendTask extends ATask {
   private final AtomicReference<IVariable<?>> mSourceReference = new AtomicReference<>();
   private final Integer mActivityId;
 
-  public CSendTask(@NonNull final String taskId,
+  public CSendTask(@NonNull final UUID taskId,
+      @NonNull final String title,
       @NonNull final String description,
       @NonNull final String targetSystemUrl,
       @NonNull final String targetWorkflowInstance,
       @NonNull final IVariable<?> sourceVariable,
       @NonNull final Integer activityId) {
-    super(taskId, description, ETaskType.SEND);
+    super(taskId, title, description, ETaskType.SEND);
 
     this.mTargetSystemUrl = targetSystemUrl;
     this.mTargetWorkflow = targetWorkflowInstance;

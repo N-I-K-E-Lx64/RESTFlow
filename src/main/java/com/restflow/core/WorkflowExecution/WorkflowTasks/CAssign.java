@@ -4,6 +4,7 @@ import com.restflow.core.Network.IMessage;
 import com.restflow.core.WorkflowExecution.Objects.IWorkflow;
 import com.restflow.core.WorkflowParser.WorkflowParserObjects.Tasks.CAssignTask;
 import java.util.Queue;
+import java.util.UUID;
 import org.springframework.lang.NonNull;
 
 public class CAssign extends IBaseTaskAction {
@@ -37,7 +38,13 @@ public class CAssign extends IBaseTaskAction {
 
   @NonNull
   @Override
-  public String id() {
+  public UUID id() {
     return mTask.id();
+  }
+
+  @NonNull
+  @Override
+  public String title() {
+    return mTask.title();
   }
 }

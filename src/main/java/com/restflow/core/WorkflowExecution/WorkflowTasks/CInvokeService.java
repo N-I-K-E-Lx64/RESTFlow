@@ -18,6 +18,7 @@ import java.text.MessageFormat;
 import java.util.List;
 import java.util.Objects;
 import java.util.Queue;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.http.MediaType;
 import org.springframework.lang.NonNull;
@@ -126,7 +127,13 @@ public class CInvokeService extends IBaseTaskAction {
 
   @NonNull
   @Override
-  public String id() {
+  public UUID id() {
     return mTask.id();
+  }
+
+  @NonNull
+  @Override
+  public String title() {
+    return mTask.title();
   }
 }
