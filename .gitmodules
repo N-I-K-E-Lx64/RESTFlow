@@ -1,0 +1,3 @@
+[submodule "RESTFlow-UI"]
+	path = RESTFlow-UI
+	url = git@github.com:N-I-K-E-Lx64/RESTFlow-UI.git
